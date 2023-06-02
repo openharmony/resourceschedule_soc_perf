@@ -8,6 +8,19 @@ SOC统一调频服务作为资源调度子系统的子模块，主要功能是�
 **图1** 统一调频部件架构图
 
  ![架构图](figures/resource_schedule_socperf_architecture_ZH_1.png)
+ 
+
+ 架构说明：
+
+ 1、应用调用系统服务，触发系统事件。
+
+ 2、在系统事件回调中通过统一调频提供的内部接口插入调频事件桩点。
+
+ 3、在资源调度服务中感知系统事件，转发给统一调频插件。
+
+ 4、在统一调频服务中根据系统事件查找配置，找到与其对应的调频配置，经过调频仲裁后得到最终的调频策略。
+
+ 5、统一调频模块将调频策略参数传递给内核完成调频。
 
 ## 目录
 ```
@@ -23,11 +36,11 @@ SOC统一调频服务作为资源调度子系统的子模块，主要功能是�
 │    └── server                   # SocPerf服务端代码，用于接受客户端发送的调频请求
 ```
 ## 编译构建
-编译32位ARM系统soc_perf部件
+编译32位ARM系统soc_perf部件：
 ```
 ./build.sh --product-name {product_name} --ccache --build-target soc_perf
 ```
-编译64位ARM系统soc_perf部件
+编译64位ARM系统soc_perf部件：
 ```
 ./build.sh --product-name {product_name} --ccache --target-cpu arm64 --build-target soc_perf
 ```
@@ -74,15 +87,15 @@ socperf_boost_config.xml使用的cmdID不能重复。
 要实现点击场景的提频，分为点击事件插桩、事件上报给资源调度框架、框架给插件分发事件、生效调频服务四个步骤。  
 
 第一步，  
-ACE子系统仓内实现了对资源调度框架提供的可动态加载接口ReportData的封装，路径为/framework/base/ressched/ressched_report.h
-并在/framework/core/gestures/click_recognizer.cpp增加了打点作为手势识别中对点击事件的判定  
+ArkUI框架子系统仓内实现了对资源调度框架提供的可动态加载接口ReportData的封装，路径为/framework/base/ressched/ressched_report.h
+并在/framework/core/gestures/click_recognizer.cpp增加了打点作为手势识别中对点击事件的判定。
 
 第二步，  
-通过动态加载libressched_client.z.so，调用资源调度框架提供的接口ReportData，ACE子系统将点击事件上报给全局资源调度子系统  
+通过动态加载libressched_client.z.so，调用资源调度框架提供的接口ReportData，ACE子系统将点击事件上报给全局资源调度子系统。  
 
 第三步，  
 在资源调度框架里，点击事件类型定义在/ressched/interfaces/innerkits/ressched_client/include/res_type.h内，为RES_TYPE_CLICK_RECOGNIZE  
-由于调频插件socperf_plugin在初始化过程中已完成了对该点击事件的订阅，因此框架会在接受到事件通知时将点击事件分发给调频插件  
+由于调频插件socperf_plugin在初始化过程中已完成了对该点击事件的订阅，因此框架会在接受到事件通知时将点击事件分发给调频插件。  
 
 第四步，  
 调频插件socperf_plugin对于点击事件分配了cmdID：PERF_REQUEST_CMD_ID_EVENT_CLICK，路径在/ressched/plugins/socperf_plugin/src/socperf_plugin.cpp下  
