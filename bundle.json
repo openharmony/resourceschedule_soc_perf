@@ -5,7 +5,7 @@
   "license": "Apache License 2.0",
   "publishAs": "code-segment",
   "segment": {
-    "destPath": "foundation/resourceschedule/resource_schedule_service/soc_perf"
+    "destPath": "foundation/resourceschedule/soc_perf"
   },
   "dirs": {},
   "scripts": {},
@@ -15,8 +15,6 @@
     "syscap": [],
     "features": [],
     "adapted_system_type": [
-      "mini",
-      "small",
       "standard"
     ],
     "rom": "2048KB",
@@ -38,20 +36,20 @@
     "build": {
       "group_type": {
         "base_group" : [
-          "//foundation/resourceschedule/resource_schedule_service/soc_perf/profile:socperf_config"
+          "//foundation/resourceschedule/soc_perf/profile:socperf_config"
         ],
         "fwk_group" : [
-          "//foundation/resourceschedule/resource_schedule_service/soc_perf/interfaces/inner_api/socperf_client:socperf_client"
+          "//foundation/resourceschedule/soc_perf/interfaces/inner_api/socperf_client:socperf_client"
         ],
         "service_group" : [
-          "//foundation/resourceschedule/resource_schedule_service/soc_perf/sa_profile:socperf_sa_profile",
-          "//foundation/resourceschedule/resource_schedule_service/soc_perf/services:socperf_server"
+          "//foundation/resourceschedule/soc_perf/sa_profile:socperf_sa_profile",
+          "//foundation/resourceschedule/soc_perf/services:socperf_server"
         ]
       },
       "inner_kits": [
         {
           "header": {
-            "header_base": "//foundation/resourceschedule/resource_schedule_service/soc_perf/interfaces/inner_api/socperf_client/include",
+            "header_base": "//foundation/resourceschedule/soc_perf/interfaces/inner_api/socperf_client/include",
             "header_files": [
               "i_socperf_service.h",
               "socperf_action_type.h",
@@ -59,13 +57,13 @@
               "socperf_proxy.h"
             ]
           },
-          "name": "//foundation/resourceschedule/resource_schedule_service/soc_perf/interfaces/inner_api/socperf_client:socperf_client"
+          "name": "//foundation/resourceschedule/soc_perf/interfaces/inner_api/socperf_client:socperf_client"
         }
       ],
       "test": [
-        "//foundation/resourceschedule/resource_schedule_service/soc_perf/test/unittest:unittest",
-        "//foundation/resourceschedule/resource_schedule_service/soc_perf/test/fuzztest:fuzztest",
-        "//foundation/resourceschedule/resource_schedule_service/soc_perf/test/testutil:socperf_test"
+        "//foundation/resourceschedule/soc_perf/test/unittest:unittest",
+        "//foundation/resourceschedule/soc_perf/test/fuzztest:fuzztest",
+        "//foundation/resourceschedule/soc_perf/test/testutil:socperf_test"
       ]
     }
   }

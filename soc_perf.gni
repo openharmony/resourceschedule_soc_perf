@@ -12,7 +12,7 @@
 # limitations under the License.
 
 socperf_path =
-    "//foundation/resourceschedule/resource_schedule_service/soc_perf"
+    "//foundation/resourceschedule/soc_perf"
 
 socperf_services = "${socperf_path}/services"
 
