@@ -23,7 +23,6 @@ config("socperf_client_public_config") {
 
 ohos_shared_library("socperf_client") {
   sources = [
-    "${socperf_common}/src/socperf_log.cpp",
     "src/socperf_client.cpp",
     "src/socperf_proxy.cpp",
   ]
@@ -32,7 +31,7 @@ ohos_shared_library("socperf_client") {
 
   external_deps = [
     "c_utils:utils",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
@@ -42,4 +41,11 @@ ohos_shared_library("socperf_client") {
   version_script = "libsocperf_client.versionscript"
   part_name = "soc_perf"
   subsystem_name = "resourceschedule"
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 }
