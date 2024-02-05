@@ -11,8 +11,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-
- * any change to socperf_ipc_interface_code.h needs to be reviewed by @leonchan5
  */
 
 #ifndef SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_SOCPERF_IPC_INTERFACE_CODE_H
