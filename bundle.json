@@ -21,17 +21,22 @@
     "ram": "10240KB",
     "deps": {
       "components": [
+        "access_token",
         "c_utils",
         "config_policy",
         "eventhandler",
-        "hitrace_native",
-        "hiviewdfx_hilog_native",
+        "ffrt",
+        "hitrace",
+        "hilog",
         "ipc",
-        "libxml2",
+        "init",
         "safwk",
-        "samgr"
+        "samgr",
+        "hisysevent"
       ],
-      "third_party": []
+      "third_party": [
+        "libxml2"
+      ]
     },
     "build": {
       "group_type": {
@@ -54,7 +59,8 @@
               "i_socperf_service.h",
               "socperf_action_type.h",
               "socperf_client.h",
-              "socperf_proxy.h"
+              "socperf_proxy.h",
+              "socperf_ipc_interface_code.h"
             ]
           },
           "name": "//foundation/resourceschedule/soc_perf/interfaces/inner_api/socperf_client:socperf_client"

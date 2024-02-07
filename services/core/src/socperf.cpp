@@ -16,11 +16,10 @@
 
 #include "socperf.h"
 
-#ifdef CUSTOMIZATION_CONFIG_POLICY_ENABLE
 #include "config_policy_utils.h"
-#endif // CUSTOMIZATION_CONFIG_POLICY_ENABLE
-
+#include "hisysevent.h"
 #include "hitrace_meter.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -34,32 +33,41 @@ SocPerf::~SocPerf()
 
 bool SocPerf::Init()
 {
-#ifdef CUSTOMIZATION_CONFIG_POLICY_ENABLE
+    resourceConfigXml = system::GetParameter("ohos.boot.kernel", "").size() > 0 ?
+        SOCPERF_BOOST_CONFIG_XML_EXT : SOCPERF_BOOST_CONFIG_XML;
     if (!LoadConfigXmlFile(SOCPERF_RESOURCE_CONFIG_XML)) {
         SOC_PERF_LOGE("Failed to load %{public}s", SOCPERF_RESOURCE_CONFIG_XML.c_str());
         return false;
     }
 
-    if (!LoadConfigXmlFile(SOCPERF_BOOST_CONFIG_XML)) {
-        SOC_PERF_LOGE("Failed to load %{public}s", SOCPERF_BOOST_CONFIG_XML.c_str());
+    if (!LoadConfigXmlFile(resourceConfigXml)) {
+        SOC_PERF_LOGE("Failed to load %{public}s", resourceConfigXml.c_str());
         return false;
     }
-#endif // CUSTOMIZATION_CONFIG_POLICY_ENABLE
 
     PrintCachedInfo();
 
-    if (!CreateHandlers()) {
-        SOC_PERF_LOGE("Failed to create handler threads");
+    if (!CreateThreadWraps()) {
+        SOC_PERF_LOGE("Failed to create threadwraps threads");
         return false;
     }
 
-    InitHandlerThreads();
+    InitThreadWraps();
 
+    for (auto threadWrap : socperfThreadWraps) {
+        if (threadWrap && perfSoPath && perfSoFunc) {
+            threadWrap->InitPerfFunc(perfSoPath, perfSoFunc);
+        }
+    }
+
+    xmlFree(perfSoPath);
+    perfSoPath = nullptr;
+    xmlFree(perfSoFunc);
+    perfSoFunc = nullptr;
     resNodeInfo.clear();
     govResNodeInfo.clear();
     resStrToIdInfo.clear();
     limitRequest = std::vector<std::unordered_map<int32_t, int32_t>>(ACTION_TYPE_MAX);
-
     enabled = true;
 
     SOC_PERF_LOGD("SocPerf Init SUCCESS!");
@@ -70,11 +78,11 @@ bool SocPerf::Init()
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 {
     if (!enabled) {
-        SOC_PERF_LOGE("SocPerf disabled!");
+        SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
     if (perfActionsInfo.find(cmdId) == perfActionsInfo.end()) {
-        SOC_PERF_LOGE("Invalid PerfRequest cmdId[%{public}d]", cmdId);
+        SOC_PERF_LOGD("Invalid PerfRequest cmdId[%{public}d]", cmdId);
         return;
     }
     SOC_PERF_LOGD("cmdId[%{public}d]msg[%{public}s]", cmdId, msg.c_str());
@@ -90,11 +98,11 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
 {
     if (!enabled) {
-        SOC_PERF_LOGE("SocPerf disabled!");
+        SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
     if (perfActionsInfo.find(cmdId) == perfActionsInfo.end()) {
-        SOC_PERF_LOGE("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
+        SOC_PERF_LOGD("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
         return;
     }
     SOC_PERF_LOGD("cmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
@@ -112,65 +120,89 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
 void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
 {
     if (!enabled) {
-        SOC_PERF_LOGE("SocPerf disabled!");
+        SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
-    SOC_PERF_LOGD("onOffTag[%{public}d]msg[%{public}s]", onOffTag, msg.c_str());
+    SOC_PERF_LOGI("onOffTag[%{public}d]msg[%{public}s]", onOffTag, msg.c_str());
 
     std::string trace_str(__func__);
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    for (auto handler : handlers) {
-        if (handler) {
+    for (auto threadWrap : socperfThreadWraps) {
+        if (threadWrap) {
+#ifdef SOCPERF_ADAPTOR_FFRT
+            threadWrap->UpdatePowerLimitBoostFreq(onOffTag);
+#else
             auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_POWER_LIMIT_BOOST_FREQ, onOffTag ? 1 : 0);
-            handler->SendEvent(event);
+            threadWrap->SendEvent(event);
+#endif
         }
     }
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
+                    OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
+                    "CLIENT_ID", ACTION_TYPE_POWER,
+                    "ON_OFF_TAG", onOffTag);
     FinishTrace(HITRACE_TAG_OHOS);
 }
 
 void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 {
     if (!enabled) {
-        SOC_PERF_LOGE("SocPerf disabled!");
+        SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
-    SOC_PERF_LOGD("onOffTag[%{public}d]msg[%{public}s]", onOffTag, msg.c_str());
+    SOC_PERF_LOGI("onOffTag[%{public}d]msg[%{public}s]", onOffTag, msg.c_str());
     std::string trace_str(__func__);
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    for (auto handler : handlers) {
-        if (handler) {
+    for (auto threadWrap : socperfThreadWraps) {
+        if (threadWrap) {
+#ifdef SOCPERF_ADAPTOR_FFRT
+            threadWrap->UpdateThermalLimitBoostFreq(onOffTag);
+#else
             auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_THERMAL_LIMIT_BOOST_FREQ, onOffTag ? 1 : 0);
-            handler->SendEvent(event);
+            threadWrap->SendEvent(event);
+#endif
         }
     }
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
+                    OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
+                    "CLIENT_ID", ACTION_TYPE_THERMAL,
+                    "ON_OFF_TAG", onOffTag);
     FinishTrace(HITRACE_TAG_OHOS);
 }
 
-void SocPerf::SendLimitRequestEventOff(std::shared_ptr<SocPerfHandler> handler,
+void SocPerf::SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
     int32_t clientId, int32_t resId, int32_t eventId)
 {
     auto iter = limitRequest[clientId].find(resId);
     if (iter != limitRequest[clientId].end()
         && limitRequest[clientId][resId] != INVALID_VALUE) {
         auto resAction = std::make_shared<ResAction>(
-            limitRequest[clientId][resId], 0, clientId, EVENT_OFF);
+            limitRequest[clientId][resId], 0, clientId, EVENT_OFF, -1, MAX_INT_VALUE);
+#ifdef SOCPERF_ADAPTOR_FFRT
+        threadWrap->UpdateLimitStatus(eventId, resAction, resId);
+#else
         auto event = AppExecFwk::InnerEvent::Get(eventId, resAction, resId);
-        handler->SendEvent(event);
+        threadWrap->SendEvent(event);
+#endif
         limitRequest[clientId].erase(iter);
     }
 }
 
-void SocPerf::SendLimitRequestEventOn(std::shared_ptr<SocPerfHandler> handler,
+void SocPerf::SendLimitRequestEventOn(std::shared_ptr<SocPerfThreadWrap> threadWrap,
     int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId)
 {
     if (resValue != INVALID_VALUE && resValue != RESET_VALUE) {
-        auto resAction = std::make_shared<ResAction>(resValue, 0, clientId, EVENT_ON);
+        auto resAction = std::make_shared<ResAction>(resValue, 0, clientId, EVENT_ON, -1, MAX_INT_VALUE);
+#ifdef SOCPERF_ADAPTOR_FFRT
+        threadWrap->UpdateLimitStatus(eventId, resAction, resId);
+#else
         auto event = AppExecFwk::InnerEvent::Get(eventId, resAction, resId);
-        handler->SendEvent(event);
+        threadWrap->SendEvent(event);
+#endif
         limitRequest[clientId].insert(std::pair<int32_t, int32_t>(resId, resValue));
     }
 }
@@ -188,14 +220,14 @@ void SocPerf::SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t res
         eventId = INNER_EVENT_ID_DO_FREQ_ACTION;
     }
 
-    auto handler = GetHandlerByResId(realResId);
-    if (!handler) {
+    auto threadWrap = GetThreadWrapByResId(realResId);
+    if (!threadWrap) {
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    SendLimitRequestEventOff(handler, clientId, realResId, INNER_EVENT_ID_DO_FREQ_ACTION);
-    SendLimitRequestEventOff(handler, clientId, levelResId, INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL);
-    SendLimitRequestEventOn(handler, clientId, resId, resValue, eventId);
+    SendLimitRequestEventOff(threadWrap, clientId, realResId, INNER_EVENT_ID_DO_FREQ_ACTION);
+    SendLimitRequestEventOff(threadWrap, clientId, levelResId, INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL);
+    SendLimitRequestEventOn(threadWrap, clientId, resId, resValue, eventId);
 }
 
 void SocPerf::LimitRequest(int32_t clientId,
@@ -214,7 +246,7 @@ void SocPerf::LimitRequest(int32_t clientId,
         return;
     }
     for (int32_t i = 0; i < (int32_t)tags.size(); i++) {
-        SOC_PERF_LOGD("clientId[%{public}d],tags[%{public}d],configs[%{public}lld],msg[%{public}s]",
+        SOC_PERF_LOGI("clientId[%{public}d],tags[%{public}d],configs[%{public}lld],msg[%{public}s]",
             clientId, tags[i], (long long)configs[i], msg.c_str());
         SendLimitRequestEvent(clientId, tags[i], configs[i]);
     }
@@ -222,8 +254,10 @@ void SocPerf::LimitRequest(int32_t clientId,
 
 void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType)
 {
-    std::shared_ptr<ResActionItem> header[MAX_HANDLER_THREADS] = { nullptr };
-    std::shared_ptr<ResActionItem> curItem[MAX_HANDLER_THREADS] = { nullptr };
+    std::shared_ptr<ResActionItem> header[MAX_QUEUE_NUM] = { nullptr };
+    std::shared_ptr<ResActionItem> curItem[MAX_QUEUE_NUM] = { nullptr };
+    auto now = std::chrono::system_clock::now();
+    int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
         std::shared_ptr<Action> action = *iter;
         for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
@@ -231,8 +265,10 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
                 continue;
             }
             auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
+            int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
             resActionItem->resAction =
-                std::make_shared<ResAction>(action->variable[i + 1], action->duration, actionType, onOff);
+                std::make_shared<ResAction>(action->variable[i + 1], action->duration,
+                    actionType, onOff, actions->id, endTime);
             int32_t id = action->variable[i] / RES_ID_NUMS_PER_TYPE - 1;
             if (curItem[id]) {
                 curItem[id]->next = resActionItem;
@@ -242,17 +278,20 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             curItem[id] = resActionItem;
         }
     }
-    for (int32_t i = 0; i < MAX_HANDLER_THREADS; ++i) {
-        if (!handlers[i] || !header[i]) {
+    for (int32_t i = 0; i < MAX_QUEUE_NUM; ++i) {
+        if (!socperfThreadWraps[i] || !header[i]) {
             continue;
         }
+#ifdef SOCPERF_ADAPTOR_FFRT
+        socperfThreadWraps[i]->DoFreqActionPack(header[i]);
+#else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_PACK, header[i]);
-        handlers[i]->SendEvent(event);
+        socperfThreadWraps[i]->SendEvent(event);
+#endif
     }
 }
 
-#ifdef CUSTOMIZATION_CONFIG_POLICY_ENABLE
-std::string SocPerf::GetRealConfigPath(const std::string configFile)
+std::string SocPerf::GetRealConfigPath(const std::string& configFile)
 {
     char buf[PATH_MAX + 1];
     char* configFilePath = GetOneCfgFile(configFile.c_str(), buf, PATH_MAX + 1);
@@ -264,18 +303,16 @@ std::string SocPerf::GetRealConfigPath(const std::string configFile)
     }
     return std::string(tmpPath);
 }
-#endif // CUSTOMIZATION_CONFIG_POLICY_ENABLE
 
-std::shared_ptr<SocPerfHandler> SocPerf::GetHandlerByResId(int32_t resId)
+std::shared_ptr<SocPerfThreadWrap> SocPerf::GetThreadWrapByResId(int32_t resId) const
 {
     if (!IsValidResId(resId)) {
         return nullptr;
     }
-    return handlers[resId / RES_ID_NUMS_PER_TYPE - 1];
+    return socperfThreadWraps[resId / RES_ID_NUMS_PER_TYPE - 1];
 }
 
-#ifdef CUSTOMIZATION_CONFIG_POLICY_ENABLE
-bool SocPerf::LoadConfigXmlFile(std::string configFile)
+bool SocPerf::LoadConfigXmlFile(const std::string& configFile)
 {
     std::string realConfigFile = GetRealConfigPath(configFile);
     if (realConfigFile.size() <= 0) {
@@ -295,23 +332,13 @@ bool SocPerf::LoadConfigXmlFile(std::string configFile)
     }
     if (!xmlStrcmp(rootNode->name, reinterpret_cast<const xmlChar*>("Configs"))) {
         if (realConfigFile.find(SOCPERF_RESOURCE_CONFIG_XML) != std::string::npos) {
-            xmlNode* child = rootNode->children;
-            for (; child; child = child->next) {
-                if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Resource"))) {
-                    if (!LoadResource(child, realConfigFile)) {
-                        xmlFreeDoc(file);
-                        return false;
-                    }
-                } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("GovResource"))) {
-                    if (!LoadGovResource(child, realConfigFile)) {
-                        xmlFreeDoc(file);
-                        return false;
-                    }
-                }
+            bool ret = ParseResourceXmlFile(rootNode, realConfigFile, file);
+            if (!ret) {
+                return false;
             }
         } else {
-            if (!LoadCmd(rootNode, realConfigFile)) {
-                xmlFreeDoc(file);
+            bool ret = ParseBoostXmlFile(rootNode, realConfigFile, file);
+            if (!ret) {
                 return false;
             }
         }
@@ -324,108 +351,103 @@ bool SocPerf::LoadConfigXmlFile(std::string configFile)
     SOC_PERF_LOGD("Success to Load %{public}s", configFile.c_str());
     return true;
 }
-#endif // CUSTOMIZATION_CONFIG_POLICY_ENABLE
 
-bool SocPerf::CreateHandlers()
+bool SocPerf::ParseBoostXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file)
 {
-    handlers = std::vector<std::shared_ptr<SocPerfHandler>>(MAX_HANDLER_THREADS);
-    std::string threadName = "socperf#";
-    for (int32_t i = 0; i < (int32_t)handlers.size(); i++) {
-        if (!handlerSwitch[i]) {
-            handlers[i] = nullptr;
+    if (!LoadCmd(rootNode, realConfigFile)) {
+        xmlFreeDoc(file);
+        return false;
+    }
+    return true;
+}
+
+bool SocPerf::ParseResourceXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file)
+{
+    xmlNode* child = rootNode->children;
+    for (; child; child = child->next) {
+        if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Resource"))) {
+            if (!LoadResource(child, realConfigFile)) {
+                xmlFreeDoc(file);
+                return false;
+            }
+        } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("GovResource"))) {
+            if (!LoadGovResource(child, realConfigFile)) {
+                xmlFreeDoc(file);
+                return false;
+            }
+        } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Info"))) {
+            LoadInfo(child, realConfigFile);
+        }
+    }
+    return true;
+}
+
+bool SocPerf::CreateThreadWraps()
+{
+    socperfThreadWraps = std::vector<std::shared_ptr<SocPerfThreadWrap>>(MAX_QUEUE_NUM);
+    for (int32_t i = 0; i < (int32_t)socperfThreadWraps.size(); i++) {
+        if (!wrapSwitch[i]) {
+            socperfThreadWraps[i] = nullptr;
             continue;
         }
-        auto runner = AppExecFwk::EventRunner::Create(threadName + std::to_string(i));
+#ifdef SOCPERF_ADAPTOR_FFRT
+        auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>();
+#else
+        auto runner = AppExecFwk::EventRunner::Create("socperf#" + std::to_string(i));
         if (!runner) {
             SOC_PERF_LOGE("Failed to Create EventRunner");
             return false;
         }
-        handlers[i] = std::make_shared<SocPerfHandler>(runner);
+        auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>(runner);
+#endif
+        if (!socPerfThreadWrap) {
+            SOC_PERF_LOGE("Failed to Create socPerfThreadWrap");
+            return false;
+        }
+        socperfThreadWraps[i] = socPerfThreadWrap;
     }
-    SOC_PERF_LOGD("Success to Create All Handler threads");
+    SOC_PERF_LOGD("Success to Create All threadWrap threads");
     return true;
 }
 
-void SocPerf::InitHandlerThreads()
+void SocPerf::InitThreadWraps()
 {
     for (auto iter = resNodeInfo.begin(); iter != resNodeInfo.end(); ++iter) {
         std::shared_ptr<ResNode> resNode = iter->second;
-        auto handler = GetHandlerByResId(resNode->id);
-        if (!handler) {
+        auto threadWrap = GetThreadWrapByResId(resNode->id);
+        if (!threadWrap) {
             continue;
         }
+#ifdef SOCPERF_ADAPTOR_FFRT
+        threadWrap->InitResNodeInfo(resNode);
+#else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_INIT_RES_NODE_INFO, resNode);
-        handler->SendEvent(event);
+        threadWrap->SendEvent(event);
+#endif
     }
     for (auto iter = govResNodeInfo.begin(); iter != govResNodeInfo.end(); ++iter) {
         std::shared_ptr<GovResNode> govResNode = iter->second;
-        auto handler = GetHandlerByResId(govResNode->id);
-        if (!handler) {
+        auto threadWrap = GetThreadWrapByResId(govResNode->id);
+        if (!threadWrap) {
             continue;
         }
+#ifdef SOCPERF_ADAPTOR_FFRT
+        threadWrap->InitGovResNodeInfo(govResNode);
+#else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_INIT_GOV_RES_NODE_INFO, govResNode);
-        handler->SendEvent(event);
+        threadWrap->SendEvent(event);
+#endif
     }
 }
 
-bool SocPerf::LoadResource(xmlNode* child, std::string configFile)
+bool SocPerf::LoadResource(xmlNode* child, const std::string& configFile)
 {
     xmlNode* grandson = child->children;
     for (; grandson; grandson = grandson->next) {
         if (!xmlStrcmp(grandson->name, reinterpret_cast<const xmlChar*>("res"))) {
-            char* id = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
-            char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
-            char* pair = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("pair")));
-            char* mode = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("mode")));
-            if (!CheckResourceTag(id, name, pair, mode, configFile)) {
-                xmlFree(id);
-                xmlFree(name);
-                xmlFree(pair);
-                xmlFree(mode);
+            if (!TraversalFreqResource(grandson, configFile)) {
                 return false;
             }
-            xmlNode* greatGrandson = grandson->children;
-            std::shared_ptr<ResNode> resNode = std::make_shared<ResNode>(
-                atoi(id), name, mode ? atoi(mode) : 0, pair ? atoi(pair) : INVALID_VALUE);
-            xmlFree(id);
-            xmlFree(name);
-            xmlFree(pair);
-            xmlFree(mode);
-            char *def = nullptr;
-            char *path  = nullptr;
-            char *node  = nullptr;
-            for (; greatGrandson; greatGrandson = greatGrandson->next) {
-                if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("default"))) {
-                    xmlFree(def);
-                    def = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("path"))) {
-                    xmlFree(path);
-                    path = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("node"))) {
-                    xmlFree(node);
-                    node = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                }
-            }
-            if (!CheckResourceTag(def, path, configFile)) {
-                xmlFree(def);
-                xmlFree(path);
-                xmlFree(node);
-                return false;
-            }
-            resNode->def = atoll(def);
-            resNode->path = path;
-            xmlFree(def);
-            xmlFree(path);
-            if (node && !LoadResourceAvailable(resNode, node)) {
-                SOC_PERF_LOGE("Invalid resource node for %{public}s", configFile.c_str());
-                xmlFree(node);
-                return false;
-            }
-            xmlFree(node);
-
-            resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
-            resNodeInfo.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
-            handlerSwitch[resNode->id / RES_ID_NUMS_PER_TYPE - 1] = true;
         }
     }
 
@@ -436,7 +458,77 @@ bool SocPerf::LoadResource(xmlNode* child, std::string configFile)
     return true;
 }
 
-bool SocPerf::LoadGovResource(xmlNode* child, std::string configFile)
+bool SocPerf::TraversalFreqResource(xmlNode* grandson, const std::string& configFile)
+{
+    char* id = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
+    char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
+    char* pair = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("pair")));
+    char* mode = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("mode")));
+    char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("switch")));
+    if (!CheckResourceTag(id, name, pair, mode, persistMode, configFile)) {
+        xmlFree(id);
+        xmlFree(name);
+        xmlFree(pair);
+        xmlFree(mode);
+        xmlFree(persistMode);
+        return false;
+    }
+    xmlNode* greatGrandson = grandson->children;
+    std::shared_ptr<ResNode> resNode = std::make_shared<ResNode>(atoi(id), name, mode ? atoi(mode) : 0,
+        pair ? atoi(pair) : INVALID_VALUE, persistMode ? atoi(persistMode) : 0);
+    xmlFree(id);
+    xmlFree(name);
+    xmlFree(pair);
+    xmlFree(mode);
+    xmlFree(persistMode);
+    if (!LoadFreqResourceContent(greatGrandson, configFile, resNode)) {
+        return false;
+    }
+    return true;
+}
+
+bool SocPerf::LoadFreqResourceContent(xmlNode* greatGrandson, const std::string& configFile,
+    std::shared_ptr<ResNode> resNode)
+{
+    char *def = nullptr;
+    char *path  = nullptr;
+    char *node  = nullptr;
+    for (; greatGrandson; greatGrandson = greatGrandson->next) {
+        if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("default"))) {
+            xmlFree(def);
+            def = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+        } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("path"))) {
+            xmlFree(path);
+            path = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+        } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("node"))) {
+            xmlFree(node);
+            node = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+        }
+    }
+    if (!CheckResourceTag(def, path, configFile)) {
+        xmlFree(def);
+        xmlFree(path);
+        xmlFree(node);
+        return false;
+    }
+    resNode->def = atoll(def);
+    resNode->path = path;
+    xmlFree(def);
+    xmlFree(path);
+    if (node && !LoadResourceAvailable(resNode, node)) {
+        SOC_PERF_LOGE("Invalid resource node for %{public}s", configFile.c_str());
+        xmlFree(node);
+        return false;
+    }
+    xmlFree(node);
+
+    resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
+    resNodeInfo.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
+    wrapSwitch[resNode->id / RES_ID_NUMS_PER_TYPE - 1] = true;
+    return true;
+}
+
+bool SocPerf::LoadGovResource(xmlNode* child, const std::string& configFile)
 {
     xmlNode* grandson = child->children;
     for (; grandson; grandson = grandson->next) {
@@ -445,50 +537,24 @@ bool SocPerf::LoadGovResource(xmlNode* child, std::string configFile)
         }
         char* id = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
         char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
-        if (!CheckGovResourceTag(id, name, configFile)) {
+        char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson,
+            reinterpret_cast<const xmlChar*>("switch")));
+        if (!CheckGovResourceTag(id, name, persistMode, configFile)) {
             xmlFree(id);
             xmlFree(name);
+            xmlFree(persistMode);
             return false;
         }
         xmlNode* greatGrandson = grandson->children;
-        std::shared_ptr<GovResNode> govResNode = std::make_shared<GovResNode>(atoi(id), name);
+        std::shared_ptr<GovResNode> govResNode = std::make_shared<GovResNode>(atoi(id),
+            name, persistMode ? atoi(persistMode) : 0);
         xmlFree(id);
         xmlFree(name);
-        handlerSwitch[govResNode->id / RES_ID_NUMS_PER_TYPE - 1] = true;
-        for (; greatGrandson; greatGrandson = greatGrandson->next) {
-            if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("default"))) {
-                char* def = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                if (!def || !IsNumber(def)) {
-                    SOC_PERF_LOGE("Invalid governor resource default for %{public}s", configFile.c_str());
-                    xmlFree(def);
-                    return false;
-                }
-                govResNode->def = atoll(def);
-                xmlFree(def);
-            } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("path"))) {
-                char* path = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                if (!path) {
-                    SOC_PERF_LOGE("Invalid governor resource path for %{public}s", configFile.c_str());
-                    return false;
-                }
-                govResNode->paths.push_back(path);
-                xmlFree(path);
-            } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("node"))) {
-                char* level = reinterpret_cast<char*>(
-                    xmlGetProp(greatGrandson, reinterpret_cast<const xmlChar*>("level")));
-                char* node = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                if (!level || !IsNumber(level) || !node
-                    || !LoadGovResourceAvailable(govResNode, level, node)) {
-                    SOC_PERF_LOGE("Invalid governor resource node for %{public}s", configFile.c_str());
-                    xmlFree(level);
-                    xmlFree(node);
-                    return false;
-                }
-                xmlFree(level);
-                xmlFree(node);
-            }
+        xmlFree(persistMode);
+        wrapSwitch[govResNode->id / RES_ID_NUMS_PER_TYPE - 1] = true;
+        if (!TraversalGovResource(greatGrandson, configFile, govResNode)) {
+            return false;
         }
-
         resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         govResNodeInfo.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
     }
@@ -500,7 +566,56 @@ bool SocPerf::LoadGovResource(xmlNode* child, std::string configFile)
     return true;
 }
 
-bool SocPerf::LoadCmd(xmlNode* rootNode, std::string configFile)
+void SocPerf::LoadInfo(xmlNode* child, const std::string& configFile)
+{
+    xmlNode* grandson = child->children;
+    if (!grandson || xmlStrcmp(grandson->name, reinterpret_cast<const xmlChar*>("inf"))) {
+        return;
+    }
+    perfSoPath = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("path")));
+    perfSoFunc = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("func")));
+}
+
+bool SocPerf::TraversalGovResource(xmlNode* greatGrandson, const std::string& configFile,
+    std::shared_ptr<GovResNode> govResNode)
+{
+    for (; greatGrandson; greatGrandson = greatGrandson->next) {
+        if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("default"))) {
+            char* def = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+            if (!def || !IsNumber(def)) {
+                SOC_PERF_LOGE("Invalid governor resource default for %{public}s", configFile.c_str());
+                xmlFree(def);
+                return false;
+            }
+            govResNode->def = atoll(def);
+            xmlFree(def);
+        } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("path"))) {
+            char* path = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+            if (!path) {
+                SOC_PERF_LOGE("Invalid governor resource path for %{public}s", configFile.c_str());
+                return false;
+            }
+            govResNode->paths.push_back(path);
+            xmlFree(path);
+        } else if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("node"))) {
+            char* level = reinterpret_cast<char*>(
+                xmlGetProp(greatGrandson, reinterpret_cast<const xmlChar*>("level")));
+            char* node = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+            if (!level || !IsNumber(level) || !node
+                || !LoadGovResourceAvailable(govResNode, level, node)) {
+                SOC_PERF_LOGE("Invalid governor resource node for %{public}s", configFile.c_str());
+                xmlFree(level);
+                xmlFree(node);
+                return false;
+            }
+            xmlFree(level);
+            xmlFree(node);
+        }
+    }
+    return true;
+}
+
+bool SocPerf::LoadCmd(const xmlNode* rootNode, const std::string& configFile)
 {
     xmlNode* child = rootNode->children;
     for (; child; child = child->next) { // Iterate all cmdID
@@ -518,37 +633,10 @@ bool SocPerf::LoadCmd(xmlNode* rootNode, std::string configFile)
         std::shared_ptr<Actions> actions = std::make_shared<Actions>(atoi(id), name);
         xmlFree(id);
         xmlFree(name);
-        for (; grandson; grandson = grandson->next) { // Iterate all Action
-            std::shared_ptr<Action> action = std::make_shared<Action>();
-            xmlNode* greatGrandson = grandson->children;
-            for (; greatGrandson; greatGrandson = greatGrandson->next) { // Iterate duration and all res
-                if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("duration"))) {
-                    char* duration = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                    if (!duration || !IsNumber(duration)) {
-                        SOC_PERF_LOGE("Invalid cmd duration for %{public}s", configFile.c_str());
-                        xmlFree(duration);
-                        return false;
-                    }
-                    action->duration = atoi(duration);
-                    xmlFree(duration);
-                } else {
-                    char* resStr = reinterpret_cast<char*>(const_cast<xmlChar*>(greatGrandson->name));
-                    char* resValue = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-                    if (!resStr || resStrToIdInfo.find(resStr) == resStrToIdInfo.end()
-                        || !resValue || !IsNumber(resValue)) {
-                        SOC_PERF_LOGE("Invalid cmd resource(%{public}s) for %{public}s", resStr, configFile.c_str());
-                        xmlFree(resValue);
-                        return false;
-                    }
-                    action->variable.push_back(resStrToIdInfo[resStr]);
-                    action->variable.push_back(atoll(resValue));
-                    xmlFree(resValue);
-                }
-            }
-            actions->actionList.push_back(action);
+        if (!TraversalBoostResource(grandson, configFile, actions)) {
+            return false;
         }
-
-        if (configFile.find(SOCPERF_BOOST_CONFIG_XML) != std::string::npos) {
+        if (configFile.find(resourceConfigXml) != std::string::npos) {
             perfActionsInfo.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
         }
     }
@@ -560,7 +648,63 @@ bool SocPerf::LoadCmd(xmlNode* rootNode, std::string configFile)
     return true;
 }
 
-bool SocPerf::CheckResourceTag(char* id, char* name, char* pair, char* mode, std::string configFile)
+bool SocPerf::ParseDuration(xmlNode *greatGrandson, const std::string& configFile, std::shared_ptr<Action> action) const
+{
+    if (xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("duration"))) {
+        return true;
+    }
+    char* duration = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+    if (!duration || !IsNumber(duration)) {
+        SOC_PERF_LOGE("Invalid cmd duration for %{public}s", configFile.c_str());
+        xmlFree(duration);
+        return false;
+    }
+    action->duration = atoi(duration);
+    xmlFree(duration);
+    return true;
+}
+
+bool SocPerf::ParseResValue(xmlNode* greatGrandson, const std::string& configFile, std::shared_ptr<Action> action)
+{
+    if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("duration"))) {
+        return true;
+    }
+    char* resStr = reinterpret_cast<char*>(const_cast<xmlChar*>(greatGrandson->name));
+    char* resValue = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+    if (!resStr || resStrToIdInfo.find(resStr) == resStrToIdInfo.end()
+        || !resValue || !IsNumber(resValue)) {
+        SOC_PERF_LOGE("Invalid cmd resource(%{public}s) for %{public}s", resStr, configFile.c_str());
+        xmlFree(resValue);
+        return false;
+    }
+    action->variable.push_back(resStrToIdInfo[resStr]);
+    action->variable.push_back(atoll(resValue));
+    xmlFree(resValue);
+    return true;
+}
+
+bool SocPerf::TraversalBoostResource(xmlNode* grandson, const std::string& configFile, std::shared_ptr<Actions> actions)
+{
+    for (; grandson; grandson = grandson->next) { // Iterate all Action
+        std::shared_ptr<Action> action = std::make_shared<Action>();
+        xmlNode* greatGrandson = grandson->children;
+        for (; greatGrandson; greatGrandson = greatGrandson->next) { // Iterate duration and all res
+            bool ret = ParseDuration(greatGrandson, configFile, action);
+            if (!ret) {
+                return false;
+            }
+            ret = ParseResValue(greatGrandson, configFile, action);
+            if (!ret) {
+                return false;
+            }
+        }
+        actions->actionList.push_back(action);
+    }
+    return true;
+}
+
+bool SocPerf::CheckResourceTag(const char* id, const char* name, const char* pair, const char* mode,
+    const char* persistMode, const std::string& configFile) const
 {
     if (!id || !IsNumber(id) || !IsValidResId(atoi(id))) {
         SOC_PERF_LOGE("Invalid resource id for %{public}s", configFile.c_str());
@@ -578,10 +722,19 @@ bool SocPerf::CheckResourceTag(char* id, char* name, char* pair, char* mode, std
         SOC_PERF_LOGE("Invalid resource mode for %{public}s", configFile.c_str());
         return false;
     }
+    return CheckResourcePersistMode(persistMode, configFile);
+}
+
+bool SocPerf::CheckResourcePersistMode(const char* persistMode, const std::string& configFile) const
+{
+    if (persistMode && (!IsNumber(persistMode) || !IsValidPersistMode(atoi(persistMode)))) {
+        SOC_PERF_LOGE("Invalid resource persistMode for %{public}s", configFile.c_str());
+        return false;
+    }
     return true;
 }
 
-bool SocPerf::CheckResourceTag(char* def, char* path, std::string configFile)
+bool SocPerf::CheckResourceTag(const char* def, const char* path, const std::string& configFile) const
 {
     if (!def || !IsNumber(def)) {
         SOC_PERF_LOGE("Invalid resource default for %{public}s", configFile.c_str());
@@ -594,7 +747,7 @@ bool SocPerf::CheckResourceTag(char* def, char* path, std::string configFile)
     return true;
 }
 
-bool SocPerf::LoadResourceAvailable(std::shared_ptr<ResNode> resNode, char* node)
+bool SocPerf::LoadResourceAvailable(std::shared_ptr<ResNode> resNode, const char* node)
 {
     std::string nodeStr = node;
     std::vector<std::string> result = Split(nodeStr, " ");
@@ -608,7 +761,7 @@ bool SocPerf::LoadResourceAvailable(std::shared_ptr<ResNode> resNode, char* node
     return true;
 }
 
-bool SocPerf::CheckPairResIdValid()
+bool SocPerf::CheckPairResIdValid() const
 {
     for (auto iter = resNodeInfo.begin(); iter != resNodeInfo.end(); ++iter) {
         int32_t resId = iter->first;
@@ -622,7 +775,7 @@ bool SocPerf::CheckPairResIdValid()
     return true;
 }
 
-bool SocPerf::CheckResDefValid()
+bool SocPerf::CheckResDefValid() const
 {
     for (auto iter = resNodeInfo.begin(); iter != resNodeInfo.end(); ++iter) {
         int32_t resId = iter->first;
@@ -636,7 +789,8 @@ bool SocPerf::CheckResDefValid()
     return true;
 }
 
-bool SocPerf::CheckGovResourceTag(char* id, char* name, std::string configFile)
+bool SocPerf::CheckGovResourceTag(const char* id, const char* name,
+    const char* persistMode, const std::string& configFile) const
 {
     if (!id || !IsNumber(id) || !IsValidResId(atoi(id))) {
         SOC_PERF_LOGE("Invalid governor resource id for %{public}s", configFile.c_str());
@@ -646,10 +800,14 @@ bool SocPerf::CheckGovResourceTag(char* id, char* name, std::string configFile)
         SOC_PERF_LOGE("Invalid governor resource name for %{public}s", configFile.c_str());
         return false;
     }
+    if (persistMode && (!IsNumber(persistMode) || !IsValidPersistMode(atoi(persistMode)))) {
+        SOC_PERF_LOGE("Invalid governor resource persistMode for %{public}s", configFile.c_str());
+        return false;
+    }
     return true;
 }
 
-bool SocPerf::LoadGovResourceAvailable(std::shared_ptr<GovResNode> govResNode, char* level, char* node)
+bool SocPerf::LoadGovResourceAvailable(std::shared_ptr<GovResNode> govResNode, const char* level, const char* node)
 {
     govResNode->available.insert(atoll(level));
     std::string nodeStr = node;
@@ -662,7 +820,7 @@ bool SocPerf::LoadGovResourceAvailable(std::shared_ptr<GovResNode> govResNode, c
     return true;
 }
 
-bool SocPerf::CheckGovResDefValid()
+bool SocPerf::CheckGovResDefValid() const
 {
     for (auto iter = govResNodeInfo.begin(); iter != govResNodeInfo.end(); ++iter) {
         int32_t govResId = iter->first;
@@ -676,7 +834,7 @@ bool SocPerf::CheckGovResDefValid()
     return true;
 }
 
-bool SocPerf::CheckCmdTag(char* id, char* name, std::string configFile)
+bool SocPerf::CheckCmdTag(const char* id, const char* name, const std::string& configFile) const
 {
     if (!id || !IsNumber(id)) {
         SOC_PERF_LOGE("Invalid cmd id for %{public}s", configFile.c_str());
@@ -689,44 +847,53 @@ bool SocPerf::CheckCmdTag(char* id, char* name, std::string configFile)
     return true;
 }
 
-bool SocPerf::CheckActionResIdAndValueValid(std::string configFile)
+bool SocPerf::TraversalActions(std::shared_ptr<Action> action, int32_t actionId)
+{
+    for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
+        int32_t resId = action->variable[i];
+        int64_t resValue = action->variable[i + 1];
+        if (resNodeInfo.find(resId) != resNodeInfo.end()) {
+            if (resNodeInfo[resId]->persistMode != REPORT_TO_PERFSO && !resNodeInfo[resId]->available.empty()
+                && resNodeInfo[resId]->available.find(resValue) == resNodeInfo[resId]->available.end()) {
+                SOC_PERF_LOGE("action[%{public}d]'s resValue[%{public}lld] is not valid",
+                    actionId, (long long)resValue);
+                return false;
+            }
+        } else if (govResNodeInfo.find(resId) != govResNodeInfo.end()) {
+            if (govResNodeInfo[resId]->persistMode != REPORT_TO_PERFSO
+                && govResNodeInfo[resId]->available.find(resValue) == govResNodeInfo[resId]->available.end()) {
+                SOC_PERF_LOGE("action[%{public}d]'s resValue[%{public}lld] is not valid",
+                    actionId, (long long)resValue);
+                return false;
+            }
+        } else {
+            SOC_PERF_LOGE("action[%{public}d]'s resId[%{public}d] is not valid", actionId, resId);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SocPerf::CheckActionResIdAndValueValid(const std::string& configFile)
 {
     std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo;
-    if (configFile.find(SOCPERF_BOOST_CONFIG_XML) != std::string::npos) {
+    if (configFile.find(resourceConfigXml) != std::string::npos) {
         actionsInfo = perfActionsInfo;
     }
     for (auto actionsIter = actionsInfo.begin(); actionsIter != actionsInfo.end(); ++actionsIter) {
         int32_t actionId = actionsIter->first;
         std::shared_ptr<Actions> actions = actionsIter->second;
         for (auto actionIter = actions->actionList.begin(); actionIter != actions->actionList.end(); ++actionIter) {
-            std::shared_ptr<Action> action = *actionIter;
-            for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
-                int32_t resId = action->variable[i];
-                int64_t resValue = action->variable[i + 1];
-                if (resNodeInfo.find(resId) != resNodeInfo.end()) {
-                    if (!resNodeInfo[resId]->available.empty()
-                        && resNodeInfo[resId]->available.find(resValue) == resNodeInfo[resId]->available.end()) {
-                        SOC_PERF_LOGE("action[%{public}d]'s resValue[%{public}lld] is not valid",
-                            actionId, (long long)resValue);
-                        return false;
-                    }
-                } else if (govResNodeInfo.find(resId) != govResNodeInfo.end()) {
-                    if (govResNodeInfo[resId]->available.find(resValue) == govResNodeInfo[resId]->available.end()) {
-                        SOC_PERF_LOGE("action[%{public}d]'s resValue[%{public}lld] is not valid",
-                            actionId, (long long)resValue);
-                        return false;
-                    }
-                } else {
-                    SOC_PERF_LOGE("action[%{public}d]'s resId[%{public}d] is not valid", actionId, resId);
-                    return false;
-                }
+            bool ret = TraversalActions(*actionIter, actionId);
+            if (!ret) {
+                return false;
             }
         }
     }
     return true;
 }
 
-void SocPerf::PrintCachedInfo()
+void SocPerf::PrintCachedInfo() const
 {
     SOC_PERF_LOGD("------------------------------------");
     SOC_PERF_LOGD("resNodeInfo(%{public}d)", (int32_t)resNodeInfo.size());

@@ -35,22 +35,25 @@ enum EventType {
 
 const std::string SOCPERF_RESOURCE_CONFIG_XML = "etc/soc_perf/socperf_resource_config.xml";
 const std::string SOCPERF_BOOST_CONFIG_XML    = "etc/soc_perf/socperf_boost_config.xml";
+const std::string SOCPERF_BOOST_CONFIG_XML_EXT    = "etc/soc_perf/socperf_boost_config_ext.xml";
 const int64_t MAX_INT_VALUE                       = 0x7FFFFFFFFFFFFFFF;
 const int64_t MIN_INT_VALUE                       = 0x8000000000000000;
 const int32_t INVALID_VALUE                       = INT_MIN;
 const int32_t RESET_VALUE                         = -1;
 /*
- * Divide all resource id into five sections, resource of each section is processed in an individual handler thread.
- * handlerId = resourceId / RES_ID_NUMS_PER_TYPE - 1
+ * Divide all resource id into five sections, resource of each section is processed in an individual queue.
+ * threadWrapId = resourceId / RES_ID_NUMS_PER_TYPE - 1
  * Resource section:    [1000, 1999]   [2000, 2999]   [3000, 3999]   [4000, 4999]   [5000, 5999]
- * Handler Thread:      handlers[0]    handlers[1]    handlers[2]    handlers[3]    handlers[4]
+ * queue: socperfThreadWraps[0] socperfThreadWraps[1] socperfThreadWraps[2] socperfThreadWraps[3] socperfThreadWraps[4]
  */
-const int32_t MAX_HANDLER_THREADS                 = 5;
+const int32_t MAX_QUEUE_NUM                 = 5;
 const int32_t MIN_RESOURCE_ID                     = 1000;
 const int32_t MAX_RESOURCE_ID                     = 5999;
 const int32_t RES_ID_ADDITION                     = 10000;
 const int32_t RES_ID_AND_VALUE_PAIR               = 2;
 const int32_t RES_ID_NUMS_PER_TYPE                = 1000;
+const int32_t WRITE_NODE                          = 0;
+const int32_t REPORT_TO_PERFSO                    = 1;
 
 class ResNode {
 public:
@@ -61,15 +64,17 @@ public:
     int32_t mode;
     int32_t pair;
     std::unordered_set<int64_t> available;
+    int32_t persistMode;
 
 public:
-    ResNode(int32_t resId, std::string resName, int32_t resMode, int32_t resPair)
+    ResNode(int32_t resId, std::string resName, int32_t resMode, int32_t resPair, int32_t resPersistMode)
     {
         id = resId;
         name = resName;
         mode = resMode;
         pair = resPair;
         def = INVALID_VALUE;
+        persistMode = resPersistMode;
     }
     ~ResNode() {}
 
@@ -101,13 +106,15 @@ public:
     std::vector<std::string> paths;
     std::unordered_set<int64_t> available;
     std::unordered_map<int64_t, std::vector<std::string>> levelToStr;
+    int32_t persistMode;
 
 public:
-    GovResNode(int32_t govResId, std::string govResName)
+    GovResNode(int32_t govResId, std::string govResName, int32_t govPersistMode)
     {
         id = govResId;
         name = govResName;
         def = INVALID_VALUE;
+        persistMode = govPersistMode;
     }
     ~GovResNode() {}
 
@@ -193,14 +200,19 @@ public:
     int32_t duration;
     int32_t type;
     int32_t onOff;
+    int32_t cmdId;
+    int64_t endTime;
 
 public:
-    ResAction(int64_t resActionValue, int32_t resActionDuration, int32_t resActionType, int32_t resActionOnOff)
+    ResAction(int64_t resActionValue, int32_t resActionDuration, int32_t resActionType,
+        int32_t resActionOnOff, int32_t resActionCmdId, int64_t resActionEndTime)
     {
         value = resActionValue;
         duration = resActionDuration;
         type = resActionType;
         onOff = resActionOnOff;
+        cmdId = resActionCmdId;
+        endTime = resActionEndTime;
     }
     ~ResAction() {}
 
@@ -209,7 +221,8 @@ public:
         if (value == resAction->value
             && duration == resAction->duration
             && type == resAction->type
-            && onOff == resAction->onOff) {
+            && onOff == resAction->onOff
+            && cmdId == resAction->cmdId) {
             return true;
         }
         return false;
@@ -219,7 +232,8 @@ public:
     {
         if (value == resAction->value
             && duration == resAction->duration
-            && type == resAction->type) {
+            && type == resAction->type
+            && cmdId == resAction->cmdId) {
             return true;
         }
         return false;
@@ -243,20 +257,31 @@ public:
 class ResStatus {
 public:
     std::vector<std::list<std::shared_ptr<ResAction>>> resActionList;
-    std::vector<int64_t> candidates;
+    std::vector<int64_t> candidatesValue;
+    std::vector<int64_t> candidatesEndTime;
     int64_t candidate;
-    int64_t current;
+    int64_t currentValue;
+    int64_t previousValue;
+    int64_t currentEndTime;
+    int64_t previousEndTime;
 
 public:
     explicit ResStatus(int64_t val)
     {
         resActionList = std::vector<std::list<std::shared_ptr<ResAction>>>(ACTION_TYPE_MAX);
-        candidates = std::vector<int64_t>(ACTION_TYPE_MAX);
-        candidates[ACTION_TYPE_PERF] = INVALID_VALUE;
-        candidates[ACTION_TYPE_POWER] = INVALID_VALUE;
-        candidates[ACTION_TYPE_THERMAL] = INVALID_VALUE;
+        candidatesValue = std::vector<int64_t>(ACTION_TYPE_MAX);
+        candidatesEndTime = std::vector<int64_t>(ACTION_TYPE_MAX);
+        candidatesValue[ACTION_TYPE_PERF] = INVALID_VALUE;
+        candidatesValue[ACTION_TYPE_POWER] = INVALID_VALUE;
+        candidatesValue[ACTION_TYPE_THERMAL] = INVALID_VALUE;
+        candidatesEndTime[ACTION_TYPE_PERF] = MAX_INT_VALUE;
+        candidatesEndTime[ACTION_TYPE_POWER] = MAX_INT_VALUE;
+        candidatesEndTime[ACTION_TYPE_THERMAL] = MAX_INT_VALUE;
         candidate = val;
-        current = val;
+        currentValue = val;
+        previousValue = val;
+        currentEndTime = MAX_INT_VALUE;
+        previousEndTime = MAX_INT_VALUE;
     }
     ~ResStatus() {}
 
@@ -287,13 +312,13 @@ public:
         if (!resActionList[ACTION_TYPE_THERMAL].empty()) {
             str.pop_back();
         }
-        str.append("]candidates[");
-        for (auto iter = candidates.begin(); iter != candidates.end(); ++iter) {
+        str.append("]candidatesValue[");
+        for (auto iter = candidatesValue.begin(); iter != candidatesValue.end(); ++iter) {
             str.append(std::to_string(*iter)).append(",");
         }
         str.pop_back();
         str.append("]candidate[").append(std::to_string(candidate));
-        str.append("]current[").append(std::to_string(current)).append("]");
+        str.append("]currentValue[").append(std::to_string(currentValue)).append("]");
         return str;
     }
 };
@@ -340,6 +365,14 @@ static inline bool IsNumber(std::string str)
 static inline bool IsValidResId(int32_t id)
 {
     if (id < MIN_RESOURCE_ID || id > MAX_RESOURCE_ID) {
+        return false;
+    }
+    return true;
+}
+
+static inline bool IsValidPersistMode(int32_t persistMode)
+{
+    if (persistMode != WRITE_NODE && persistMode != REPORT_TO_PERFSO) {
         return false;
     }
     return true;

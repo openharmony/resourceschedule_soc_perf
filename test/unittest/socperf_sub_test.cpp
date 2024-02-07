@@ -19,12 +19,14 @@
 #undef protected
 
 #include <gtest/gtest.h>
+#include <gtest/hwext/gtest-multithread.h>
 #include "socperf_client.h"
 #include "socperf.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
 using namespace testing::ext;
+using namespace testing::mt;
 
 namespace OHOS {
 namespace SOCPERF {
@@ -56,7 +58,7 @@ void SocPerfSubTest::TearDown(void)
  * @tc.name: SocPerfSubTest_ActionType_001
  * @tc.desc: action type perf
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38A
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_001, Function | MediumTest | Level0)
 {
@@ -67,7 +69,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_001, Function | MediumTest | 
  * @tc.name: SocPerfSubTest_ActionType_002
  * @tc.desc: action type power
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38A
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_002, Function | MediumTest | Level0)
 {
@@ -78,7 +80,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_002, Function | MediumTest | 
  * @tc.name: SocPerfSubTest_ActionType_003
  * @tc.desc: action type THERMAL
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38A
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_003, Function | MediumTest | Level0)
 {
@@ -89,7 +91,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_003, Function | MediumTest | 
  * @tc.name: SocPerfSubTest_ActionType_004
  * @tc.desc: action type max
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38A
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_004, Function | MediumTest | Level0)
 {
@@ -100,7 +102,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_004, Function | MediumTest | 
  * @tc.name: SocPerfSubTest_EventType_001
  * @tc.desc: event type off
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38A
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_EventType_001, Function | MediumTest | Level0)
 {
@@ -111,7 +113,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_EventType_001, Function | MediumTest | L
  * @tc.name: SocPerfSubTest_EventType_002
  * @tc.desc: event type on
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38A
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_EventType_002, Function | MediumTest | Level0)
 {
@@ -122,7 +124,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_EventType_002, Function | MediumTest | L
  * @tc.name: SocPerfSubTest_EventType_003
  * @tc.desc: event type invalid
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38A
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_EventType_003, Function | MediumTest | Level0)
 {
@@ -133,7 +135,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_EventType_003, Function | MediumTest | L
  * @tc.name: SocPerfSubTest_InnerEventId_001
  * @tc.desc: init res node info
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH37V
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_001, Function | MediumTest | Level0)
 {
@@ -144,7 +146,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_001, Function | MediumTest 
  * @tc.name: SocPerfSubTest_InnerEventId_002
  * @tc.desc: init gov res node info
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH37V
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_002, Function | MediumTest | Level0)
 {
@@ -155,7 +157,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_002, Function | MediumTest 
  * @tc.name: SocPerfSubTest_InnerEventId_003
  * @tc.desc: do freq action
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH380
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_003, Function | MediumTest | Level0)
 {
@@ -166,7 +168,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_003, Function | MediumTest 
  * @tc.name: SocPerfSubTest_InnerEventId_004
  * @tc.desc: do freq action delayed
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH380
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_004, Function | MediumTest | Level0)
 {
@@ -177,7 +179,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_004, Function | MediumTest 
  * @tc.name: SocPerfSubTest_InnerEventId_005
  * @tc.desc: power limit boost freq
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH380
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_005, Function | MediumTest | Level0)
 {
@@ -188,7 +190,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_005, Function | MediumTest 
  * @tc.name: SocPerfSubTest_InnerEventId_006
  * @tc.desc: thermal limit boost freq
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH380
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_006, Function | MediumTest | Level0)
 {
@@ -199,7 +201,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_006, Function | MediumTest 
  * @tc.name: SocPerfSubTest_GetService_001
  * @tc.desc: get socperf service
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH384 AR000GH385
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_GetService_001, Function | MediumTest | Level0)
 {
@@ -214,7 +216,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_GetService_001, Function | MediumTest | 
  * @tc.name: SocPerfSubTest_GetService_002
  * @tc.desc: get socperf service
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH38B AR000GH38C AR000GH38D AR000GH38E AR000GH38F AR000GH386 AR000GH387 AR000GH388
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_GetService_002, Function | MediumTest | Level0)
 {
@@ -225,87 +227,126 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_GetService_002, Function | MediumTest | 
     EXPECT_NE(object, nullptr);
 }
 
+static void SocPerfSubTestGetServiceTask()
+{
+    sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    EXPECT_NE(samgr, nullptr);
+
+    sptr<IRemoteObject> object = samgr->GetSystemAbility(SOC_PERF_SERVICE_SA_ID);
+    EXPECT_NE(object, nullptr);
+
+    object = samgr->GetSystemAbility(RES_SCHED_SYS_ABILITY_ID);
+    EXPECT_NE(object, nullptr);
+}
+
+/*
+ * @tc.name: SocPerfSubTest_GetService_003
+ * @tc.desc: Test get socperf service in multithreading
+ * @tc.type FUNC
+ * @tc.require: issueI7G8VT
+ */
+HWTEST_F(SocPerfSubTest, SocPerfSubTest_GetService_003, Function | MediumTest | Level0)
+{
+    SET_THREAD_NUM(10);
+    GTEST_RUN_TASK(SocPerfSubTestGetServiceTask);
+}
+
 /*
  * @tc.name: SocPerfSubTest_PerfRequest_001
  * @tc.desc: PerfRequest
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH381 AR000GH382 AR000GH389 AR000GH37U
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_PerfRequest_001, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(10000, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(10000, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
  * @tc.name: SocPerfSubTest_PerfRequest_002
  * @tc.desc: PerfRequestEx ON
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH381 AR000GH382 AR000GH389 AR000GH37U
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_PerfRequest_002, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, true, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, true, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
  * @tc.name: SocPerfSubTest_PerfRequest_003
  * @tc.desc: PerfRequestEx OFF
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH381 AR000GH382 AR000GH389 AR000GH37U
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_PerfRequest_003, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, false, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, false, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
  * @tc.name: SocPerfSubTest_PowerLimitBoost_001
  * @tc.desc: PowerLimitBoost ON
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH381 AR000GH382 AR000GH389 AR000GH37U
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_PowerLimitBoost_001, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(true, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(true, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
  * @tc.name: SocPerfSubTest_PowerLimitBoost_001
  * @tc.desc: PowerLimitBoost OFF
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH381 AR000GH382 AR000GH389 AR000GH37U
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_PowerLimitBoost_002, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(false, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(false, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
  * @tc.name: SocPerfSubTest_ThermalLimitBoost_001
  * @tc.desc: ThermalLimitBoost ON
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH381 AR000GH382 AR000GH389 AR000GH37U
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ThermalLimitBoost_001, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(true, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(true, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
  * @tc.name: SocPerfSubTest_ThermalLimitBoost_002
  * @tc.desc: ThermalLimitBoost OFF
  * @tc.type FUNC
- * @tc.require SR000GGTLG AR000GH381 AR000GH382 AR000GH389 AR000GH37U
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ThermalLimitBoost_002, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(false, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(false, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
  * @tc.name: SocPerfSubTest_LimitRequest_001
  * @tc.desc: LimitRequest thermal
  * @tc.type FUNC
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_LimitRequest_001, Function | MediumTest | Level0)
 {
@@ -323,6 +364,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_LimitRequest_001, Function | MediumTest 
  * @tc.name: SocPerfSubTest_LimitRequest_002
  * @tc.desc: LimitRequest thermal
  * @tc.type FUNC
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_LimitRequest_002, Function | MediumTest | Level0)
 {
@@ -338,12 +380,61 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_LimitRequest_002, Function | MediumTest 
     OHOS::SOCPERF::SocPerfClient::GetInstance().LimitRequest(clientId_thermal, tags, configs, "");
 }
 
+static void SocPerfSubTestLimitRequestTask()
+{
+    int32_t clientId_power = ACTION_TYPE_POWER;
+    std::vector<int32_t> tags;
+    constexpr int resId = 1001;
+    tags.push_back(resId);
+    std::vector<int64_t> configs;
+    EXPECT_NE(tags.size(), configs.size());
+    constexpr int freqValue = 1416000;
+    configs.push_back(freqValue);
+    EXPECT_EQ(tags.size(), configs.size());
+    OHOS::SOCPERF::SocPerfClient::GetInstance().LimitRequest(clientId_power, tags, configs, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(true, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(false, "");
+}
+
+/*
+ * @tc.name: SocPerfSubTest_LimitRequest_003
+ * @tc.desc: Test LimitRequest thermal in multithreading
+ * @tc.type FUNC
+ * @tc.require: issueI7G8VT
+ */
+HWTEST_F(SocPerfSubTest, SocPerfSubTest_LimitRequest_003, Function | MediumTest | Level0)
+{
+    SET_THREAD_NUM(10);
+    GTEST_RUN_TASK(SocPerfSubTestLimitRequestTask);
+}
+
 /*
  * @tc.name: SocPerfSubTest_ResetClient_001
  * @tc.desc: ResetClient
  * @tc.type FUNC
+ * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ResetClient_001, Function | MediumTest | Level0)
+{
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(10000, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, true, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, false, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(true, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(false, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(true, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(false, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().ResetClient();
+}
+
+static void SocPerfSubTestMultithreadingTask()
 {
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(10000, "");
     OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, true, "");
@@ -352,7 +443,18 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ResetClient_001, Function | MediumTest |
     OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(false, "");
     OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(true, "");
     OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(false, "");
-    OHOS::SOCPERF::SocPerfClient::GetInstance().ResetClient();
+}
+
+/*
+ * @tc.name: SocPerfSubTest_Multithreading_001
+ * @tc.desc: Test the service above in multithreading
+ * @tc.type FUNC
+ * @tc.require: issueI7G8VT
+ */
+HWTEST_F(SocPerfSubTest, SocPerfSubTest_Multithreading_001, Function | MediumTest | Level0)
+{
+    SET_THREAD_NUM(10);
+    GTEST_RUN_TASK(SocPerfSubTestMultithreadingTask);
 }
 } // namespace SOCPERF
 } // namespace OHOS
