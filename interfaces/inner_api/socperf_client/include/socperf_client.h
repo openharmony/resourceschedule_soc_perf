@@ -75,6 +75,21 @@ public:
      */
     void LimitRequest(int32_t clientId,
         const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg);
+
+    /**
+     * @brief set socperf server status, enable or disable
+     *
+     * @param status true means enable socperfserver, false means disable socperfserver
+     * @param msg the reason why we need change socperfserver status
+     */
+    void SetRequestStatus(bool status, const std::string& msg);
+
+    /**
+     * @brief set thermal level intermal for perfquest
+     *
+     * @param level thermal level
+     */
+    void SetThermalLevel(int32_t level);
     
     /**
      * @brief Reset SocperfClient

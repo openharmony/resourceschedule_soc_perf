@@ -90,6 +90,26 @@ static void LimitRequest(int32_t argc, char *argv[])
     }
 }
 
+static void SetRequestStatus(int32_t argc, char *argv[])
+{
+    if (argc == PARAMETERS_NUM_WITHOUT_EX) {
+        char* status = argv[2];
+        if (strcmp(status, "true") == 0) {
+            OHOS::SOCPERF::SocPerfClient::GetInstance().SetRequestStatus(true, "");
+        } else if (strcmp(status, "false") == 0) {
+            OHOS::SOCPERF::SocPerfClient::GetInstance().SetRequestStatus(false, "");
+        }
+    }
+}
+
+static void SetThermalLevel(int32_t argc, char *argv[])
+{
+    if (argc == PARAMETERS_NUM_WITHOUT_EX) {
+        char* level = argv[2];
+        OHOS::SOCPERF::SocPerfClient::GetInstance().SetThermalLevel(atoi(level));
+    }
+}
+
 int32_t main(int32_t argc, char *argv[])
 {
     if (argc >= PARAMETERS_NUM_MIN && argv) {
@@ -104,6 +124,10 @@ int32_t main(int32_t argc, char *argv[])
             ThermalLimitBoost(argc, argv);
         } else if (strcmp(function, "LimitRequest") == 0) {
             LimitRequest(argc, argv);
+        } else if (strcmp(function, "SetRequestStatus") == 0) {
+            SetRequestStatus(argc, argv);
+        } else if (strcmp(function, "SetThermalLevel") == 0) {
+            SetThermalLevel(argc, argv);
         }
     }
     return 0;

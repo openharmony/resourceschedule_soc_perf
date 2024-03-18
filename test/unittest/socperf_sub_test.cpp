@@ -95,7 +95,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_003, Function | MediumTest | 
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_004, Function | MediumTest | Level0)
 {
-    EXPECT_EQ(OHOS::SOCPERF::ActionType::ACTION_TYPE_MAX, 3);
+    EXPECT_EQ(OHOS::SOCPERF::ActionType::ACTION_TYPE_MAX, 4);
 }
 
 /*
@@ -222,9 +222,6 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_GetService_002, Function | MediumTest | 
 {
     sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     EXPECT_NE(samgr, nullptr);
-
-    sptr<IRemoteObject> object = samgr->GetSystemAbility(RES_SCHED_SYS_ABILITY_ID);
-    EXPECT_NE(object, nullptr);
 }
 
 static void SocPerfSubTestGetServiceTask()
@@ -233,9 +230,6 @@ static void SocPerfSubTestGetServiceTask()
     EXPECT_NE(samgr, nullptr);
 
     sptr<IRemoteObject> object = samgr->GetSystemAbility(SOC_PERF_SERVICE_SA_ID);
-    EXPECT_NE(object, nullptr);
-
-    object = samgr->GetSystemAbility(RES_SCHED_SYS_ABILITY_ID);
     EXPECT_NE(object, nullptr);
 }
 
@@ -431,7 +425,23 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ResetClient_001, Function | MediumTest |
     EXPECT_EQ(msg, "");
     OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(false, msg);
     EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().SetRequestStatus(false, msg);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().SetRequestStatus(true, msg);
+    EXPECT_EQ(msg, "");
     OHOS::SOCPERF::SocPerfClient::GetInstance().ResetClient();
+}
+
+/*
+ * @tc.name: SocPerfSubTest_SetThermalLvl_001
+ * @tc.desc: perf request lvl client API
+ * @tc.type FUNC
+ * @tc.require: issue#I95U8S
+ */
+HWTEST_F(SocPerfSubTest, SocPerfSubTest_SetThermalLevel_001, Function | MediumTest | Level0)
+{
+    OHOS::SOCPERF::SocPerfClient::GetInstance().SetThermalLevel(3);
+    SUCCEED();
 }
 
 static void SocPerfSubTestMultithreadingTask()

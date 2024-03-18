@@ -70,6 +70,26 @@ int32_t SocPerfStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             break;
         }
         default:
+            return OnRemoteRequestExt(code, data, reply, option);
+    }
+    return ERR_OK;
+}
+
+int32_t SocPerfStub::OnRemoteRequestExt(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
+{
+    switch (code) {
+        case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_STATUS): {
+            bool requestEnable = data.ReadBool();
+            std::string msg = data.ReadString();
+            SetRequestStatus(requestEnable, msg);
+            break;
+        }
+        case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_THERMAL_LEVEL): {
+            SetThermalLevel(data.ReadInt32());
+            break;
+        }
+        default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
     return ERR_OK;
