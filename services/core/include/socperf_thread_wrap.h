@@ -47,6 +47,7 @@ enum SocPerfInnerEvent : uint32_t {
     INNER_EVENT_ID_POWER_LIMIT_BOOST_FREQ,
     INNER_EVENT_ID_THERMAL_LIMIT_BOOST_FREQ,
     INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL,
+    INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST
 };
 
 #ifdef SOCPERF_ADAPTOR_FFRT
@@ -68,6 +69,7 @@ public:
     void UpdateThermalLimitBoostFreq(bool thermalLimitBoost);
     void UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId);
     void InitPerfFunc(const char* perfSoPath, const char* perfSoFunc);
+    void ClearAllAliveRequest();
 
 private:
     static const int32_t SCALES_OF_MILLISECONDS_TO_MICROSECONDS = 1000;
@@ -93,12 +95,13 @@ private:
     void UpdateCandidatesValue(int32_t resId, int32_t type);
     void InnerArbitrateCandidatesValue(int32_t type, std::shared_ptr<ResStatus> resStatus);
     void ArbitrateCandidate(int32_t resId);
-    void ArbitratePairRes(int32_t resId);
+    void ArbitratePairRes(int32_t resId, bool perfRequestLimit);
+    void ProcessLimitCase(int32_t resId);
+    bool ArbitratePairResInPerfLvl(int32_t resId);
     void UpdatePairResValue(int32_t minResId, int64_t minResValue, int32_t maxResId, int64_t maxResValue);
     void UpdateCurrentValue(int32_t resId, int64_t value);
     void WriteNode(int32_t resId, const std::string& path, const std::string& value);
-    bool ExistNoCandidate(
-        int32_t resId, std::shared_ptr<ResStatus> resStatus, int64_t perf, int64_t power, int64_t thermal);
+    bool ExistNoCandidate(int32_t resId, std::shared_ptr<ResStatus> resStatus);
     bool IsGovResId(int32_t resId);
     bool IsResId(int32_t resId);
     bool IsValidResId(int32_t resId);

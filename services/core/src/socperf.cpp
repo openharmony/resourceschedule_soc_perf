@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-
 #include "socperf.h"
-
 #include "config_policy_utils.h"
 #include "hisysevent.h"
 #include "hitrace_meter.h"
@@ -77,7 +75,7 @@ bool SocPerf::Init()
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 {
-    if (!enabled) {
+    if (!enabled || !perfRequestEnable_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
@@ -97,7 +95,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 
 void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
 {
-    if (!enabled) {
+    if (!enabled || !perfRequestEnable_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
@@ -252,6 +250,80 @@ void SocPerf::LimitRequest(int32_t clientId,
     }
 }
 
+void SocPerf::SetRequestStatus(bool status, const std::string& msg)
+{
+    SOC_PERF_LOGI("requestEnable is changed to %{public}d, the reason is %{public}s", status, msg.c_str());
+    perfRequestEnable_ = status;
+    /* disable socperf sever, we should clear all alive request to avoid high freq for long time */
+    if (!perfRequestEnable_) {
+        ClearAllAliveRequest();
+    }
+}
+
+void SocPerf::ClearAllAliveRequest()
+{
+    if (!enabled) {
+        SOC_PERF_LOGE("SocPerf disabled!");
+        return;
+    }
+    for (int32_t i = 0; i < MAX_QUEUE_NUM; ++i) {
+        if (socperfThreadWraps[i] == nullptr) {
+            continue;
+        }
+#ifdef SOCPERF_ADAPTOR_FFRT
+        socperfThreadWraps[i]->ClearAllAliveRequest();
+#else
+        auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST);
+        socperfThreadWraps[i]->SendEvent(event);
+#endif
+    }
+}
+
+void SocPerf::SetThermalLevel(int32_t level)
+{
+    thermalLvl_ = level;
+}
+
+bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> action, int32_t onOff)
+{
+    if (perfActionsInfo[action->thermalCmdId_] == nullptr) {
+        SOC_PERF_LOGE("cmd %{public}d is not exist", action->thermalCmdId_);
+        return false;
+    }
+    // init DoFreqActions param
+    std::string thermalLvlTag = std::string("ThremalLvl_").append(std::to_string(action->thermalCmdId_))
+        .append("_").append(std::to_string(thermalLvl_));
+    std::shared_ptr<Actions> perfLvlActionCmd = std::make_shared<Actions>(cmdId, thermalLvlTag);
+    std::shared_ptr<Action> perfLvlAction = std::make_shared<Action>();
+    // perfrequest thermal level action's duration is same as trigger
+    perfLvlAction->duration = action->duration;
+    std::shared_ptr<Actions> cmdConfig = perfActionsInfo[action->thermalCmdId_];
+
+    // select the Nearest thermallevel action
+    std::shared_ptr<Action> actionConfig = *(cmdConfig->actionList.begin());
+    for (auto iter = cmdConfig->actionList.begin(); iter != cmdConfig->actionList.end(); iter++) {
+        if (perfLvlAction->thermalLvl_ <= (*iter)->thermalLvl_ && (*iter)->thermalLvl_ <= thermalLvl_) {
+            actionConfig = *iter;
+        }
+    }
+    if (thermalLvl_ < actionConfig->thermalLvl_) {
+        SOC_PERF_LOGE("thermal level is too low to trigger perf request level");
+        return false;
+    }
+
+    // fill in the item of perfLvlAction
+    perfLvlAction->thermalLvl_ = actionConfig->thermalLvl_;
+    perfLvlAction->thermalCmdId_ = INVALID_THERMAL_CMD_ID;
+    for (int32_t i = 0; i < actionConfig->variable.size(); i++) {
+        perfLvlAction->variable.push_back(actionConfig->variable[i]);
+    }
+    perfLvlActionCmd->actionList.push_back(perfLvlAction);
+
+    // send cmd to socperf server wrapper
+    DoFreqActions(perfLvlActionCmd, onOff, ACTION_TYPE_PERFLVL);
+    return true;
+}
+
 void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType)
 {
     std::shared_ptr<ResActionItem> header[MAX_QUEUE_NUM] = { nullptr };
@@ -260,6 +332,10 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
     int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
         std::shared_ptr<Action> action = *iter;
+        // process thermal level
+        if (action->thermalCmdId_ != INVALID_THERMAL_CMD_ID && thermalLvl_ > MIN_THERMAL_LVL) {
+            DoPerfRequestThremalLvl(actions->id, action, onOff);
+        }
         for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
             if (!IsValidResId(action->variable[i])) {
                 continue;
@@ -683,10 +759,25 @@ bool SocPerf::ParseResValue(xmlNode* greatGrandson, const std::string& configFil
     return true;
 }
 
+int32_t SocPerf::GetXmlIntProp(const xmlNode* xmlNode, const char* propName) const
+{
+    int ret = -1;
+    char* propValue = reinterpret_cast<char*>(xmlGetProp(xmlNode, reinterpret_cast<const xmlChar*>(propName)));
+    if (propValue != nullptr && IsNumber(propValue)) {
+        ret = atoi(propValue);
+    }
+    if (propValue != nullptr) {
+        xmlFree(propValue);
+    }
+    return ret;
+}
+
 bool SocPerf::TraversalBoostResource(xmlNode* grandson, const std::string& configFile, std::shared_ptr<Actions> actions)
 {
     for (; grandson; grandson = grandson->next) { // Iterate all Action
         std::shared_ptr<Action> action = std::make_shared<Action>();
+        action->thermalLvl_ = GetXmlIntProp(grandson, "thermalLvl");
+        action->thermalCmdId_ = GetXmlIntProp(grandson, "thermalCmdId");
         xmlNode* greatGrandson = grandson->children;
         for (; greatGrandson; greatGrandson = greatGrandson->next) { // Iterate duration and all res
             bool ret = ParseDuration(greatGrandson, configFile, action);
