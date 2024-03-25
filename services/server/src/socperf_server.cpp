@@ -121,5 +121,9 @@ void SocPerfServer::SetThermalLevel(int32_t level)
 {
     socPerf.SetThermalLevel(level);
 }
+void SocPerfServer::RequestDeviceMode(const std::string& mode, bool status)
+{
+    socPerf.RequestDeviceMode(mode, status);
+}
 } // namespace SOCPERF
 } // namespace OHOS

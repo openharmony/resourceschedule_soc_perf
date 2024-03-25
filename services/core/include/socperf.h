@@ -18,6 +18,7 @@
 
 #include <chrono>
 #include <string>
+#include <set>
 #include <vector>
 #include <unordered_map>
 #include <unistd.h>
@@ -39,6 +40,7 @@ public:
         const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg);
     void SetRequestStatus(bool status, const std::string& msg);
     void SetThermalLevel(int32_t level);
+    void RequestDeviceMode(const std::string& mode, bool status);
 public:
     SocPerf();
     ~SocPerf();
@@ -52,6 +54,7 @@ private:
     std::unordered_map<int32_t, std::shared_ptr<ResNode>> resNodeInfo;
     std::unordered_map<int32_t, std::shared_ptr<GovResNode>> govResNodeInfo;
     std::unordered_map<std::string, int32_t> resStrToIdInfo;
+    std::set<std::string> recordDeviceMode;
     std::vector<std::unordered_map<int32_t, int32_t>> limitRequest;
     char* perfSoPath = nullptr;
     char* perfSoFunc = nullptr;
@@ -60,6 +63,7 @@ private:
 
 private:
     std::mutex mutex_;
+    std::mutex mutexDeviceMode_;
     std::string GetRealConfigPath(const std::string& configFile);
     std::shared_ptr<SocPerfThreadWrap> GetThreadWrapByResId(int32_t resId) const;
     bool LoadConfigXmlFile(const std::string& configFile);
@@ -98,6 +102,8 @@ private:
     bool DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> action, int32_t onOff);
     void PrintCachedInfo() const;
     void SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t resValue);
+    void ParseModeCmd(const char* mode, const std::string& configFile, std::shared_ptr<Actions> actions);
+    int32_t MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff);
     void SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
         int32_t clientId, int32_t resId, int32_t eventId);
     void SendLimitRequestEventOn(std::shared_ptr<SocPerfThreadWrap> threadWrap,

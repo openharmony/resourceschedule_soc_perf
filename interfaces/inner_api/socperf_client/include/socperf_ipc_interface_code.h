@@ -25,6 +25,7 @@ namespace SOCPERF {
         TRANS_IPC_ID_SET_STATUS               = 0x0003,
         TRANS_IPC_ID_SET_THERMAL_LEVEL        = 0x0004,
         TRANS_IPC_ID_POWER_LIMIT_BOOST_FREQ   = 0x0005,
+        TRANS_IPC_ID_SET_DEVICE_MODE          = 0x0006,
         TRANS_IPC_ID_THERMAL_LIMIT_BOOST_FREQ = 0x0008,
         TRANS_IPC_ID_LIMIT_REQUEST            = 0x0009,
     };

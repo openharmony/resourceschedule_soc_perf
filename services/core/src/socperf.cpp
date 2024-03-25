@@ -83,13 +83,15 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
         SOC_PERF_LOGD("Invalid PerfRequest cmdId[%{public}d]", cmdId);
         return;
     }
-    SOC_PERF_LOGD("cmdId[%{public}d]msg[%{public}s]", cmdId, msg.c_str());
+
+    int32_t matchCmdId = MatchDeviceModeCmd(cmdId, false);
+    SOC_PERF_LOGD("cmdId[%{public}d]matchCmdId[%{public}d]msg[%{public}s]", cmdId, matchCmdId, msg.c_str());
 
     std::string trace_str(__func__);
-    trace_str.append(",cmdId[").append(std::to_string(cmdId)).append("]");
+    trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    DoFreqActions(perfActionsInfo[cmdId], EVENT_INVALID, ACTION_TYPE_PERF);
+    DoFreqActions(perfActionsInfo[matchCmdId], EVENT_INVALID, ACTION_TYPE_PERF);
     FinishTrace(HITRACE_TAG_OHOS);
 }
 
@@ -103,15 +105,17 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
         SOC_PERF_LOGD("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
         return;
     }
-    SOC_PERF_LOGD("cmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
-        cmdId, onOffTag, msg.c_str());
+
+    int32_t matchCmdId = MatchDeviceModeCmd(cmdId, true);
+    SOC_PERF_LOGD("cmdId[%{public}d]matchCmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
+        cmdId, matchCmdId, onOffTag, msg.c_str());
 
     std::string trace_str(__func__);
-    trace_str.append(",cmdId[").append(std::to_string(cmdId)).append("]");
+    trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    DoFreqActions(perfActionsInfo[cmdId], onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
+    DoFreqActions(perfActionsInfo[matchCmdId], onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
     FinishTrace(HITRACE_TAG_OHOS);
 }
 
@@ -709,6 +713,13 @@ bool SocPerf::LoadCmd(const xmlNode* rootNode, const std::string& configFile)
         std::shared_ptr<Actions> actions = std::make_shared<Actions>(atoi(id), name);
         xmlFree(id);
         xmlFree(name);
+
+        char* mode = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("mode")));
+        if (mode) {
+            ParseModeCmd(mode, configFile, actions);
+            xmlFree(mode);
+        }
+
         if (!TraversalBoostResource(grandson, configFile, actions)) {
             return false;
         }
@@ -783,6 +794,9 @@ bool SocPerf::TraversalBoostResource(xmlNode* grandson, const std::string& confi
             bool ret = ParseDuration(greatGrandson, configFile, action);
             if (!ret) {
                 return false;
+            }
+            if (action->duration == 0) {
+                actions->isLongTimePerf = true;
             }
             ret = ParseResValue(greatGrandson, configFile, action);
             if (!ret) {
@@ -983,6 +997,91 @@ bool SocPerf::CheckActionResIdAndValueValid(const std::string& configFile)
     }
     return true;
 }
+
+void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
+{
+    SOC_PERF_LOGD("device mode %{public}s status changed to %{public}d", mode.c_str(), status);
+
+    if (mode.empty() || mode.length() > MAX_RES_MODE_LEN) {
+        return;
+    }
+
+    auto iter = MUTEX_MODE.find(mode);
+    std::lock_guard<std::mutex> lock(mutexDeviceMode_);
+    if (status) {
+        if (iter != MUTEX_MODE.end()) {
+            for (auto res : iter->second) {
+                recordDeviceMode.erase(res);
+            }
+        }
+        recordDeviceMode.insert(mode);
+    } else {
+        recordDeviceMode.erase(mode);
+    }
+}
+
+void SocPerf::ParseModeCmd(const char* mode, const std::string& configFile, std::shared_ptr<Actions> actions)
+{
+    if (!mode) {
+        return;
+    }
+
+    std::string modeStr = mode;
+    std::vector<std::string> modeListResult = Split(modeStr, "|");
+    for (auto pairStr : modeListResult) {
+        std::vector<std::string> itemPair = Split(pairStr, "=");
+        if (itemPair.size() != RES_MODE_AND_ID_PAIR) {
+            SOC_PERF_LOGW("Invaild device mode pair for %{public}s", configFile.c_str());
+            continue;
+        }
+
+        std::string modeDeviceStr = itemPair[0];
+        std::string modeCmdIdStr = itemPair[RES_MODE_AND_ID_PAIR -1];
+        if (modeDeviceStr.empty() || !IsNumber(modeCmdIdStr)) {
+            SOC_PERF_LOGW("Invaild device mode name for %{public}s", configFile.c_str());
+            continue;
+        }
+
+        int32_t cmdId = atoi(modeCmdIdStr.c_str());
+        auto iter = actions->modeMap.find(modeDeviceStr);
+        if (iter != actions->modeMap.end()) {
+            iter->second = cmdId;
+        } else {
+            actions->modeMap.insert(std::pair<std::string, int32_t>(modeDeviceStr, cmdId));
+        }
+    }
+}
+
+int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
+{
+    std::shared_ptr<Actions> actions = perfActionsInfo[cmdId];
+    if (actions->modeMap.empty() || (isTagOnOff && actions->isLongTimePerf)) {
+        return cmdId;
+    }
+
+    std::lock_guard<std::mutex> lock(mutexDeviceMode_);
+    if (recordDeviceMode.empty()) {
+        return cmdId;
+    }
+
+    for (auto mode : recordDeviceMode) {
+        auto iter = actions->modeMap.find(mode);
+        if (iter != actions->modeMap.end()) {
+            int32_t deviceCmdId = iter->second;
+            if (perfActionsInfo.find(deviceCmdId) == perfActionsInfo.end()) {
+                SOC_PERF_LOGW("Invaild actions cmdid %{public}d", deviceCmdId);
+                return cmdId;
+            }
+            if (isTagOnOff && perfActionsInfo[deviceCmdId]->isLongTimePerf) {
+                SOC_PERF_LOGD("long time perf not match cmdId %{public}d", deviceCmdId);
+                return cmdId;
+            }
+            return deviceCmdId;
+        }
+    }
+    return cmdId;
+}
+
 
 void SocPerf::PrintCachedInfo() const
 {

@@ -81,6 +81,14 @@ public:
      */
     void SetThermalLevel(int32_t level) override;
 
+    /**
+     * @brief send the device mode, enable or disable
+     *
+     * @param mode the mode which will to be changed
+     * @param status true means socperfserver enter the device mode, false quit the device mode
+     */
+    void RequestDeviceMode(const std::string& mode, bool status) override;
+
 public:
     /**
      * @brief Construct a new SocPerfProxy object.

@@ -161,6 +161,131 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_001, Function | M
 }
 
 /*
+ * @tc.name: SocPerfServerTest_SocPerfServerAPI_002
+ * @tc.desc: test socperf server api
+ * @tc.type FUNC
+ * @tc.require: issueI78T3V
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_002, Function | MediumTest | Level0)
+{
+    std::string msg = "test";
+    socPerfServer_->RequestDeviceMode(msg, true);
+    auto iter = socPerfServer_->socPerf.recordDeviceMode.find(msg);
+    EXPECT_TRUE(iter != socPerfServer_->socPerf.recordDeviceMode.end());
+
+    socPerfServer_->RequestDeviceMode(msg, false);
+    auto iter2 = socPerfServer_->socPerf.recordDeviceMode.find(msg);
+    EXPECT_TRUE(iter2 == socPerfServer_->socPerf.recordDeviceMode.end());
+
+    std::string msgEmpty = "";
+    socPerfServer_->RequestDeviceMode("", true);
+    auto iter3 = socPerfServer_->socPerf.recordDeviceMode.find(msgEmpty);
+    EXPECT_TRUE(iter3 == socPerfServer_->socPerf.recordDeviceMode.end());
+
+    std::string msgMax = "ABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHABCDEFGHZ";
+    socPerfServer_->RequestDeviceMode(msgMax, true);
+    auto iter4 = socPerfServer_->socPerf.recordDeviceMode.find(msgMax);
+    EXPECT_TRUE(iter4 == socPerfServer_->socPerf.recordDeviceMode.end());
+}
+
+/*
+ * @tc.name: SocPerfServerTest_SocperfMatchCmd_001
+ * @tc.desc: test socperf MatchDeviceModeCmd func
+ * @tc.type FUNC
+ * @tc.require: issueI78T3V
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Function | MediumTest | Level0)
+{
+    std::string modeStr = "displayMain";
+    int32_t cmdTest = 10000;
+    socPerfServer_->RequestDeviceMode(modeStr, true);
+    auto iter = socPerfServer_->socPerf.recordDeviceMode.find(modeStr);
+    EXPECT_TRUE(iter != socPerfServer_->socPerf.recordDeviceMode.end());
+    auto it_actions = socPerfServer_->socPerf.perfActionsInfo.find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.perfActionsInfo.end()) {
+        EXPECT_EQ(modeStr, "displayMain");
+        return;
+    }
+    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.perfActionsInfo[cmdTest];
+    if (actions->modeMap.empty()) {
+        actions->modeMap.insert(std::pair<std::string, int32_t>(modeStr, cmdTest));
+    }
+
+    // case : normal match
+    int32_t ret = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, false);
+    auto iter_match = actions->modeMap.find(modeStr);
+    if (iter_match != actions->modeMap.end()) {
+        EXPECT_EQ(ret, iter_match->second);
+    } else {
+        EXPECT_EQ(ret, cmdTest);
+    }
+
+    // case : match cmdid is not exist branch
+    int32_t cmdInvaild = 60000;
+    auto iter_invaild = socPerfServer_->socPerf.perfActionsInfo.find(cmdInvaild);
+    if (iter_match != actions->modeMap.end()) {
+        EXPECT_EQ(cmdInvaild, 60000);
+    } else {
+        auto iter_mode = actions->modeMap.find(modeStr);
+        if (iter_mode == actions->modeMap.end()) {
+            EXPECT_EQ(cmdInvaild, 60000);
+        } else {
+            iter_mode->second = cmdInvaild;
+            int32_t retInvaild = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, false);
+            EXPECT_EQ(retInvaild, cmdTest);
+        }
+    }
+
+    // case : no match mode
+    std::string modeInvaild = "test";
+    socPerfServer_->RequestDeviceMode(modeStr, false);
+    socPerfServer_->RequestDeviceMode(modeInvaild, true);
+    int32_t retModeInvaild = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, false);
+    EXPECT_EQ(retModeInvaild, cmdTest);
+}
+
+/*
+ * @tc.name: SocPerfServerTest_SocperfParseModeCmd_001
+ * @tc.desc: test socperf ParseModeCmd func
+ * @tc.type FUNC
+ * @tc.require: issueI78T3V
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfParseModeCmd_001, Function | MediumTest | Level0)
+{
+    const char modePairInvaild[] = "parseTest";
+    const char modeNumberInvaild[] = "parseTest=abc";
+    const char modeCmdInvaild[] = "=12345";
+    const char modeSame[] = "parseTest=12345|parseTest=23456";
+    std::string cfgFile = "bootest.xml";
+    int32_t cmdTest = 10002;
+    int32_t exceptSame = 23456;
+    std::string deviceMode = "parseTest";
+
+    auto it_actions = socPerfServer_->socPerf.perfActionsInfo.find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.perfActionsInfo.end()) {
+        EXPECT_EQ(cmdTest, 10002);
+        return;
+    }
+
+    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.perfActionsInfo[cmdTest];
+    socPerfServer_->socPerf.ParseModeCmd(modePairInvaild, cfgFile, actions);
+    EXPECT_TRUE(actions->modeMap.find(deviceMode) == actions->modeMap.end());
+
+    socPerfServer_->socPerf.ParseModeCmd(modeNumberInvaild, cfgFile, actions);
+    EXPECT_TRUE(actions->modeMap.find(deviceMode) == actions->modeMap.end());
+
+    socPerfServer_->socPerf.ParseModeCmd(modeCmdInvaild, cfgFile, actions);
+    EXPECT_TRUE(actions->modeMap.find(deviceMode) == actions->modeMap.end());
+
+    int32_t size = actions->modeMap.size();
+    socPerfServer_->socPerf.ParseModeCmd(modeSame, cfgFile, actions);
+    EXPECT_EQ(size + 1, actions->modeMap.size());
+    auto iterSame = actions->modeMap.find(deviceMode);
+    ASSERT_TRUE(iterSame != actions->modeMap.end());
+    EXPECT_EQ(exceptSame, iterSame->second);
+}
+
+/*
  * @tc.name: SocPerfServerTest_SocperfThreadWrapp_001
  * @tc.desc: test log switch func
  * @tc.type FUNC
@@ -214,6 +339,7 @@ public:
         const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg) override {}
     void SetRequestStatus(bool status, const std::string& msg) override {};
     void SetThermalLevel(int32_t level) override {};
+    void RequestDeviceMode(const std::string& mode, bool status) override {};
 };
 
 /*
@@ -332,7 +458,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_006, Function | Med
     data.WriteBool(true);
     MessageParcel reply;
     MessageOption option;
-    uint32_t ipcId = 0x0006;
+    uint32_t ipcId = 0x000f;
     int32_t ret = socPerfStub.OnRemoteRequest(ipcId, data, reply, option);
     EXPECT_NE(ret, ERR_OK);
 }
@@ -378,6 +504,27 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_007, Function | Med
     MessageOption optionLimit;
     uint32_t powerLimitId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_LIMIT_REQUEST);
     ret = socPerfStub.OnRemoteRequest(powerLimitId, dataLimit, reply, option);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+
+/*
+ * @tc.name: SocPerfStubTest_SocPerfServerAPI_008
+ * @tc.desc: test socperf requet device mode stub api
+ * @tc.type FUNC
+ * @tc.require: issue#I95U8S
+ */
+HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_008, Function | MediumTest | Level0)
+{
+    SocperfStubTest socPerfStub;
+    MessageParcel data;
+    data.WriteInterfaceToken(SocPerfStub::GetDescriptor());
+    data.WriteString("test");
+    data.WriteBool(true);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t ipcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_DEVICE_MODE);
+    int32_t ret = socPerfStub.OnRemoteRequest(ipcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
 

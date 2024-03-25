@@ -89,6 +89,12 @@ int32_t SocPerfStub::OnRemoteRequestExt(uint32_t code, MessageParcel &data,
             SetThermalLevel(data.ReadInt32());
             break;
         }
+        case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_DEVICE_MODE): {
+            std::string mode = data.ReadString();
+            bool status = data.ReadBool();
+            RequestDeviceMode(mode, status);
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
