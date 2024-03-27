@@ -32,9 +32,7 @@
         "init",
         "safwk",
         "samgr",
-        "hisysevent"
-      ],
-      "third_party": [
+        "hisysevent",
         "libxml2"
       ]
     },
