@@ -33,8 +33,6 @@ ohos_shared_library("socperf_server") {
     "server/src/socperf_stub.cpp",
   ]
 
-  deps = [ "//third_party/libxml2:xml2" ]
-
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
@@ -47,6 +45,7 @@ ohos_shared_library("socperf_server") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "libxml2:libxml2",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -75,8 +74,6 @@ ohos_static_library("socperf_server_static") {
     "server/src/socperf_stub.cpp",
   ]
 
-  deps = [ "//third_party/libxml2:xml2" ]
-
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
@@ -89,6 +86,7 @@ ohos_static_library("socperf_server_static") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "libxml2:libxml2",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
