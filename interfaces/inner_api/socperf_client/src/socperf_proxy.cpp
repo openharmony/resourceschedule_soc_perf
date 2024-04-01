@@ -128,5 +128,25 @@ void SocPerfProxy::SetThermalLevel(int32_t level)
     Remote()->SendRequest(static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_THERMAL_LEVEL),
         data, reply, option);
 }
+
+void SocPerfProxy::RequestDeviceMode(const std::string& mode, bool status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = { MessageOption::TF_ASYNC };
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteString(mode)) {
+        SOC_PERF_LOGE("Failed to write mode: %{public}s", mode.c_str());
+        return;
+    }
+    if (!data.WriteBool(status)) {
+        SOC_PERF_LOGE("Failed to write status: %{public}d", status);
+        return;
+    }
+    Remote()->SendRequest(static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_DEVICE_MODE),
+        data, reply, option);
+}
 } // namespace SOCPERF
 } // namespace OHOS

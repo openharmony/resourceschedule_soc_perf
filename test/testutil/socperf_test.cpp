@@ -110,6 +110,19 @@ static void SetThermalLevel(int32_t argc, char *argv[])
     }
 }
 
+static void RequestDeviceMode(int32_t argc, char *argv[])
+{
+    if (argc == PARAMETERS_NUM_WITHOUT_EX) {
+        std::string mode = argv[2];
+        char* status = argv[3];
+        if (strcmp(status, "true") == 0) {
+            OHOS::SOCPERF::SocPerfClient::GetInstance().RequestDeviceMode(mode, true);
+        } else if (strcmp(status, "false") == 0) {
+            OHOS::SOCPERF::SocPerfClient::GetInstance().RequestDeviceMode(mode, false);
+        }
+    }
+}
+
 int32_t main(int32_t argc, char *argv[])
 {
     if (argc >= PARAMETERS_NUM_MIN && argv) {
@@ -128,6 +141,8 @@ int32_t main(int32_t argc, char *argv[])
             SetRequestStatus(argc, argv);
         } else if (strcmp(function, "SetThermalLevel") == 0) {
             SetThermalLevel(argc, argv);
+        } else if (strcmp(function, "RequestDeviceMode") == 0) {
+            RequestDeviceMode(argc, argv);
         }
     }
     return 0;

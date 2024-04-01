@@ -429,6 +429,10 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ResetClient_001, Function | MediumTest |
     EXPECT_EQ(msg, "");
     OHOS::SOCPERF::SocPerfClient::GetInstance().SetRequestStatus(true, msg);
     EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().RequestDeviceMode("test", true);
+    EXPECT_EQ(msg, "");
+    OHOS::SOCPERF::SocPerfClient::GetInstance().RequestDeviceMode("test", false);
+    EXPECT_EQ(msg, "");
     OHOS::SOCPERF::SocPerfClient::GetInstance().ResetClient();
 }
 

@@ -90,6 +90,14 @@ public:
      */
     virtual void SetThermalLevel(int32_t level) = 0;
 
+    /**
+     * @brief send the device mode, enable or disable
+     *
+     * @param mode the mode which will to be changed
+     * @param status true means socperfserver enter the device mode, false quit the device mode
+     */
+    virtual void RequestDeviceMode(const std::string& mode, bool status) = 0;
+
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"Resourceschedule.ISocPerfService");
 };

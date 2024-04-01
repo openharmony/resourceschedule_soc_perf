@@ -20,6 +20,8 @@
 
 namespace OHOS {
 namespace SOCPERF {
+const int32_t MAX_MODE_LEN = 64;
+
 SocPerfClient& SocPerfClient::GetInstance()
 {
     static SocPerfClient instance;
@@ -153,6 +155,14 @@ void SocPerfClient::SetThermalLevel(int32_t level)
         return;
     }
     client->SetThermalLevel(level);
+}
+
+void SocPerfClient::RequestDeviceMode(const std::string& mode, bool status)
+{
+    if (!CheckClientValid() || mode.length() > MAX_MODE_LEN) {
+        return;
+    }
+    client->RequestDeviceMode(mode, status);
 }
 } // namespace SOCPERF
 } // namespace OHOS

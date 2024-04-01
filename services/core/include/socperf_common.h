@@ -56,6 +56,14 @@ const int32_t WRITE_NODE                          = 0;
 const int32_t REPORT_TO_PERFSO                    = 1;
 const int32_t INVALID_THERMAL_CMD_ID              = -1;
 const int32_t MIN_THERMAL_LVL                     = 0;
+const int32_t RES_MODE_AND_ID_PAIR                = 2;
+const int32_t MAX_RES_MODE_LEN                    = 64;
+
+const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
+    {"displaySub", {"displayMain", "displayFull"}},
+    {"displayMain", {"displaySub", "displayFull"}},
+    {"displayFull", {"displayMain", "displaySub"}}
+};
 
 class ResNode {
 public:
@@ -170,6 +178,8 @@ public:
     int32_t id;
     std::string name;
     std::list<std::shared_ptr<Action>> actionList;
+    std::unordered_map<std::string, int32_t> modeMap;
+    bool isLongTimePerf = false;
 
 public:
     Actions(int32_t cmdId, std::string cmdName)
@@ -182,6 +192,9 @@ public:
     void PrintString()
     {
         SOC_PERF_LOGD("Actions-> id: [%{public}d], name: [%{public}s]", id, name.c_str());
+        for (auto kv : modeMap) {
+            SOC_PERF_LOGD("mode: [%{public}s], cmdid %{public}d", kv.first.c_str(), kv.second);
+        }
         for (auto iter = actionList.begin(); iter != actionList.end(); iter++) {
             std::shared_ptr<Action> action = *iter;
             std::string str;
