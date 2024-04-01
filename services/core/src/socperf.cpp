@@ -391,7 +391,7 @@ std::shared_ptr<SocPerfThreadWrap> SocPerf::GetThreadWrapByResId(int32_t resId) 
 bool SocPerf::LoadConfigXmlFile(const std::string& configFile)
 {
     std::string realConfigFile = GetRealConfigPath(configFile);
-    if (realConfigFile.size() <= 0) {
+    if (realConfigFile.size() == 0) {
         return false;
     }
     xmlKeepBlanksDefault(0);
