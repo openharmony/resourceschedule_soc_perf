@@ -39,9 +39,7 @@ ohos_fuzztest("PerfRequestExFuzzTest") {
     "${socperf_services}:socperf_server_static",
   ]
 
-  external_deps = [
-    "hilog:libhilog",
-  ]
+  external_deps = [ "hilog:libhilog" ]
 }
 
 ###############################################################################
