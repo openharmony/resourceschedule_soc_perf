@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#include "perfrequest_fuzzer.h"
+#include "limitrequest_fuzzer.h"
 #include "socperf_fuzz_mock.h"
 #include "socperf_ipc_interface_code.h"
 
 namespace OHOS {
 namespace SOCPERF {
-    bool TestPerfRequest(const uint8_t* data, size_t size)
+    bool TestLimitRequest(const uint8_t* data, size_t size)
     {
         SocperfStubTest socPerfStub;
         MessageParcel request;
@@ -27,18 +27,17 @@ namespace SOCPERF {
         request.WriteBuffer(data, size);
         MessageParcel reply;
         MessageOption option;
-        uint32_t requestIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_PERF_REQUEST);
+        uint32_t requestIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_LIMIT_REQUEST);
         socPerfStub.OnRemoteRequest(requestIpcId, request, reply, option);
         return true;
     }
-
 } // namespace SOCPERF
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    OHOS::SOCPERF::TestPerfRequest(data, size);
+    OHOS::SOCPERF::TestLimitRequest(data, size);
     return 0;
 }
 

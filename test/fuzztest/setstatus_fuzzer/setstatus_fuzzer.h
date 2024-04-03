@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FUZZTEST_PERF_REQUEST_FUZZER_H
-#define TEST_FUZZTEST_PERF_REQUEST_FUZZER_H
+#ifndef TEST_FUZZTEST_SET_STATUS_FUZZER_H
+#define TEST_FUZZTEST_SET_STATUS_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "perfrequestex_fuzzer"
+#define FUZZ_PROJECT_NAME "setstatus_fuzzer"
 
 #endif

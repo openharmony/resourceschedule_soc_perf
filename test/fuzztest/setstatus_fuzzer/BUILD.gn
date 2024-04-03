@@ -17,9 +17,9 @@ import("//build/test.gni")
 import("../../../soc_perf.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("PerfRequestFuzzTest") {
+ohos_fuzztest("SetStatusFuzzTest") {
   module_out_path = "soc_perf/soc_perf"
-  fuzz_config_file = "${socperf_test}/fuzztest/perfrequest_fuzzer"
+  fuzz_config_file = "${socperf_test}/fuzztest/setstatus_fuzzer"
   include_dirs = [
     "${socperf_services}/server/include",
     "${socperf_test}/fuzztest/include",
@@ -32,7 +32,7 @@ ohos_fuzztest("PerfRequestFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "perfrequest_fuzzer.cpp" ]
+  sources = [ "setstatus_fuzzer.cpp" ]
 
   deps = [
     "${socperf_interfaces}/inner_api/socperf_client:socperf_client",
@@ -50,7 +50,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":PerfRequestFuzzTest",
+    ":SetStatusFuzzTest",
   ]
 }
 ###############################################################################

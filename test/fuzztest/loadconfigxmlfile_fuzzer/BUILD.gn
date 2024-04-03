@@ -15,7 +15,6 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("../../../soc_perf.gni")
-module_output_path = "resource_schedule_service/soc_perf"
 
 ##############################fuzztest##########################################
 config("module_private_config") {
@@ -28,7 +27,7 @@ config("module_private_config") {
 }
 
 ohos_fuzztest("LoadConfigXmlFileFuzzTest") {
-  module_out_path = module_output_path
+  module_out_path = "soc_perf/soc_perf"
   fuzz_config_file = "${socperf_test}/fuzztest/loadconfigxmlfile_fuzzer"
   configs = [ ":module_private_config" ]
 
