@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,19 +17,13 @@ import("//build/test.gni")
 import("../../../soc_perf.gni")
 
 ##############################fuzztest##########################################
-config("module_private_config") {
-  include_dirs = [
-    "${socperf_common}/include",
-    "${socperf_interfaces}/inner_api/socperf_client/include",
-    "${socperf_services}/core/include",
-    "${socperf_services}/server/include",
-  ]
-}
-
-ohos_fuzztest("LoadConfigXmlFileFuzzTest") {
+ohos_fuzztest("ThermalLimitBoostFuzzTest") {
   module_out_path = "soc_perf/soc_perf"
-  fuzz_config_file = "${socperf_test}/fuzztest/loadconfigxmlfile_fuzzer"
-  configs = [ ":module_private_config" ]
+  fuzz_config_file = "${socperf_test}/fuzztest/thermallimitboost_fuzzer"
+  include_dirs = [
+    "${socperf_services}/server/include",
+    "${socperf_test}/fuzztest/include",
+  ]
 
   cflags = [
     "-g",
@@ -38,23 +32,23 @@ ohos_fuzztest("LoadConfigXmlFileFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  sources = [ "loadconfigxmlfile_fuzzer.cpp" ]
+  sources = [ "thermallimitboost_fuzzer.cpp" ]
 
-  deps = [ "${socperf_services}:socperf_server_static" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
+  deps = [
+    "${socperf_interfaces}/inner_api/socperf_client:socperf_client",
+    "${socperf_services}:socperf_server_static",
   ]
+
+  external_deps = [ "hilog:libhilog" ]
 }
 
 ###############################################################################
 group("fuzztest") {
   testonly = true
-  deps = [
+  deps = []
+  deps += [
     # deps file
-    ":LoadConfigXmlFileFuzzTest",
+    ":ThermalLimitBoostFuzzTest",
   ]
 }
 ###############################################################################

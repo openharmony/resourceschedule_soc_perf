@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2024-2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,13 +18,11 @@ import("../../../soc_perf.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("PerfRequestFuzzTest") {
-  module_out_path = "soc_perf/socperftest"
+  module_out_path = "soc_perf/soc_perf"
   fuzz_config_file = "${socperf_test}/fuzztest/perfrequest_fuzzer"
-
   include_dirs = [
-    "${socperf_common}/include",
-    "${socperf_interfaces}/inner_api/socperf_client:socperf_client",
-    "${socperf_services}/core/include",
+    "${socperf_services}/server/include",
+    "${socperf_test}/fuzztest/include",
   ]
 
   cflags = [
@@ -36,16 +34,12 @@ ohos_fuzztest("PerfRequestFuzzTest") {
 
   sources = [ "perfrequest_fuzzer.cpp" ]
 
-  deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_client" ]
-
-  external_deps = [
-    "c_utils:utils",
-    "eventhandler:libeventhandler",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "safwk:system_ability_fwk",
-    "samgr:samgr_proxy",
+  deps = [
+    "${socperf_interfaces}/inner_api/socperf_client:socperf_client",
+    "${socperf_services}:socperf_server_static",
   ]
+
+  external_deps = [ "hilog:libhilog" ]
 }
 
 ###############################################################################
