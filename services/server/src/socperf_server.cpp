@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,9 +14,12 @@
  */
 
 #include "socperf_server.h"
+#include <file_ex.h>
+#include <string_ex.h>
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
+#include "system_ability_defination.h"
 
 namespace OHOS {
 namespace SOCPERF {
