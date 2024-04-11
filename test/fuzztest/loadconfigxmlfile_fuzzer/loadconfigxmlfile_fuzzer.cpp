@@ -56,7 +56,7 @@ namespace SOCPERF {
 
         (void)fclose(pFile);
         pFile = nullptr;
-        socPerf.socPerfConfig->LoadConfigXmlFile(fuzzedFile);
+        socPerf->socPerfConfig.LoadConfigXmlFile(fuzzedFile);
     }
 } // namespace SOCPERF
 } // namespace OHOS
