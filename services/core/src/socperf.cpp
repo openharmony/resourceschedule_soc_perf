@@ -364,7 +364,7 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             DoPerfRequestThremalLvl(actions->id, action, onOff);
         }
         for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
-            if (!socPerfConfig.GetResIdNumsPerType(action->variable[i])) {
+            if (!socPerfConfig.IsValidResId(action->variable[i])) {
                 continue;
             }
             auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);

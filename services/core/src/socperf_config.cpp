@@ -300,7 +300,7 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         xmlFree(name);
         xmlFree(persistMode);
         resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
-        govResNodeInfo.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
+        resourceNodeInfo.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         wrapSwitch[govResNode->id / GetResIdNumsPerType(govResNode->id)] = true;
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
             return false;
@@ -588,9 +588,9 @@ bool SocPerfConfig::CheckPairResIdValid() const
             continue;
         }
         int32_t resId = iter->first;
-        std::shared_ptr<ResNode> resNode = std::static_pointer_cast(iter->second);
+        std::shared_ptr<ResNode> resNode = std::static_pointer_cast<ResNode>(iter->second);
         int32_t pairResId = resNode->pair;
-        if (pairResId != INVALID_VALUE && resNodeInfo.find(pairResId) == resNodeInfo.end()) {
+        if (pairResId != INVALID_VALUE && resourceNodeInfo.find(pairResId) == resourceNodeInfo.end()) {
             SOC_PERF_LOGE("resId[%{public}d]'s pairResId[%{public}d] is not valid", resId, pairResId);
             return false;
         }

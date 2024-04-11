@@ -88,11 +88,11 @@ void SocPerfThreadWrap::InitResourceNodeInfo(std::shared_ptr<ResourceNode> resou
             std::shared_ptr<GovResNode> govResNode = std::static_pointer_cast<GovResNode>(resourceNode);
             for (int32_t i = 0; govResNode->persistMode != REPORT_TO_PERFSO &&
                 i < (int32_t)govResNode->paths.size(); i++) {
-                    WriteNode(govResNode->id, govResNode->paths[i], govResNode->levelToStr[govResNode->def][i]);
+                WriteNode(govResNode->id, govResNode->paths[i], govResNode->levelToStr[govResNode->def][i]);
                 }
         } else {
             std::shared_ptr<ResNode> resNode = std::static_pointer_cast<ResNode>(resourceNode);
-            if (resNode -> persistMode != REPORT_TO_PERFSO) {
+            if (resNode->persistMode != REPORT_TO_PERFSO) {
                 WriteNode(resNode->id, resNode->path, std::to_string(resNode->def));
             }
         }
@@ -572,11 +572,11 @@ void SocPerfThreadWrap::UpdateCurrentValue(int32_t resId, int64_t currValue)
             std::static_pointer_cast<GovResNode>(socPerfConfig.resourceNodeInfo[resId]);
         if (govResNode->persistMode != REPORT_TO_PERFSO &&
             govResNode->levelToStr.find(currValue) != govResNode->levelToStr.end()) {
-                std::vector<std::string> targetStrs = govResNode->levelToStr[resStatusInfo[resId]->currentValue];
-                for (int32_t i = 0; i < (int32_t)govResNode->paths.size(); i++) {
-                    WriteNode(resId, govResNode->paths[i], targetStrs[i]);
-                }
+            std::vector<std::string> targetStrs = govResNode->levelToStr[resStatusInfo[resId]->currentValue];
+            for (int32_t i = 0; i < (int32_t)govResNode->paths.size(); i++) {
+                WriteNode(resId, govResNode->paths[i], targetStrs[i]);
             }
+        }
     } else {
         std::shared_ptr<ResNode> resNode = std::static_pointer_cast<ResNode>(socPerfConfig.resourceNodeInfo[resId]);
         WriteNode(resId, resNode->path, std::to_string(resStatusInfo[resId]->currentValue));
