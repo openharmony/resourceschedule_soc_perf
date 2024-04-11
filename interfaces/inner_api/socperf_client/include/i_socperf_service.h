@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,16 +16,7 @@
 #ifndef SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_I_SOCPERF_SERVICE_H
 #define SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_I_SOCPERF_SERVICE_H
 
-#include <string>
-#include "iremote_broker.h"
 #include "iremote_stub.h"
-#include "iremote_proxy.h"
-#include "iremote_object.h"
-#include "system_ability.h"
-#include "system_ability_definition.h"
-#include "if_system_ability_manager.h"
-#include "iservice_registry.h"
-#include "socperf_action_type.h"
 
 namespace OHOS {
 namespace SOCPERF {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -139,62 +139,51 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_EventType_003, Function | MediumTest | L
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_001, Function | MediumTest | Level0)
 {
-    EXPECT_EQ(INNER_EVENT_ID_INIT_RES_NODE_INFO, 0);
+    EXPECT_EQ(INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO, 0);
 }
 
 /*
  * @tc.name: SocPerfSubTest_InnerEventId_002
- * @tc.desc: init gov res node info
- * @tc.type FUNC
- * @tc.require: issueI78T3V
- */
-HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_002, Function | MediumTest | Level0)
-{
-    EXPECT_EQ(INNER_EVENT_ID_INIT_GOV_RES_NODE_INFO, 1);
-}
-
-/*
- * @tc.name: SocPerfSubTest_InnerEventId_003
  * @tc.desc: do freq action
  * @tc.type FUNC
  * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_003, Function | MediumTest | Level0)
 {
-    EXPECT_EQ(INNER_EVENT_ID_DO_FREQ_ACTION, 2);
+    EXPECT_EQ(INNER_EVENT_ID_DO_FREQ_ACTION, 1);
 }
 
 /*
- * @tc.name: SocPerfSubTest_InnerEventId_004
+ * @tc.name: SocPerfSubTest_InnerEventId_003
  * @tc.desc: do freq action delayed
  * @tc.type FUNC
  * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_004, Function | MediumTest | Level0)
 {
-    EXPECT_EQ(INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED, 4);
+    EXPECT_EQ(INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED, 3);
 }
 
 /*
- * @tc.name: SocPerfSubTest_InnerEventId_005
+ * @tc.name: SocPerfSubTest_InnerEventId_004
  * @tc.desc: power limit boost freq
  * @tc.type FUNC
  * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_005, Function | MediumTest | Level0)
 {
-    EXPECT_EQ(INNER_EVENT_ID_POWER_LIMIT_BOOST_FREQ, 5);
+    EXPECT_EQ(INNER_EVENT_ID_POWER_LIMIT_BOOST_FREQ, 4);
 }
 
 /*
- * @tc.name: SocPerfSubTest_InnerEventId_006
+ * @tc.name: SocPerfSubTest_InnerEventId_005
  * @tc.desc: thermal limit boost freq
  * @tc.type FUNC
  * @tc.require: issueI78T3V
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_InnerEventId_006, Function | MediumTest | Level0)
 {
-    EXPECT_EQ(INNER_EVENT_ID_THERMAL_LIMIT_BOOST_FREQ, 6);
+    EXPECT_EQ(INNER_EVENT_ID_THERMAL_LIMIT_BOOST_FREQ, 5);
 }
 
 /*
