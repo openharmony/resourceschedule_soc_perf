@@ -35,9 +35,9 @@ public:
 
 public:
     bool wrapSwitch[MAX_QUEUE_NUM] = { false };
-    ReportDataFunc reportFunc = nullptr;
-    std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo;
-    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo;
+    ReportDataFunc reportFunc_ = nullptr;
+    std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
 
 private:
     SocPerfConfig();

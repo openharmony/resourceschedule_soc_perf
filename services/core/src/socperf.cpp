@@ -30,7 +30,7 @@ SocPerf::~SocPerf()
 
 bool SocPerf::Init()
 {
-    if (!socPerfConfig.Init()) {
+    if (!socPerfConfig_.Init()) {
         SOC_PERF_LOGE("Failed to init SocPerf config");
         return false;
     }
@@ -46,10 +46,10 @@ bool SocPerf::Init()
 
 bool SocPerf::CreateThreadWraps()
 {
-    socperfThreadWraps = std::vector<std::shared_ptr<SocPerfThreadWrap>>(MAX_QUEUE_NUM);
-    for (int32_t i = 0; i < (int32_t)socperfThreadWraps.size(); i++) {
-        if (!socPerfConfig.wrapSwitch[i]) {
-            socperfThreadWraps[i] = nullptr;
+    socperfThreadWraps_ = std::vector<std::shared_ptr<SocPerfThreadWrap>>(MAX_QUEUE_NUM);
+    for (int32_t i = 0; i < (int32_t)socperfThreadWraps_.size(); i++) {
+        if (!socPerfConfig_.wrapSwitch[i]) {
+            socperfThreadWraps_[i] = nullptr;
             continue;
         }
 #ifdef SOCPERF_ADAPTOR_FFRT
@@ -66,7 +66,7 @@ bool SocPerf::CreateThreadWraps()
             SOC_PERF_LOGE("Failed to Create socPerfThreadWrap");
             return false;
         }
-        socperfThreadWraps[i] = socPerfThreadWrap;
+        socperfThreadWraps_[i] = socPerfThreadWrap;
     }
     SOC_PERF_LOGD("Success to Create All threadWrap threads");
     return true;
@@ -74,7 +74,7 @@ bool SocPerf::CreateThreadWraps()
 
 void SocPerf::InitThreadWraps()
 {
-    for (auto iter = socPerfConfig.resourceNodeInfo.begin(); iter != socPerfConfig.resourceNodeInfo.end(); ++iter) {
+    for (auto iter = socPerfConfig_.resourceNodeInfo_.begin(); iter != socPerfConfig_.resourceNodeInfo_.end(); ++iter) {
         std::shared_ptr<ResourceNode> resourceNode = iter->second;
         auto threadWrap = GetThreadWrapByResId(resourceNode->id);
         if (!threadWrap) {
@@ -91,10 +91,10 @@ void SocPerf::InitThreadWraps()
 
 std::shared_ptr<SocPerfThreadWrap> SocPerf::GetThreadWrapByResId(int32_t resId) const
 {
-    if (!socPerfConfig.IsValidResId(resId)) {
+    if (!socPerfConfig_.IsValidResId(resId)) {
         return nullptr;
     }
-    return socperfThreadWraps[resId / socPerfConfig.GetResIdNumsPerType(resId)];
+    return socperfThreadWraps_[resId / socPerfConfig_.GetResIdNumsPerType(resId)];
 }
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
@@ -103,7 +103,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
-    if (socPerfConfig.perfActionsInfo.find(cmdId) == socPerfConfig.perfActionsInfo.end()) {
+    if (socPerfConfig_.perfActionsInfo_.find(cmdId) == socPerfConfig_.perfActionsInfo_.end()) {
         SOC_PERF_LOGD("Invalid PerfRequest cmdId[%{public}d]", cmdId);
         return;
     }
@@ -115,7 +115,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
     trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    DoFreqActions(socPerfConfig.perfActionsInfo[matchCmdId], EVENT_INVALID, ACTION_TYPE_PERF);
+    DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], EVENT_INVALID, ACTION_TYPE_PERF);
     FinishTrace(HITRACE_TAG_OHOS);
 }
 
@@ -125,7 +125,7 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
-    if (socPerfConfig.perfActionsInfo.find(cmdId) == socPerfConfig.perfActionsInfo.end()) {
+    if (socPerfConfig_.perfActionsInfo_.find(cmdId) == socPerfConfig_.perfActionsInfo_.end()) {
         SOC_PERF_LOGD("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
         return;
     }
@@ -139,7 +139,7 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    DoFreqActions(socPerfConfig.perfActionsInfo[matchCmdId], onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
+    DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
     FinishTrace(HITRACE_TAG_OHOS);
 }
 
@@ -155,7 +155,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    for (auto threadWrap : socperfThreadWraps) {
+    for (auto threadWrap : socperfThreadWraps_) {
         if (threadWrap) {
 #ifdef SOCPERF_ADAPTOR_FFRT
             threadWrap->UpdatePowerLimitBoostFreq(onOffTag);
@@ -183,7 +183,7 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    for (auto threadWrap : socperfThreadWraps) {
+    for (auto threadWrap : socperfThreadWraps_) {
         if (threadWrap) {
 #ifdef SOCPERF_ADAPTOR_FFRT
             threadWrap->UpdateThermalLimitBoostFreq(onOffTag);
@@ -203,18 +203,18 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 void SocPerf::SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
     int32_t clientId, int32_t resId, int32_t eventId)
 {
-    auto iter = limitRequest[clientId].find(resId);
-    if (iter != limitRequest[clientId].end()
-        && limitRequest[clientId][resId] != INVALID_VALUE) {
+    auto iter = limitRequest_[clientId].find(resId);
+    if (iter != limitRequest_[clientId].end()
+        && limitRequest_[clientId][resId] != INVALID_VALUE) {
         auto resAction = std::make_shared<ResAction>(
-            limitRequest[clientId][resId], 0, clientId, EVENT_OFF, -1, MAX_INT_VALUE);
+            limitRequest_[clientId][resId], 0, clientId, EVENT_OFF, -1, MAX_INT_VALUE);
 #ifdef SOCPERF_ADAPTOR_FFRT
         threadWrap->UpdateLimitStatus(eventId, resAction, resId);
 #else
         auto event = AppExecFwk::InnerEvent::Get(eventId, resAction, resId);
         threadWrap->SendEvent(event);
 #endif
-        limitRequest[clientId].erase(iter);
+        limitRequest_[clientId].erase(iter);
     }
 }
 
@@ -229,7 +229,7 @@ void SocPerf::SendLimitRequestEventOn(std::shared_ptr<SocPerfThreadWrap> threadW
         auto event = AppExecFwk::InnerEvent::Get(eventId, resAction, resId);
         threadWrap->SendEvent(event);
 #endif
-        limitRequest[clientId].insert(std::pair<int32_t, int32_t>(resId, resValue));
+        limitRequest_[clientId].insert(std::pair<int32_t, int32_t>(resId, resValue));
     }
 }
 
@@ -295,14 +295,14 @@ void SocPerf::ClearAllAliveRequest()
         return;
     }
     for (int32_t i = 0; i < MAX_QUEUE_NUM; ++i) {
-        if (socperfThreadWraps[i] == nullptr) {
+        if (socperfThreadWraps_[i] == nullptr) {
             continue;
         }
 #ifdef SOCPERF_ADAPTOR_FFRT
-        socperfThreadWraps[i]->ClearAllAliveRequest();
+        socperfThreadWraps_[i]->ClearAllAliveRequest();
 #else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST);
-        socperfThreadWraps[i]->SendEvent(event);
+        socperfThreadWraps_[i]->SendEvent(event);
 #endif
     }
 }
@@ -314,7 +314,7 @@ void SocPerf::SetThermalLevel(int32_t level)
 
 bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> action, int32_t onOff)
 {
-    if (socPerfConfig.perfActionsInfo[action->thermalCmdId_] == nullptr) {
+    if (socPerfConfig_.perfActionsInfo_[action->thermalCmdId_] == nullptr) {
         SOC_PERF_LOGE("cmd %{public}d is not exist", action->thermalCmdId_);
         return false;
     }
@@ -325,7 +325,7 @@ bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> act
     std::shared_ptr<Action> perfLvlAction = std::make_shared<Action>();
     // perfrequest thermal level action's duration is same as trigger
     perfLvlAction->duration = action->duration;
-    std::shared_ptr<Actions> cmdConfig = socPerfConfig.perfActionsInfo[action->thermalCmdId_];
+    std::shared_ptr<Actions> cmdConfig = socPerfConfig_.perfActionsInfo_[action->thermalCmdId_];
 
     // select the Nearest thermallevel action
     std::shared_ptr<Action> actionConfig = *(cmdConfig->actionList.begin());
@@ -365,7 +365,7 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             DoPerfRequestThremalLvl(actions->id, action, onOff);
         }
         for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
-            if (!socPerfConfig.IsValidResId(action->variable[i])) {
+            if (!socPerfConfig_.IsValidResId(action->variable[i])) {
                 continue;
             }
             auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
@@ -373,7 +373,7 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             resActionItem->resAction =
                 std::make_shared<ResAction>(action->variable[i + 1], action->duration,
                     actionType, onOff, actions->id, endTime);
-            int32_t id = action->variable[i] / socPerfConfig.GetResIdNumsPerType(action->variable[i]);
+            int32_t id = action->variable[i] / socPerfConfig_.GetResIdNumsPerType(action->variable[i]);
             if (curItem[id]) {
                 curItem[id]->next = resActionItem;
             } else {
@@ -383,14 +383,14 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
         }
     }
     for (int32_t i = 0; i < MAX_QUEUE_NUM; ++i) {
-        if (!socperfThreadWraps[i] || !header[i]) {
+        if (!socperfThreadWraps_[i] || !header[i]) {
             continue;
         }
 #ifdef SOCPERF_ADAPTOR_FFRT
-        socperfThreadWraps[i]->DoFreqActionPack(header[i]);
+        socperfThreadWraps_[i]->DoFreqActionPack(header[i]);
 #else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_PACK, header[i]);
-        socperfThreadWraps[i]->SendEvent(event);
+        socperfThreadWraps_[i]->SendEvent(event);
 #endif
     }
 }
@@ -408,36 +408,36 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
     if (status) {
         if (iter != MUTEX_MODE.end()) {
             for (auto res : iter->second) {
-                recordDeviceMode.erase(res);
+                recordDeviceMode_.erase(res);
             }
         }
-        recordDeviceMode.insert(mode);
+        recordDeviceMode_.insert(mode);
     } else {
-        recordDeviceMode.erase(mode);
+        recordDeviceMode_.erase(mode);
     }
 }
 
 int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
 {
-    std::shared_ptr<Actions> actions = socPerfConfig.perfActionsInfo[cmdId];
+    std::shared_ptr<Actions> actions = socPerfConfig_.perfActionsInfo_[cmdId];
     if (actions->modeMap.empty() || (isTagOnOff && actions->isLongTimePerf)) {
         return cmdId;
     }
 
     std::lock_guard<std::mutex> lock(mutexDeviceMode_);
-    if (recordDeviceMode.empty()) {
+    if (recordDeviceMode_.empty()) {
         return cmdId;
     }
 
-    for (auto mode : recordDeviceMode) {
+    for (auto mode : recordDeviceMode_) {
         auto iter = actions->modeMap.find(mode);
         if (iter != actions->modeMap.end()) {
             int32_t deviceCmdId = iter->second;
-            if (socPerfConfig.perfActionsInfo.find(deviceCmdId) == socPerfConfig.perfActionsInfo.end()) {
+            if (socPerfConfig_.perfActionsInfo_.find(deviceCmdId) == socPerfConfig_.perfActionsInfo_.end()) {
                 SOC_PERF_LOGW("Invaild actions cmdid %{public}d", deviceCmdId);
                 return cmdId;
             }
-            if (isTagOnOff && socPerfConfig.perfActionsInfo[deviceCmdId]->isLongTimePerf) {
+            if (isTagOnOff && socPerfConfig_.perfActionsInfo_[deviceCmdId]->isLongTimePerf) {
                 SOC_PERF_LOGD("long time perf not match cmdId %{public}d", deviceCmdId);
                 return cmdId;
             }

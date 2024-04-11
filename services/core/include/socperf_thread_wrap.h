@@ -63,14 +63,14 @@ public:
 
 private:
     static const int32_t SCALES_OF_MILLISECONDS_TO_MICROSECONDS = 1000;
-    std::unordered_map<int32_t, std::shared_ptr<ResStatus>> resStatusInfo;
-    std::unordered_map<std::string, int32_t> fdInfo;
-    SocPerfConfig &socPerfConfig = SocPerfConfig::GetInstance();
+    std::unordered_map<int32_t, std::shared_ptr<ResStatus>> resStatusInfo_;
+    std::unordered_map<std::string, int32_t> fdInfo_;
+    SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
 #ifdef SOCPERF_ADAPTOR_FFRT
-    ffrt::queue socperfQueue;
+    ffrt::queue socperfQueue_;
 #endif
-    bool powerLimitBoost = false;
-    bool thermalLimitBoost = false;
+    bool powerLimitBoost_ = false;
+    bool thermalLimitBoost_ = false;
 
 private:
     void SendResStatusToPerfSo();

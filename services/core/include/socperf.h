@@ -40,14 +40,14 @@ public:
     ~SocPerf();
 
 private:
-    std::vector<std::shared_ptr<SocPerfThreadWrap>> socperfThreadWraps;
     bool enabled = false;
-    std::set<std::string> recordDeviceMode;
-    std::vector<std::unordered_map<int32_t, int32_t>> limitRequest =
+    std::vector<std::shared_ptr<SocPerfThreadWrap>> socperfThreadWraps_;
+    std::set<std::string> recordDeviceMode_;
+    std::vector<std::unordered_map<int32_t, int32_t>> limitRequest_ =
         std::vector<std::unordered_map<int32_t, int32_t>>(ACTION_TYPE_MAX);
     volatile bool perfRequestEnable_ = true;
     int32_t thermalLvl_ = MIN_THERMAL_LVL;
-    SocPerfConfig &socPerfConfig = SocPerfConfig::GetInstance();
+    SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
 private:
     std::mutex mutex_;
     std::mutex mutexDeviceMode_;

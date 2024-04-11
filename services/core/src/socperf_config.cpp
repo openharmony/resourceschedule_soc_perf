@@ -29,8 +29,8 @@ namespace {
 
 SocPerfConfig& SocPerfConfig::GetInstance()
 {
-    static SocPerfConfig socPerfConfig;
-    return socPerfConfig;
+    static SocPerfConfig socPerfConfig_;
+    return socPerfConfig_;
 }
 
 SocPerfConfig::SocPerfConfig() {}
@@ -66,8 +66,8 @@ bool SocPerfConfig::Init()
 
 bool SocPerfConfig::IsGovResId(int32_t resId) const
 {
-    auto item = resourceNodeInfo.find(resId);
-    if (item != resourceNodeInfo.end() && item->second->isGov) {
+    auto item = resourceNodeInfo_.find(resId);
+    if (item != resourceNodeInfo_.end() && item->second->isGov) {
         return true;
     }
     return false;
@@ -75,7 +75,7 @@ bool SocPerfConfig::IsGovResId(int32_t resId) const
 
 bool SocPerfConfig::IsValidResId(int32_t resId) const
 {
-    if (resourceNodeInfo.find(resId) == resourceNodeInfo.end()) {
+    if (resourceNodeInfo_.find(resId) == resourceNodeInfo_.end()) {
         return false;
     }
     return true;
@@ -148,8 +148,8 @@ void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfSoFunc)
         return;
     }
 
-    reportFunc = reinterpret_cast<ReportDataFunc>(dlsym(g_handle, perfSoFunc));
-    if (reportFunc == nullptr) {
+    reportFunc_ = reinterpret_cast<ReportDataFunc>(dlsym(g_handle, perfSoFunc));
+    if (reportFunc_ == nullptr) {
         SOC_PERF_LOGE("perf func doesn't exist");
         dlclose(g_handle);
     }
@@ -268,7 +268,7 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
     xmlFree(node);
 
     resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
-    resourceNodeInfo.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
+    resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
     wrapSwitch[resNode->id / GetResIdNumsPerType(resNode->id)] = true;
     return true;
 }
@@ -297,7 +297,7 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         xmlFree(name);
         xmlFree(persistMode);
         resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
-        resourceNodeInfo.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
+        resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         wrapSwitch[govResNode->id / GetResIdNumsPerType(govResNode->id)] = true;
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
             return false;
@@ -313,8 +313,8 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
 
 int32_t SocPerfConfig::GetResIdNumsPerType(int32_t resId) const
 {
-    auto item = resourceNodeInfo.find(resId);
-    if (item != resourceNodeInfo.end() && item->second->persistMode == REPORT_TO_PERFSO) {
+    auto item = resourceNodeInfo_.find(resId);
+    if (item != resourceNodeInfo_.end() && item->second->persistMode == REPORT_TO_PERFSO) {
         return RES_ID_NUMS_PER_TYPE_EXT;
     }
     return RES_ID_NUMS_PER_TYPE;
@@ -402,7 +402,7 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
         if (!TraversalBoostResource(grandson, configFile, actions)) {
             return false;
         }
-        perfActionsInfo.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
+        perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
     }
 
     if (!CheckActionResIdAndValueValid(configFile)) {
@@ -580,14 +580,14 @@ bool SocPerfConfig::LoadResourceAvailable(std::shared_ptr<ResNode> resNode, cons
 
 bool SocPerfConfig::CheckPairResIdValid() const
 {
-    for (auto iter = resourceNodeInfo.begin(); iter != resourceNodeInfo.end(); ++iter) {
+    for (auto iter = resourceNodeInfo_.begin(); iter != resourceNodeInfo_.end(); ++iter) {
         if (iter->second->isGov) {
             continue;
         }
         int32_t resId = iter->first;
         std::shared_ptr<ResNode> resNode = std::static_pointer_cast<ResNode>(iter->second);
         int32_t pairResId = resNode->pair;
-        if (pairResId != INVALID_VALUE && resourceNodeInfo.find(pairResId) == resourceNodeInfo.end()) {
+        if (pairResId != INVALID_VALUE && resourceNodeInfo_.find(pairResId) == resourceNodeInfo_.end()) {
             SOC_PERF_LOGE("resId[%{public}d]'s pairResId[%{public}d] is not valid", resId, pairResId);
             return false;
         }
@@ -597,7 +597,7 @@ bool SocPerfConfig::CheckPairResIdValid() const
 
 bool SocPerfConfig::CheckDefValid() const
 {
-    for (auto iter = resourceNodeInfo.begin(); iter != resourceNodeInfo.end(); ++iter) {
+    for (auto iter = resourceNodeInfo_.begin(); iter != resourceNodeInfo_.end(); ++iter) {
         int32_t resId = iter->first;
         std::shared_ptr<ResourceNode> resourceNode = iter->second;
         int64_t def = resourceNode->def;
@@ -659,9 +659,9 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
     for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
         int32_t resId = action->variable[i];
         int64_t resValue = action->variable[i + 1];
-        if (resourceNodeInfo.find(resId) != resourceNodeInfo.end()) {
-            if (resourceNodeInfo[resId]->persistMode != REPORT_TO_PERFSO && !resourceNodeInfo[resId]->available.empty()
-                && resourceNodeInfo[resId]->available.find(resValue) == resourceNodeInfo[resId]->available.end()) {
+        if (resourceNodeInfo_.find(resId) != resourceNodeInfo_.end()) {
+            if (resourceNodeInfo_[resId]->persistMode != REPORT_TO_PERFSO && !resourceNodeInfo_[resId]->available.empty()
+                && resourceNodeInfo_[resId]->available.find(resValue) == resourceNodeInfo_[resId]->available.end()) {
                 SOC_PERF_LOGE("action[%{public}d]'s resValue[%{public}lld] is not valid",
                     actionId, (long long)resValue);
                 return false;
@@ -676,7 +676,7 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
 
 bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
 {
-    std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo = perfActionsInfo;
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo = perfActionsInfo_;
     for (auto actionsIter = actionsInfo.begin(); actionsIter != actionsInfo.end(); ++actionsIter) {
         int32_t actionId = actionsIter->first;
         std::shared_ptr<Actions> actions = actionsIter->second;
@@ -693,13 +693,13 @@ bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
 void SocPerfConfig::PrintCachedInfo() const
 {
     SOC_PERF_LOGD("------------------------------------");
-    SOC_PERF_LOGD("resourceNodeInfo(%{public}d)", (int32_t)resourceNodeInfo.size());
-    for (auto iter = resourceNodeInfo.begin(); iter != resourceNodeInfo.end(); ++iter) {
+    SOC_PERF_LOGD("resourceNodeInfo_(%{public}d)", (int32_t)resourceNodeInfo_.size());
+    for (auto iter = resourceNodeInfo_.begin(); iter != resourceNodeInfo_.end(); ++iter) {
         iter->second->PrintString();
     }
     SOC_PERF_LOGD("------------------------------------");
-    SOC_PERF_LOGD("perfActionsInfo(%{public}d)", (int32_t)perfActionsInfo.size());
-    for (auto iter = perfActionsInfo.begin(); iter != perfActionsInfo.end(); ++iter) {
+    SOC_PERF_LOGD("perfActionsInfo_(%{public}d)", (int32_t)perfActionsInfo_.size());
+    for (auto iter = perfActionsInfo_.begin(); iter != perfActionsInfo_.end(); ++iter) {
         std::shared_ptr<Actions> actions = iter->second;
         actions->PrintString();
     }
