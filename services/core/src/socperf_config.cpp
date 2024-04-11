@@ -158,7 +158,6 @@ void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfSoFunc)
 bool SocPerfConfig::ParseBoostXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file)
 {
     if (!LoadCmd(rootNode, realConfigFile)) {
-        xmlFreeDoc(file);
         return false;
     }
     return true;
@@ -170,12 +169,10 @@ bool SocPerfConfig::ParseResourceXmlFile(const xmlNode* rootNode, const std::str
     for (; child; child = child->next) {
         if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Resource"))) {
             if (!LoadResource(child, realConfigFile)) {
-                xmlFreeDoc(file);
                 return false;
             }
         } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("GovResource"))) {
             if (!LoadGovResource(child, realConfigFile)) {
-                xmlFreeDoc(file);
                 return false;
             }
         } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Info"))) {

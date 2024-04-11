@@ -31,6 +31,7 @@ SocPerf::~SocPerf()
 bool SocPerf::Init()
 {
     if (!socPerfConfig.Init()) {
+        SOC_PERF_LOGE("Failed to init SocPerf config");
         return false;
     }
 

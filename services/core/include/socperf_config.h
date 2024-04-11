@@ -30,10 +30,10 @@ public:
     bool Init();
     bool IsGovResId(int32_t resId) const;
     bool IsValidResId(int32_t resId) const;
+    int32_t GetResIdNumsPerType(int32_t resId) const;
     static SocPerfConfig& GetInstance();
 
 public:
-    int32_t GetResIdNumsPerType(int32_t resId) const;
     bool wrapSwitch[MAX_QUEUE_NUM] = { false };
     ReportDataFunc reportFunc = nullptr;
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo;

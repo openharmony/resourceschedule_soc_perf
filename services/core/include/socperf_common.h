@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-
 #include <unordered_set>
 #include "socperf_log.h"
 #include "socperf_action_type.h"
