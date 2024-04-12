@@ -34,7 +34,7 @@ public:
     static SocPerfConfig& GetInstance();
 
 public:
-    bool wrapSwitch[MAX_QUEUE_NUM] = { false };
+    bool wrapSwitch_[MAX_QUEUE_NUM] = { false };
     ReportDataFunc reportFunc_ = nullptr;
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;

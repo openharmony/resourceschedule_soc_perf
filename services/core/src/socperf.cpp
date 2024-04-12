@@ -48,7 +48,7 @@ bool SocPerf::CreateThreadWraps()
 {
     socperfThreadWraps_ = std::vector<std::shared_ptr<SocPerfThreadWrap>>(MAX_QUEUE_NUM);
     for (int32_t i = 0; i < (int32_t)socperfThreadWraps_.size(); i++) {
-        if (!socPerfConfig_.wrapSwitch[i]) {
+        if (!socPerfConfig_.wrapSwitch_[i]) {
             socperfThreadWraps_[i] = nullptr;
             continue;
         }

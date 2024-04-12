@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace SOCPERF {
 namespace {
-    std::unordered_map<std::string, int32_t> resStrToIdInfo;
+    std::unordered_map<std::string, int32_t> g_resStrToIdInfo;
     void* g_handle;
 }
 
@@ -58,8 +58,8 @@ bool SocPerfConfig::Init()
     }
 
     PrintCachedInfo();
-    resStrToIdInfo.clear();
-    resStrToIdInfo = std::unordered_map<std::string, int32_t>();
+    g_resStrToIdInfo.clear();
+    g_resStrToIdInfo = std::unordered_map<std::string, int32_t>();
     SOC_PERF_LOGD("SocPerf Init SUCCESS!");
     return true;
 }
@@ -267,9 +267,9 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
     }
     xmlFree(node);
 
-    resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
+    g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
     resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
-    wrapSwitch[resNode->id / GetResIdNumsPerType(resNode->id)] = true;
+    wrapSwitch_[resNode->id / GetResIdNumsPerType(resNode->id)] = true;
     return true;
 }
 
@@ -296,9 +296,9 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         xmlFree(id);
         xmlFree(name);
         xmlFree(persistMode);
-        resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
+        g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
-        wrapSwitch[govResNode->id / GetResIdNumsPerType(govResNode->id)] = true;
+        wrapSwitch_[govResNode->id / GetResIdNumsPerType(govResNode->id)] = true;
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
             return false;
         }
@@ -468,13 +468,13 @@ bool SocPerfConfig::ParseResValue(xmlNode* greatGrandson, const std::string& con
     }
     char* resStr = reinterpret_cast<char*>(const_cast<xmlChar*>(greatGrandson->name));
     char* resValue = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
-    if (!resStr || resStrToIdInfo.find(resStr) == resStrToIdInfo.end()
+    if (!resStr || g_resStrToIdInfo.find(resStr) == g_resStrToIdInfo.end()
         || !resValue || !IsNumber(resValue)) {
         SOC_PERF_LOGE("Invalid cmd resource(%{public}s) for %{public}s", resStr, configFile.c_str());
         xmlFree(resValue);
         return false;
     }
-    action->variable.push_back(resStrToIdInfo[resStr]);
+    action->variable.push_back(g_resStrToIdInfo[resStr]);
     action->variable.push_back(atoll(resValue));
     xmlFree(resValue);
     return true;
