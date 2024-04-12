@@ -660,8 +660,9 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
         int32_t resId = action->variable[i];
         int64_t resValue = action->variable[i + 1];
         if (resourceNodeInfo_.find(resId) != resourceNodeInfo_.end()) {
-            if (resourceNodeInfo_[resId]->persistMode != REPORT_TO_PERFSO && !resourceNodeInfo_[resId]->available.empty()
-                && resourceNodeInfo_[resId]->available.find(resValue) == resourceNodeInfo_[resId]->available.end()) {
+            if (resourceNodeInfo_[resId]->persistMode != REPORT_TO_PERFSO &&
+                !resourceNodeInfo_[resId]->available.empty() &&
+                resourceNodeInfo_[resId]->available.find(resValue) == resourceNodeInfo_[resId]->available.end()) {
                 SOC_PERF_LOGE("action[%{public}d]'s resValue[%{public}lld] is not valid",
                     actionId, (long long)resValue);
                 return false;
