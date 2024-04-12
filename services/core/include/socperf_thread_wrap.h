@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,19 +16,14 @@
 #ifndef SOC_PERF_SERVICES_CORE_INCLUDE_SOCPERF_THREAD_WRAP_H
 #define SOC_PERF_SERVICES_CORE_INCLUDE_SOCPERF_THREAD_WRAP_H
 
-
-#include <memory>           // for shared_ptr
-#include <string>           // for string
-#include <unordered_map>    // for unordered_map
-#include <stdint.h>         // for uint32_t
-#include "event_handler.h"  // for EventHandler
-#include "event_runner.h"
 #ifdef SOCPERF_ADAPTOR_FFRT
 #include "ffrt.h"
 #include "ffrt_inner.h"
+#else
+#include "event_handler.h"
 #endif
-#include "inner_event.h"    // for InnerEvent, InnerEvent::Pointer
 #include "socperf_common.h"
+#include "socperf_config.h"
 namespace OHOS { namespace SOCPERF { class GovResNode; } }
 namespace OHOS { namespace SOCPERF { class ResAction; } }
 namespace OHOS { namespace SOCPERF { class ResNode; } }
@@ -36,11 +31,8 @@ namespace OHOS { namespace SOCPERF { class ResStatus; } }
 
 namespace OHOS {
 namespace SOCPERF {
-using ReportDataFunc = int (*)(const std::vector<int32_t>& resId, const std::vector<int64_t>& value,
-    const std::vector<int64_t>& endTime, const std::string& msgStr);
 enum SocPerfInnerEvent : uint32_t {
-    INNER_EVENT_ID_INIT_RES_NODE_INFO = 0,
-    INNER_EVENT_ID_INIT_GOV_RES_NODE_INFO,
+    INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO = 0,
     INNER_EVENT_ID_DO_FREQ_ACTION,
     INNER_EVENT_ID_DO_FREQ_ACTION_PACK,
     INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED,
@@ -62,27 +54,23 @@ public:
     ~SocPerfThreadWrap() override;
     void ProcessEvent(const AppExecFwk::InnerEvent::Pointer& event) override;
 #endif
-    void InitResNodeInfo(std::shared_ptr<ResNode> resNode);
-    void InitGovResNodeInfo(std::shared_ptr<GovResNode> govResNode);
+    void InitResourceNodeInfo(std::shared_ptr<ResourceNode> resourceNode);
     void DoFreqActionPack(std::shared_ptr<ResActionItem> head);
     void UpdatePowerLimitBoostFreq(bool powerLimitBoost);
     void UpdateThermalLimitBoostFreq(bool thermalLimitBoost);
     void UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId);
-    void InitPerfFunc(const char* perfSoPath, const char* perfSoFunc);
     void ClearAllAliveRequest();
 
 private:
     static const int32_t SCALES_OF_MILLISECONDS_TO_MICROSECONDS = 1000;
-    std::unordered_map<int32_t, std::shared_ptr<ResNode>> resNodeInfo;
-    std::unordered_map<int32_t, std::shared_ptr<GovResNode>> govResNodeInfo;
-    std::unordered_map<int32_t, std::shared_ptr<ResStatus>> resStatusInfo;
-    std::unordered_map<std::string, int32_t> fdInfo;
+    std::unordered_map<int32_t, std::shared_ptr<ResStatus>> resStatusInfo_;
+    std::unordered_map<std::string, int32_t> fdInfo_;
+    SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
 #ifdef SOCPERF_ADAPTOR_FFRT
-    ffrt::queue socperfQueue;
+    ffrt::queue socperfQueue_;
 #endif
-    bool powerLimitBoost = false;
-    bool thermalLimitBoost = false;
-    ReportDataFunc reportFunc = nullptr;
+    bool powerLimitBoost_ = false;
+    bool thermalLimitBoost_ = false;
 
 private:
     void SendResStatusToPerfSo();
@@ -102,9 +90,6 @@ private:
     void UpdateCurrentValue(int32_t resId, int64_t value);
     void WriteNode(int32_t resId, const std::string& path, const std::string& value);
     bool ExistNoCandidate(int32_t resId, std::shared_ptr<ResStatus> resStatus);
-    bool IsGovResId(int32_t resId);
-    bool IsResId(int32_t resId);
-    bool IsValidResId(int32_t resId);
     int32_t GetFdForFilePath(const std::string& filePath);
     void DoFreqAction(int32_t resId, std::shared_ptr<ResAction> resAction);
     void DoFreqActionLevel(int32_t resId, std::shared_ptr<ResAction> resAction);

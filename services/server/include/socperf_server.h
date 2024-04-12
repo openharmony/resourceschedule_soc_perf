@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,12 +16,10 @@
 #ifndef SOC_PERF_SERVICES_SERVER_INCLUDE_SOCPERF_SERVER_H
 #define SOC_PERF_SERVICES_SERVER_INCLUDE_SOCPERF_SERVER_H
 
-#include <file_ex.h>
-#include <string_ex.h>
-#include "i_socperf_service.h"
 #include "singleton.h"
 #include "socperf_stub.h"
 #include "socperf.h"
+#include "system_ability.h"
 
 namespace OHOS {
 namespace SOCPERF {

@@ -1,9 +1,0 @@
-{
-    "patches": [
-        {
-            "project":"resourceschedule_resource_schedule_service",
-            "patch_file":"resourceschedule_resource_schedule_service.patch",
-            "path":"foundation/resourceschedule/resource_schedule_service"
-        }
-    ]
-}

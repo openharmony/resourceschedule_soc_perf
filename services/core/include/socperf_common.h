@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,12 +52,14 @@ const int32_t MAX_RESOURCE_ID                     = 5999;
 const int32_t RES_ID_ADDITION                     = 10000;
 const int32_t RES_ID_AND_VALUE_PAIR               = 2;
 const int32_t RES_ID_NUMS_PER_TYPE                = 1000;
+const int32_t RES_ID_NUMS_PER_TYPE_EXT            = 10000;
 const int32_t WRITE_NODE                          = 0;
 const int32_t REPORT_TO_PERFSO                    = 1;
 const int32_t INVALID_THERMAL_CMD_ID              = -1;
 const int32_t MIN_THERMAL_LVL                     = 0;
 const int32_t RES_MODE_AND_ID_PAIR                = 2;
 const int32_t MAX_RES_MODE_LEN                    = 64;
+const int32_t MAX_FREQUE_NODE                     = 1;
 
 const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
     {"displaySub", {"displayMain", "displayFull"}},
@@ -65,26 +67,33 @@ const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
     {"displayFull", {"displayMain", "displaySub"}}
 };
 
-class ResNode {
+class ResourceNode {
 public:
     int32_t id;
     std::string name;
     int64_t def;
-    std::string path;
-    int32_t mode;
-    int32_t pair;
     std::unordered_set<int64_t> available;
     int32_t persistMode;
+    bool isGov;
+    bool isMaxValue;
+public:
+    ResourceNode(int32_t id, const std::string& name, int32_t persistMode, bool isGov, bool isMaxValue) : id(id),
+        name(name), persistMode(persistMode), isGov(isGov), isMaxValue(isMaxValue) {};
+    virtual ~ResourceNode() {};
+    virtual void PrintString() {};
+};
+
+class ResNode : public ResourceNode {
+public:
+    std::string path;
+    int32_t pair;
 
 public:
-    ResNode(int32_t resId, std::string resName, int32_t resMode, int32_t resPair, int32_t resPersistMode)
+    ResNode(int32_t resId, const std::string& resName, int32_t resMode, int32_t resPair, int32_t resPersistMode)
+        : ResourceNode(resId, resName, resPersistMode, false, resMode == MAX_FREQUE_NODE)
     {
-        id = resId;
-        name = resName;
-        mode = resMode;
         pair = resPair;
         def = INVALID_VALUE;
-        persistMode = resPersistMode;
     }
     ~ResNode() {}
 
@@ -93,7 +102,7 @@ public:
         SOC_PERF_LOGD("resNode-> id: [%{public}d], name: [%{public}s]", id, name.c_str());
         SOC_PERF_LOGD("          path: [%{public}s]", path.c_str());
         SOC_PERF_LOGD("          def: [%{public}lld], mode: [%{public}d], pair: [%{public}d]",
-            (long long)def, mode, pair);
+            (long long)def, isMaxValue, pair);
         std::string str;
         str.append("available(").append(std::to_string((int32_t)available.size())).append("): ");
         str.append("[");
@@ -108,23 +117,16 @@ public:
     }
 };
 
-class GovResNode {
+class GovResNode : public ResourceNode {
 public:
-    int32_t id;
-    std::string name;
-    int64_t def;
     std::vector<std::string> paths;
-    std::unordered_set<int64_t> available;
     std::unordered_map<int64_t, std::vector<std::string>> levelToStr;
-    int32_t persistMode;
 
 public:
-    GovResNode(int32_t govResId, std::string govResName, int32_t govPersistMode)
+    GovResNode(int32_t govResId, const std::string& govResName, int32_t govPersistMode)
+        : ResourceNode(govResId, govResName, govPersistMode, true, false)
     {
-        id = govResId;
-        name = govResName;
         def = INVALID_VALUE;
-        persistMode = govPersistMode;
     }
     ~GovResNode() {}
 
@@ -182,7 +184,7 @@ public:
     bool isLongTimePerf = false;
 
 public:
-    Actions(int32_t cmdId, std::string cmdName)
+    Actions(int32_t cmdId, const std::string& cmdName)
     {
         id = cmdId;
         name = cmdName;
@@ -368,7 +370,7 @@ static inline int64_t Min(int64_t num1, int64_t num2, int64_t num3)
     return Min(Min(num1, num2), num3);
 }
 
-static inline bool IsNumber(std::string str)
+static inline bool IsNumber(const std::string& str)
 {
     for (int32_t i = 0; i < (int32_t)str.size(); i++) {
         if (i == 0 && str.at(i) == '-') {
@@ -381,7 +383,7 @@ static inline bool IsNumber(std::string str)
     return true;
 }
 
-static inline bool IsValidResId(int32_t id)
+static inline bool IsValidRangeResId(int32_t id)
 {
     if (id < MIN_RESOURCE_ID || id > MAX_RESOURCE_ID) {
         return false;

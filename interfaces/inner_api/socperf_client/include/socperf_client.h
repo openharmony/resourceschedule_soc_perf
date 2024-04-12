@@ -16,9 +16,6 @@
 #ifndef SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_SOCPERF_CLIENT_H
 #define SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_SOCPERF_CLIENT_H
 
-#include <cstdint>             // for int32_t
-#include <iosfwd>               // for string
-#include <vector>               // for vector
 #include "i_socperf_service.h"  // for ISocPerfService
 
 namespace OHOS {
