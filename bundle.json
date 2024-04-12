@@ -51,6 +51,7 @@
       },
       "inner_kits": [
         {
+          "type": "so",
           "header": {
             "header_base": "//foundation/resourceschedule/soc_perf/interfaces/inner_api/socperf_client/include",
             "header_files": [

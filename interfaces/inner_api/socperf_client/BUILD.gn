@@ -37,7 +37,10 @@ ohos_shared_library("socperf_client") {
     "samgr:samgr_proxy",
   ]
 
-  innerapi_tags = [ "platformsdk" ]
+  innerapi_tags = [
+    "platformsdk",
+    "chipsetsdk",
+  ]
   version_script = "libsocperf_client.versionscript"
   part_name = "soc_perf"
   subsystem_name = "resourceschedule"
