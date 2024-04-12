@@ -40,7 +40,7 @@ bool SocPerf::Init()
         return false;
     }
     InitThreadWraps();
-    enabled = true;
+    enabled_ = true;
     return true;
 }
 
@@ -99,7 +99,7 @@ std::shared_ptr<SocPerfThreadWrap> SocPerf::GetThreadWrapByResId(int32_t resId) 
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 {
-    if (!enabled || !perfRequestEnable_) {
+    if (!enabled_ || !perfRequestEnable_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
@@ -121,7 +121,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 
 void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
 {
-    if (!enabled || !perfRequestEnable_) {
+    if (!enabled_ || !perfRequestEnable_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
@@ -145,7 +145,7 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
 
 void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
 {
-    if (!enabled) {
+    if (!enabled_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
@@ -174,7 +174,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
 
 void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 {
-    if (!enabled) {
+    if (!enabled_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
@@ -259,7 +259,7 @@ void SocPerf::SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t res
 void SocPerf::LimitRequest(int32_t clientId,
     const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg)
 {
-    if (!enabled) {
+    if (!enabled_) {
         SOC_PERF_LOGE("SocPerf disabled!");
         return;
     }
@@ -290,7 +290,7 @@ void SocPerf::SetRequestStatus(bool status, const std::string& msg)
 
 void SocPerf::ClearAllAliveRequest()
 {
-    if (!enabled) {
+    if (!enabled_) {
         SOC_PERF_LOGE("SocPerf disabled!");
         return;
     }

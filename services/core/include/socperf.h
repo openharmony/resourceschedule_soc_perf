@@ -40,7 +40,7 @@ public:
     ~SocPerf();
 
 private:
-    bool enabled = false;
+    bool enabled_ = false;
     std::vector<std::shared_ptr<SocPerfThreadWrap>> socperfThreadWraps_;
     std::set<std::string> recordDeviceMode_;
     std::vector<std::unordered_map<int32_t, int32_t>> limitRequest_ =
