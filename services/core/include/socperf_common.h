@@ -77,8 +77,8 @@ public:
     bool isGov;
     bool isMaxValue;
 public:
-    ResourceNode(int32_t id, std::string& name, int32_t persistMode, bool isGov, bool isMaxValue) : id(id), name(name),
-        persistMode(persistMode), isGov(isGov), isMaxValue(isMaxValue) {};
+    ResourceNode(int32_t id, const std::string& name, int32_t persistMode, bool isGov, bool isMaxValue) : id(id),
+        name(name), persistMode(persistMode), isGov(isGov), isMaxValue(isMaxValue) {};
     virtual ~ResourceNode() {};
     virtual void PrintString() {};
 };
@@ -89,7 +89,7 @@ public:
     int32_t pair;
 
 public:
-    ResNode(int32_t resId, std::string& resName, int32_t resMode, int32_t resPair, int32_t resPersistMode)
+    ResNode(int32_t resId, const std::string& resName, int32_t resMode, int32_t resPair, int32_t resPersistMode)
         : ResourceNode(resId, resName, resPersistMode, false, resMode == MAX_FREQUE_NODE)
     {
         pair = resPair;
@@ -123,7 +123,7 @@ public:
     std::unordered_map<int64_t, std::vector<std::string>> levelToStr;
 
 public:
-    GovResNode(int32_t govResId, std::string& govResName, int32_t govPersistMode)
+    GovResNode(int32_t govResId, const std::string& govResName, int32_t govPersistMode)
         : ResourceNode(govResId, govResName, govPersistMode, true, false)
     {
         def = INVALID_VALUE;
@@ -184,7 +184,7 @@ public:
     bool isLongTimePerf = false;
 
 public:
-    Actions(int32_t cmdId, std::string& cmdName)
+    Actions(int32_t cmdId, const std::string& cmdName)
     {
         id = cmdId;
         name = cmdName;
@@ -370,7 +370,7 @@ static inline int64_t Min(int64_t num1, int64_t num2, int64_t num3)
     return Min(Min(num1, num2), num3);
 }
 
-static inline bool IsNumber(std::string& str)
+static inline bool IsNumber(const std::string& str)
 {
     for (int32_t i = 0; i < (int32_t)str.size(); i++) {
         if (i == 0 && str.at(i) == '-') {
@@ -399,7 +399,7 @@ static inline bool IsValidPersistMode(int32_t persistMode)
     return true;
 }
 
-static inline std::vector<std::string> Split(std::string& str, std::string& pattern)
+static inline std::vector<std::string> Split(std::string str, std::string pattern)
 {
     int32_t position;
     std::vector<std::string> result;
