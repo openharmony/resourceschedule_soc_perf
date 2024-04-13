@@ -17,6 +17,7 @@
 #define SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_I_SOCPERF_SERVICE_H
 
 #include "iremote_stub.h"
+#include "socperf_action_type.h"
 
 namespace OHOS {
 namespace SOCPERF {
