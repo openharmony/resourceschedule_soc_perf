@@ -192,7 +192,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_002, Function | M
  * @tc.name: SocPerfServerTest_SocperfMatchCmd_001
  * @tc.desc: test socperf MatchDeviceModeCmd func
  * @tc.type FUNC
- * @tc.require: issueI78T3V
+ * @tc.require: issueI9GCD8
  */
 HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Function | MediumTest | Level0)
 {
@@ -223,7 +223,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
     // case : match cmdid is not exist branch
     int32_t cmdInvaild = 60000;
     auto iter_invaild = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdInvaild);
-    if (iter_match != actions->modeMap.end()) {
+    if (iter_invaild != socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
         EXPECT_EQ(cmdInvaild, 60000);
     } else {
         auto iter_mode = actions->modeMap.find(modeStr);
@@ -242,6 +242,66 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
     socPerfServer_->RequestDeviceMode(modeInvaild, true);
     int32_t retModeInvaild = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, false);
     EXPECT_EQ(retModeInvaild, cmdTest);
+}
+
+/*
+ * @tc.name: SocPerfServerTest_SocperfMatchCmd_002
+ * @tc.desc: test socperf MatchDeviceModeCmd func
+ * @tc.type FUNC
+ * @tc.require: issueI9GCD8
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_002, Function | MediumTest | Level0)
+{
+    std::string modeStr = "displayMainTest";
+    int32_t cmdTest = 10000;
+    int32_t cmdMatch = 10001;
+
+    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+        EXPECT_EQ(modeStr, "displayMainTest");
+        return;
+    }
+    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
+    actions->isLongTimePerf = false;
+    actions->modeMap.insert(std::pair<std::string, int32_t>(modeStr, cmdMatch));
+
+    auto it_match = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdMatch);
+    if (it_match == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+        EXPECT_EQ(modeStr, "displayMainTest");
+        return;
+    }
+
+    // case : match cmdid is long time perf branch
+    std::shared_ptr<Actions> actionsMatch = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdMatch];
+    actionsMatch->isLongTimePerf = true;
+    int32_t retInvaild = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, true);
+    EXPECT_EQ(retInvaild, cmdTest);
+}
+
+/*
+ * @tc.name: SocPerfServerTest_SocperfMatchCmd_003
+ * @tc.desc: test socperf MatchDeviceModeCmd func
+ * @tc.type FUNC
+ * @tc.require: issueI9GCD8
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_003, Function | MediumTest | Level0)
+{
+    std::string modeStr = "displayMainTest";
+    int32_t cmdTest = 10002;
+
+    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+        EXPECT_EQ(modeStr, "displayMainTest");
+        return;
+    }
+
+    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
+    actions->modeMap.insert(std::pair<std::string, int32_t>(modeStr, cmdTest));
+    socPerfServer_->socPerf.recordDeviceMode_.clear();
+
+    // case : match device mode is empty branch
+    int32_t retInvaild = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, true);
+    EXPECT_EQ(retInvaild, cmdTest);
 }
 
 /*
@@ -283,6 +343,11 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfParseModeCmd_001, Function 
     auto iterSame = actions->modeMap.find(deviceMode);
     ASSERT_TRUE(iterSame != actions->modeMap.end());
     EXPECT_EQ(exceptSame, iterSame->second);
+
+    int32_t sizeBefore = actions->modeMap.size();
+    const char *modeNullInvaild = nullptr;
+    socPerfServer_->socPerf.socPerfConfig_.ParseModeCmd(modeNullInvaild, cfgFile, actions);
+    EXPECT_EQ(sizeBefore, actions->modeMap.size());
 }
 
 /*
