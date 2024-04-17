@@ -465,7 +465,10 @@ std::string SocPerf::RequestCmdIdCount(const std::string &msg)
     std::lock_guard<std::mutex> lock(mutexBoostCmdCount_);
     std::stringstream ret;
     for (const auto& pair : boostCmdCount_) {
-        ret << pair.first << ":" << pair.second << ",";
+        if (ret.str().length() > 0) {
+            ret << ",";
+        }
+        ret << pair.first << ":" << pair.second;
     }
     return ret.str();
 }

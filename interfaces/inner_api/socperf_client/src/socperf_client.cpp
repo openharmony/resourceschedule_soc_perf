@@ -168,7 +168,7 @@ void SocPerfClient::RequestDeviceMode(const std::string& mode, bool status)
 
 std::string SocPerfClient::RequestCmdIdCount(const std::string& msg)
 {
-    if (!CheckClientValid()) {
+    if (!CheckClientValid() || !client) {
         return "";
     }
     return client->RequestCmdIdCount(msg);
