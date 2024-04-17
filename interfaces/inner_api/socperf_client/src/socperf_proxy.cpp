@@ -148,5 +148,28 @@ void SocPerfProxy::RequestDeviceMode(const std::string& mode, bool status)
     Remote()->SendRequest(static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_DEVICE_MODE),
         data, reply, option);
 }
+
+std::string SocPerfProxy::RequestCmdIdCount(const std::string& msg)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option = { MessageOption::TF_SYNC };
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        SOC_PERF_LOGE("Failed to write descriptor");
+        return "";
+    }
+    if (!data.WriteString(msg)) {
+        SOC_PERF_LOGE("Failed to write msg: %{public}s", msg.c_str());
+        return "";
+    }
+    Remote()->SendRequest(static_cast<uint32_t>(
+        SocPerfInterfaceCode::TRANS_IPC_ID_REQUEST_CMDID_COUNT), data, reply, option);
+    std::string ret;
+    if (!reply.ReadString(ret)) {
+        SOC_PERF_LOGE("read RequestCmdIdCount ret failed");
+        return "";
+    }
+    return ret;
+}
 } // namespace SOCPERF
 } // namespace OHOS

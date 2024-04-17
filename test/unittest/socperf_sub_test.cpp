@@ -326,6 +326,18 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ThermalLimitBoost_002, Function | Medium
 }
 
 /*
+ * @tc.name: SocPerfSubTest_RequestCmdIdCount_001
+ * @tc.desc: RequestCmdIdCount
+ * @tc.type FUNC
+ * @tc.require: issueI9H4NS
+ */
+HWTEST_F(SocPerfSubTest, SocPerfSubTest_RequestCmdIdCount_001, Function | MediumTest | Level0)
+{
+    OHOS::SOCPERF::SocPerfClient::GetInstance().RequestCmdIdCount("");
+    SUCCEED();
+}
+
+/*
  * @tc.name: SocPerfSubTest_LimitRequest_001
  * @tc.desc: LimitRequest thermal
  * @tc.type FUNC

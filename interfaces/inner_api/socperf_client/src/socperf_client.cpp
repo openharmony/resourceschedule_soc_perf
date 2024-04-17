@@ -165,5 +165,13 @@ void SocPerfClient::RequestDeviceMode(const std::string& mode, bool status)
     }
     client->RequestDeviceMode(mode, status);
 }
+
+std::string SocPerfClient::RequestCmdIdCount(const std::string& msg)
+{
+    if (!CheckClientValid()) {
+        return "";
+    }
+    return client->RequestCmdIdCount(msg);
+}
 } // namespace SOCPERF
 } // namespace OHOS

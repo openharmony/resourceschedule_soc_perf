@@ -13,15 +13,20 @@
  * limitations under the License.
  */
 
-#include "ipc_skeleton.h"
-#include "accesstoken_kit.h"
-#include "tokenid_kit.h"
-#include "socperf_log.h"
-#include "socperf_ipc_interface_code.h"
 #include "socperf_stub.h"
+#include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
+#include "parameters.h"
+#include "socperf_ipc_interface_code.h"
+#include "socperf_log.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace SOCPERF {
+namespace {
+    constexpr int32_t HIVIEW_UID = 1201;
+    const int32_t ENG_MODE = OHOS::system::GetIntParameter("const.debuggable", 0);
+}
 int32_t SocPerfStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -89,6 +94,19 @@ int32_t SocPerfStub::OnRemoteRequestExt(uint32_t code, MessageParcel &data,
             std::string mode = data.ReadString();
             bool status = data.ReadBool();
             RequestDeviceMode(mode, status);
+            break;
+        }
+        case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_REQUEST_CMDID_COUNT): {
+            int32_t callingUid = IPCSkeleton::GetCallingUid();
+            std::string msg;
+            if ((ENG_MODE == 0 && callingUid != HIVIEW_UID) || !data.ReadString(msg)) {
+                SOC_PERF_LOGE("not have right to do RequestCmdIdCount");
+                return ERR_INVALID_STATE;
+            }
+            if (!reply.WriteString(RequestCmdIdCount(msg))) {
+                SOC_PERF_LOGE("write RequestCmdIdCount ret failed");
+                return ERR_INVALID_STATE;
+            }
             break;
         }
         default:

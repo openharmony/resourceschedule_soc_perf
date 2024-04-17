@@ -90,6 +90,13 @@ public:
      */
     void RequestDeviceMode(const std::string& mode, bool status) override;
 
+    /**
+     * @brief get cmd Id count, cmdID is trigger, its count++
+     * @param msg the reason
+     * @return cmdId count, as 10000:xx,10001:xx
+     */
+    std::string RequestCmdIdCount(const std::string& msg) override;
+
 public:
     /**
      * @brief Construct a new SocPerfProxy object.

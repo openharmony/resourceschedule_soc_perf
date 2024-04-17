@@ -128,5 +128,10 @@ void SocPerfServer::RequestDeviceMode(const std::string& mode, bool status)
 {
     socPerf.RequestDeviceMode(mode, status);
 }
+
+std::string SocPerfServer::RequestCmdIdCount(const std::string& msg)
+{
+    return socPerf.RequestCmdIdCount(msg);
+}
 } // namespace SOCPERF
 } // namespace OHOS

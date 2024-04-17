@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
+#include "socperf_config.h"
 #include "socperf_ipc_interface_code.h"
 #include "socperf_server.h"
 #include "socperf_stub.h"
@@ -337,6 +338,10 @@ public:
     void SetRequestStatus(bool status, const std::string& msg) override {};
     void SetThermalLevel(int32_t level) override {};
     void RequestDeviceMode(const std::string& mode, bool status) override {};
+    std::string RequestCmdIdCount(const std::string& msg) override
+    {
+        return "";
+    }
 };
 
 /*
@@ -636,20 +641,36 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_004, Functi
  */
 HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Function | MediumTest | Level0)
 {
-    std::shared_ptr<SocPerfThreadWrap> socPerfThreadWrap = socPerfServer_->socPerf.socperfThreadWraps_[0];
-    socPerfThreadWrap->resStatusInfo_[1000]->candidatesValue[ACTION_TYPE_PERFLVL] = 1000;
-    bool ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(1000);
+    int32_t litCpuMinFreq = 1000;
+    int32_t litCpuMaxFreq = 1001;
+    int32_t resIdType = litCpuMinFreq / socPerfServer_->socPerf.socPerfConfig_.GetResIdNumsPerType(litCpuMinFreq);
+    std::shared_ptr<SocPerfThreadWrap> socPerfThreadWrap = socPerfServer_->socPerf.socperfThreadWraps_[resIdType];
+    socPerfThreadWrap->resStatusInfo_[litCpuMinFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = 1000;
+    bool ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(litCpuMinFreq);
     EXPECT_TRUE(ret);
 
-    socPerfThreadWrap->resStatusInfo_[1000]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
-    socPerfThreadWrap->resStatusInfo_[1001]->candidatesValue[ACTION_TYPE_PERFLVL] = 1000;
-    ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(1000);
+    socPerfThreadWrap->resStatusInfo_[litCpuMinFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
+    socPerfThreadWrap->resStatusInfo_[litCpuMaxFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = 1000;
+    ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(litCpuMinFreq);
     EXPECT_TRUE(ret);
 
-    socPerfThreadWrap->resStatusInfo_[1000]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
-    socPerfThreadWrap->resStatusInfo_[1001]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
-    ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(1000);
+    socPerfThreadWrap->resStatusInfo_[litCpuMinFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
+    socPerfThreadWrap->resStatusInfo_[litCpuMaxFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
+    ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(litCpuMinFreq);
     EXPECT_FALSE(ret);
+}
+
+/*
+ * @tc.name: SocPerfSubTest_RequestCmdIdCount_001
+ * @tc.desc: RequestCmdIdCount
+ * @tc.type FUNC
+ * @tc.require: issueI9H4NS
+ */
+HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | MediumTest | Level0)
+{
+    std::string ret = socPerfServer_->socPerf.RequestCmdIdCount("");
+    bool isContain = ret.find("10000:4") != std::string::npos;;
+    EXPECT_TRUE(isContain);
 }
 } // namespace SOCPERF
 } // namespace OHOS
