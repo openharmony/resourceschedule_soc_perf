@@ -25,6 +25,9 @@ namespace SOCPERF {
 namespace {
     std::unordered_map<std::string, int32_t> g_resStrToIdInfo;
     void* g_handle;
+    const std::string SPLIT_OR = "|";
+    const std::string SPLIT_EQUAL = "=";
+    const std::string SPLIT_SPACE = " ";
 }
 
 SocPerfConfig& SocPerfConfig::GetInstance()
@@ -419,9 +422,9 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
     }
 
     std::string modeStr = mode;
-    std::vector<std::string> modeListResult = Split(modeStr, "|");
+    std::vector<std::string> modeListResult = Split(modeStr, SPLIT_OR);
     for (auto pairStr : modeListResult) {
-        std::vector<std::string> itemPair = Split(pairStr, "=");
+        std::vector<std::string> itemPair = Split(pairStr, SPLIT_EQUAL);
         if (itemPair.size() != RES_MODE_AND_ID_PAIR) {
             SOC_PERF_LOGW("Invaild device mode pair for %{public}s", configFile.c_str());
             continue;
@@ -567,7 +570,7 @@ bool SocPerfConfig::CheckResourceTag(int32_t persistMode, const char* def,
 bool SocPerfConfig::LoadResourceAvailable(std::shared_ptr<ResNode> resNode, const char* node)
 {
     std::string nodeStr = node;
-    std::vector<std::string> result = Split(nodeStr, " ");
+    std::vector<std::string> result = Split(nodeStr, SPLIT_SPACE);
     for (auto str : result) {
         if (IsNumber(str)) {
             resNode->available.insert(stoll(str));
@@ -632,7 +635,7 @@ bool SocPerfConfig::LoadGovResourceAvailable(std::shared_ptr<GovResNode> govResN
 {
     govResNode->available.insert(atoll(level));
     std::string nodeStr = node;
-    std::vector<std::string> result = Split(nodeStr, "|");
+    std::vector<std::string> result = Split(nodeStr, SPLIT_OR);
     if (result.size() != govResNode->paths.size()) {
         SOC_PERF_LOGE("Invalid governor resource node matches paths");
         return false;
