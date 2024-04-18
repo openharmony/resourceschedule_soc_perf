@@ -31,7 +31,6 @@ SocPerfClient& SocPerfClient::GetInstance()
 
 bool SocPerfClient::CheckClientValid()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (client) {
         return true;
     }
@@ -97,6 +96,7 @@ std::string SocPerfClient::AddPidAndTidInfo(const std::string& msg)
 
 void SocPerfClient::PerfRequest(int32_t cmdId, const std::string& msg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return;
     }
@@ -106,6 +106,7 @@ void SocPerfClient::PerfRequest(int32_t cmdId, const std::string& msg)
 
 void SocPerfClient::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return;
     }
@@ -115,6 +116,7 @@ void SocPerfClient::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::strin
 
 void SocPerfClient::PowerLimitBoost(bool onOffTag, const std::string& msg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return;
     }
@@ -124,6 +126,7 @@ void SocPerfClient::PowerLimitBoost(bool onOffTag, const std::string& msg)
 
 void SocPerfClient::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return;
     }
@@ -134,6 +137,7 @@ void SocPerfClient::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 void SocPerfClient::LimitRequest(int32_t clientId,
     const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return;
     }
@@ -143,6 +147,7 @@ void SocPerfClient::LimitRequest(int32_t clientId,
 
 void SocPerfClient::SetRequestStatus(bool status, const std::string& msg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return;
     }
@@ -152,6 +157,7 @@ void SocPerfClient::SetRequestStatus(bool status, const std::string& msg)
 
 void SocPerfClient::SetThermalLevel(int32_t level)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid()) {
         return;
     }
@@ -160,6 +166,7 @@ void SocPerfClient::SetThermalLevel(int32_t level)
 
 void SocPerfClient::RequestDeviceMode(const std::string& mode, bool status)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid() || mode.length() > MAX_MODE_LEN) {
         return;
     }
@@ -169,7 +176,7 @@ void SocPerfClient::RequestDeviceMode(const std::string& mode, bool status)
 std::string SocPerfClient::RequestCmdIdCount(const std::string& msg)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!CheckClientValid() || !client) {
+    if (!CheckClientValid()) {
         return "";
     }
     return client->RequestCmdIdCount(msg);
