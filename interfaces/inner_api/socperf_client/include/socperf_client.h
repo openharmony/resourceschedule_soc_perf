@@ -97,6 +97,13 @@ public:
     void RequestDeviceMode(const std::string& mode, bool status);
 
     /**
+     * @brief get cmd Id count, cmdID is trigger, its count++
+     * @param msg the reason
+     * @return cmdId count, as 10000:xx,10001:xx
+     */
+    std::string RequestCmdIdCount(const std::string& msg);
+
+    /**
      * @brief Reset SocperfClient
      *
      */

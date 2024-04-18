@@ -90,6 +90,13 @@ public:
      */
     virtual void RequestDeviceMode(const std::string& mode, bool status) = 0;
 
+    /**
+     * @brief get cmd Id count, cmdID is trigger, its count++
+     * @param msg the reason
+     * @return cmdId count, as 10000:xx,10001:xx
+     */
+    virtual std::string RequestCmdIdCount(const std::string& msg) = 0;
+
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"Resourceschedule.ISocPerfService");
 };

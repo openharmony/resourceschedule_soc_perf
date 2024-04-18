@@ -35,6 +35,7 @@ public:
     void SetRequestStatus(bool status, const std::string& msg);
     void SetThermalLevel(int32_t level);
     void RequestDeviceMode(const std::string& mode, bool status);
+    std::string RequestCmdIdCount(const std::string& msg);
 public:
     SocPerf();
     ~SocPerf();
@@ -48,9 +49,11 @@ private:
     volatile bool perfRequestEnable_ = true;
     int32_t thermalLvl_ = MIN_THERMAL_LVL;
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
+    std::unordered_map<int32_t, uint32_t> boostCmdCount_;
 private:
     std::mutex mutex_;
     std::mutex mutexDeviceMode_;
+    std::mutex mutexBoostCmdCount_;
     bool CreateThreadWraps();
     void InitThreadWraps();
     std::shared_ptr<SocPerfThreadWrap> GetThreadWrapByResId(int32_t resId) const;
@@ -63,6 +66,7 @@ private:
     void SendLimitRequestEventOn(std::shared_ptr<SocPerfThreadWrap> threadWrap,
         int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
     void ClearAllAliveRequest();
+    void UpdateCmdIdCount(int32_t cmdId);
 };
 } // namespace SOCPERF
 } // namespace OHOS

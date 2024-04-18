@@ -117,6 +117,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
     DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], EVENT_INVALID, ACTION_TYPE_PERF);
     FinishTrace(HITRACE_TAG_OHOS);
+    UpdateCmdIdCount(cmdId);
 }
 
 void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
@@ -141,6 +142,9 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
     DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
     FinishTrace(HITRACE_TAG_OHOS);
+    if (onOffTag) {
+        UpdateCmdIdCount(cmdId);
+    }
 }
 
 void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
@@ -445,6 +449,28 @@ int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
         }
     }
     return cmdId;
+}
+
+void SocPerf::UpdateCmdIdCount(int32_t cmdId)
+{
+    std::lock_guard<std::mutex> lock(mutexBoostCmdCount_);
+    if (boostCmdCount_.find(cmdId) == boostCmdCount_.end()) {
+        boostCmdCount_[cmdId] = 0;
+    }
+    boostCmdCount_[cmdId]++;
+}
+
+std::string SocPerf::RequestCmdIdCount(const std::string &msg)
+{
+    std::lock_guard<std::mutex> lock(mutexBoostCmdCount_);
+    std::stringstream ret;
+    for (const auto& pair : boostCmdCount_) {
+        if (ret.str().length() > 0) {
+            ret << ",";
+        }
+        ret << pair.first << ":" << pair.second;
+    }
+    return ret.str();
 }
 } // namespace SOCPERF
 } // namespace OHOS

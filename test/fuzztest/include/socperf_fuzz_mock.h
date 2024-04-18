@@ -32,6 +32,10 @@ public:
     void SetRequestStatus(bool status, const std::string &msg) override {}
     void SetThermalLevel(int32_t level) override {}
     void RequestDeviceMode(const std::string &mode, bool status) override {}
+    std::string RequestCmdIdCount(const std::string& msg) override
+    {
+        return "";
+    }
 };
 }
 }

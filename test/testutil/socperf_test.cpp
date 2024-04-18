@@ -19,6 +19,7 @@
 #include <vector>            // for vector
 #include <cstring>           // for strcmp
 #include "socperf_client.h"  // for SocPerfClient
+#include "socperf_log.h"
 
 const static int32_t PARAMETERS_NUM_MIN        = 2;
 const static int32_t PARAMETERS_NUM_WITHOUT_EX = 3;
@@ -123,6 +124,14 @@ static void RequestDeviceMode(int32_t argc, char *argv[])
     }
 }
 
+static void RequestCmdIdCount(int32_t argc, char *argv[])
+{
+    if (argc == PARAMETERS_NUM_MIN) {
+        std::string ret = OHOS::SOCPERF::SocPerfClient::GetInstance().RequestCmdIdCount("");
+        SOC_PERF_LOGI("%{public}s", ret.c_str());
+    }
+}
+
 int32_t main(int32_t argc, char *argv[])
 {
     if (argc >= PARAMETERS_NUM_MIN && argv) {
@@ -143,6 +152,8 @@ int32_t main(int32_t argc, char *argv[])
             SetThermalLevel(argc, argv);
         } else if (strcmp(function, "RequestDeviceMode") == 0) {
             RequestDeviceMode(argc, argv);
+        } else if (strcmp(function, "RequestCmdIdCount") == 0) {
+            RequestCmdIdCount(argc, argv);
         }
     }
     return 0;
