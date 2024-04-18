@@ -168,6 +168,7 @@ void SocPerfClient::RequestDeviceMode(const std::string& mode, bool status)
 
 std::string SocPerfClient::RequestCmdIdCount(const std::string& msg)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!CheckClientValid() || !client) {
         return "";
     }
