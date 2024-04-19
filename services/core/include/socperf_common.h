@@ -78,7 +78,7 @@ public:
     bool isMaxValue;
 public:
     ResourceNode(int32_t id, const std::string& name, int32_t persistMode, bool isGov, bool isMaxValue) : id(id),
-        name(name), persistMode(persistMode), isGov(isGov), isMaxValue(isMaxValue) {};
+        name(name), def(INVALID_VALUE), persistMode(persistMode), isGov(isGov), isMaxValue(isMaxValue) {}
     virtual ~ResourceNode() {};
     virtual void PrintString() {};
 };
@@ -93,7 +93,6 @@ public:
         : ResourceNode(resId, resName, resPersistMode, false, resMode == MAX_FREQUE_NODE)
     {
         pair = resPair;
-        def = INVALID_VALUE;
     }
     ~ResNode() {}
 
@@ -124,10 +123,7 @@ public:
 
 public:
     GovResNode(int32_t govResId, const std::string& govResName, int32_t govPersistMode)
-        : ResourceNode(govResId, govResName, govPersistMode, true, false)
-    {
-        def = INVALID_VALUE;
-    }
+        : ResourceNode(govResId, govResName, govPersistMode, true, false) {}
     ~GovResNode() {}
 
     void PrintString()
@@ -399,16 +395,17 @@ static inline bool IsValidPersistMode(int32_t persistMode)
     return true;
 }
 
-static inline std::vector<std::string> Split(std::string str, std::string pattern)
+static std::vector<std::string> Split(const std::string& str, const std::string& pattern)
 {
     int32_t position;
     std::vector<std::string> result;
-    str += pattern;
-    int32_t length = (int32_t)str.size();
+    std::string tempStr = str;
+    tempStr += pattern;
+    int32_t length = (int32_t)tempStr.size();
     for (int32_t i = 0; i < length; i++) {
-        position = (int32_t)str.find(pattern, i);
+        position = (int32_t)tempStr.find(pattern, i);
         if (position < length) {
-            std::string tmp = str.substr(i, position - i);
+            std::string tmp = tempStr.substr(i, position - i);
             result.push_back(tmp);
             i = position + (int32_t)pattern.size() - 1;
         }

@@ -346,7 +346,7 @@ bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> act
     // fill in the item of perfLvlAction
     perfLvlAction->thermalLvl_ = actionConfig->thermalLvl_;
     perfLvlAction->thermalCmdId_ = INVALID_THERMAL_CMD_ID;
-    for (int32_t i = 0; i < actionConfig->variable.size(); i++) {
+    for (uint32_t i = 0; i < actionConfig->variable.size(); i++) {
         perfLvlAction->variable.push_back(actionConfig->variable[i]);
     }
     perfLvlActionCmd->actionList.push_back(perfLvlAction);
