@@ -166,6 +166,11 @@ void SystemAbility::OnStart()
     GTEST_LOG_(INFO) << "aams MOCK SystemAbility OnStart";
 }
 
+int32_t SystemAbility::OnExtension(const std::string& extension, MessageParcel& data, MessageParcel& reply)
+{
+    GTEST_LOG_(INFO) << "aams MOCK SystemAbility OnExtension";
+}
+
 void SystemAbility::OnStart(const SystemAbilityOnDemandReason& startReason)
 {
     GTEST_LOG_(INFO) << "aams MOCK SystemAbility OnStart";
