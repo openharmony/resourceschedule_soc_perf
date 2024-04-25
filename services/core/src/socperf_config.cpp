@@ -100,7 +100,7 @@ std::string SocPerfConfig::GetRealConfigPath(const std::string& configFile)
 bool SocPerfConfig::LoadConfigXmlFile(const std::string& configFile)
 {
     std::string realConfigFile = GetRealConfigPath(configFile);
-    if (realConfigFile.size() <= 0) {
+    if (realConfigFile.size() == 0) {
         return false;
     }
     xmlKeepBlanksDefault(0);
