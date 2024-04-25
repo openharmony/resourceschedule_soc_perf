@@ -13,7 +13,7 @@
     "name": "soc_perf",
     "subsystem": "resourceschedule",
     "syscap": [],
-    "features": [],
+    "features": [ "soc_perf_device_enable" ],
     "adapted_system_type": [
       "standard"
     ],
@@ -39,14 +39,13 @@
     "build": {
       "group_type": {
         "base_group" : [
-          "//foundation/resourceschedule/soc_perf/profile:socperf_config"
+          "//foundation/resourceschedule/soc_perf:base_group_soc_perf_all"
         ],
         "fwk_group" : [
-          "//foundation/resourceschedule/soc_perf/interfaces/inner_api/socperf_client:socperf_client"
+          "//foundation/resourceschedule/soc_perf:fwk_group_socperf_client_all"
         ],
         "service_group" : [
-          "//foundation/resourceschedule/soc_perf/sa_profile:socperf_sa_profile",
-          "//foundation/resourceschedule/soc_perf/services:socperf_server"
+          "//foundation/resourceschedule/soc_perf:service_group_soc_perf_all"
         ]
       },
       "inner_kits": [
@@ -66,9 +65,7 @@
         }
       ],
       "test": [
-        "//foundation/resourceschedule/soc_perf/test/unittest:unittest",
-        "//foundation/resourceschedule/soc_perf/test/fuzztest:fuzztest",
-        "//foundation/resourceschedule/soc_perf/test/testutil:socperf_test"
+        "//foundation/resourceschedule/soc_perf:test_soc_perf_all"
       ]
     }
   }

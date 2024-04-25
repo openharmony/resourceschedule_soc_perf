@@ -11,8 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-socperf_path =
-    "//foundation/resourceschedule/soc_perf"
+socperf_path = "//foundation/resourceschedule/soc_perf"
 
 socperf_services = "${socperf_path}/services"
 
@@ -21,3 +20,7 @@ socperf_common = "${socperf_path}/common"
 socperf_interfaces = "${socperf_path}/interfaces"
 
 socperf_test = "${socperf_path}/test"
+
+declare_args() {
+  soc_perf_device_enable = true
+}
