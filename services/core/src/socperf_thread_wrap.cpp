@@ -198,7 +198,7 @@ void SocPerfThreadWrap::ClearAllAliveRequest()
 #ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& updateLimitStatusFunc = [this]() {
 #endif
-    for (const std::pair<int32_t, std::shared_ptr<ResStatus>>& item : this->resStatusInfo_) {
+    for (const auto& item : this->resStatusInfo_) {
         if (item.second == nullptr) {
             continue;
         }
