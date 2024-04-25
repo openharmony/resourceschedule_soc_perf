@@ -21,3 +21,7 @@ socperf_common = "${socperf_path}/common"
 socperf_interfaces = "${socperf_path}/interfaces"
 
 socperf_test = "${socperf_path}/test"
+
+declare_args() {
+  soc_perf_device_enable = true
+}
