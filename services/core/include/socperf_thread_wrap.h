@@ -59,6 +59,7 @@ public:
     void UpdatePowerLimitBoostFreq(bool powerLimitBoost);
     void UpdateThermalLimitBoostFreq(bool thermalLimitBoost);
     void UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId);
+    void PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction);
     void ClearAllAliveRequest();
 
 private:
@@ -93,7 +94,6 @@ private:
     int32_t GetFdForFilePath(const std::string& filePath);
     void DoFreqAction(int32_t resId, std::shared_ptr<ResAction> resAction);
     void DoFreqActionLevel(int32_t resId, std::shared_ptr<ResAction> resAction);
-    void PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction);
     void HandleLongTimeResAction(int32_t resId, int32_t type,
         std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus);
     void HandleShortTimeResAction(int32_t resId, int32_t type,
