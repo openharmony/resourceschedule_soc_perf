@@ -82,7 +82,7 @@ void SocPerfThreadWrap::InitResourceNodeInfo(std::shared_ptr<ResourceNode> resou
         return;
     }
 #ifdef SOCPERF_ADAPTOR_FFRT
-    std::function<void()>&& initResourceNodeInfoFunc = [this, resNode]() {
+    std::function<void()>&& initResourceNodeInfoFunc = [this, resourceNode]() {
 #endif
         if (resourceNode->isGov) {
             std::shared_ptr<GovResNode> govResNode = std::static_pointer_cast<GovResNode>(resourceNode);
@@ -117,9 +117,7 @@ void SocPerfThreadWrap::DoFreqActionPack(std::shared_ptr<ResActionItem> head)
             if (socPerfConfig_.IsValidResId(queueHead->resId)) {
                 UpdateResActionList(queueHead->resId, queueHead->resAction, false);
             }
-            auto temp = queueHead->next;
-            queueHead->next = nullptr;
-            queueHead = temp;
+            queueHead = queueHead->next;
         }
         SendResStatusToPerfSo();
 #ifdef SOCPERF_ADAPTOR_FFRT
@@ -343,13 +341,6 @@ void SocPerfThreadWrap::HandleShortTimeResAction(int32_t resId, int32_t type,
 {
     resStatus->resActionList[type].push_back(resAction);
     UpdateCandidatesValue(resId, type);
-#ifdef SOCPERF_ADAPTOR_FFRT
-    PostDelayTask(resId, resAction);
-#else
-    auto event = AppExecFwk::InnerEvent::Get(
-        INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED, resAction, resId);
-    this->SendEvent(event, resAction->duration);
-#endif
 }
 
 void SocPerfThreadWrap::HandleLongTimeResAction(int32_t resId, int32_t type,

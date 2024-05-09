@@ -51,7 +51,7 @@ ohos_shared_library("socperf_server") {
     "samgr:samgr_proxy",
   ]
 
-  defines = []
+  defines = [ "SOCPERF_ADAPTOR_FFRT" ]
 
   shlib_type = "sa"
   part_name = "soc_perf"

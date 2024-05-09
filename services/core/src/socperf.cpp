@@ -374,9 +374,8 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             }
             auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
             int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
-            resActionItem->resAction =
-                std::make_shared<ResAction>(action->variable[i + 1], action->duration,
-                    actionType, onOff, actions->id, endTime);
+            resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], action->duration,
+                actionType, onOff, actions->id, endTime);
             int32_t id = action->variable[i] / socPerfConfig_.GetResIdNumsPerType(action->variable[i]);
             if (curItem[id]) {
                 curItem[id]->next = resActionItem;
@@ -396,6 +395,17 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_PACK, header[i]);
         socperfThreadWraps_[i]->SendEvent(event);
 #endif
+        std::shared_ptr<ResActionItem> queueHead = header[i];
+        while (queueHead) {
+#ifdef SOCPERF_ADAPTOR_FFRT
+            socperfThreadWraps_[i]->PostDelayTask(queueHead->resId, queueHead->resAction);
+#else
+            auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED, queueHead->resAction,
+                queueHead->resId);
+            socperfThreadWraps_[i]->SendEvent(event, queueHead->resAction->duration);
+#endif
+            queueHead = queueHead->next;
+        }
     }
 }
 
