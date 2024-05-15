@@ -225,10 +225,11 @@ bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& 
     xmlFree(name);
     xmlFree(pair);
     xmlFree(mode);
-    xmlFree(persistMode);
     if (!LoadFreqResourceContent(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, resNode)) {
+        xmlFree(persistMode);
         return false;
     }
+    xmlFree(persistMode);
     return true;
 }
 
