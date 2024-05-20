@@ -274,6 +274,9 @@ void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> 
         return;
     }
 #ifdef SOCPERF_ADAPTOR_FFRT
+    if (resAction->duration == 0) {
+        return;
+    }
     ffrt::task_attr taskAttr;
     taskAttr.delay(resAction->duration * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
     std::function<void()>&& postDelayTaskFunc = [this, resId, resAction]() {
