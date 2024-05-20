@@ -299,13 +299,14 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
             name, persistMode ? atoi(persistMode) : 0);
         xmlFree(id);
         xmlFree(name);
-        xmlFree(persistMode);
         g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         wrapSwitch_[govResNode->id / GetResIdNumsPerType(govResNode->id)] = true;
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
+            xmlFree(persistMode);
             return false;
         }
+        xmlFree(persistMode);
     }
 
     if (!CheckDefValid()) {
