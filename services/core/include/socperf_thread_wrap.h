@@ -65,7 +65,6 @@ public:
 private:
     static const int32_t SCALES_OF_MILLISECONDS_TO_MICROSECONDS = 1000;
     std::unordered_map<int32_t, std::shared_ptr<ResStatus>> resStatusInfo_;
-    std::unordered_map<std::string, int32_t> fdInfo_;
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
 #ifdef SOCPERF_ADAPTOR_FFRT
     ffrt::queue socperfQueue_;
@@ -75,6 +74,8 @@ private:
 
 private:
     void SendResStatusToPerfSo();
+    void ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& value);
+    void ReportToRssExe(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& value);
     bool GetResValueByLevel(int32_t resId, int32_t level, int64_t& resValue);
     void UpdateResActionList(int32_t resId, std::shared_ptr<ResAction> resAction, bool delayed);
     void UpdateResActionListByDelayedMsg(int32_t resId, int32_t type,

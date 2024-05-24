@@ -20,6 +20,8 @@ config("socperf_server_config") {
     "server/include",
     "${socperf_common}/include",
     "${socperf_interfaces}/inner_api/socperf_client/include",
+    "${resschedexe_common}/include",
+    "${resschedexe_interfaces}/innerkits/resource_schedule_service/include}",
   ]
 }
 
@@ -49,6 +51,7 @@ ohos_shared_library("socperf_server") {
     "libxml2:libxml2",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "resource_schedule_service:resschedexe_client",
   ]
 
   defines = [ "SOCPERF_ADAPTOR_FFRT" ]
@@ -91,6 +94,7 @@ ohos_static_library("socperf_server_static") {
     "libxml2:libxml2",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "resource_schedule_service:resschedexe_client",
   ]
 
   defines = []
