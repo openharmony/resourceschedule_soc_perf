@@ -42,6 +42,11 @@ enum SocPerfInnerEvent : uint32_t {
     INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST
 };
 
+namespace {
+    const std::string QOSID_STRING = "qosId";
+    const std::string VALUE_STRING = "value";
+}
+
 #ifdef SOCPERF_ADAPTOR_FFRT
 class SocPerfThreadWrap {
 public:
@@ -74,8 +79,8 @@ private:
 
 private:
     void SendResStatusToPerfSo();
-    void ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& value);
-    void ReportToRssExe(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& value);
+    void ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& endTime);
+    void ReportToRssExe(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& endTime);
     bool GetResValueByLevel(int32_t resId, int32_t level, int64_t& resValue);
     void UpdateResActionList(int32_t resId, std::shared_ptr<ResAction> resAction, bool delayed);
     void UpdateResActionListByDelayedMsg(int32_t resId, int32_t type,
@@ -90,9 +95,7 @@ private:
     bool ArbitratePairResInPerfLvl(int32_t resId);
     void UpdatePairResValue(int32_t minResId, int64_t minResValue, int32_t maxResId, int64_t maxResValue);
     void UpdateCurrentValue(int32_t resId, int64_t value);
-    void WriteNode(int32_t resId, const std::string& path, const std::string& value);
     bool ExistNoCandidate(int32_t resId, std::shared_ptr<ResStatus> resStatus);
-    int32_t GetFdForFilePath(const std::string& filePath);
     void DoFreqAction(int32_t resId, std::shared_ptr<ResAction> resAction);
     void DoFreqActionLevel(int32_t resId, std::shared_ptr<ResAction> resAction);
     void HandleLongTimeResAction(int32_t resId, int32_t type,

@@ -243,8 +243,8 @@ void SocPerfThreadWrap::SendResStatusToPerfSo()
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
 }
 
-Void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
-    std::vector<int64_t>& value)
+void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
+    std::vector<int64_t>& endTime)
 {
     if (qosId.size() > 0) {
         socPerfConfig_.reportFunc_(qosId, value, endTime, "");
@@ -260,14 +260,14 @@ Void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<
 }
 
 void SocPerfThreadWrap::ReportToRssExe(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
-    std::vector<int64_t>& value)
+    std::vector<int64_t>& endTime)
 {
     if (qosId.size() > 0) {
         nlohmann::json payload;
-        payload["qosId"] = qosId;
-        payload["value"] = value;
-        ResourceSchedule::ResSchedExeClent::GetInstance().SendRequestAsync(
-            ResourceSchedule::ResExeType::EWS_TYPE_SOCPERF_EXECUTOR_ASYNC_EVENT, 2, payload);
+        payload[QOSID_STRING] = qosId;
+        payload[VALUE_STRING] = value;
+        ResourceSchedule::ResSchedExeClient::GetInstance().SendRequestAsync(
+            ResourceSchedule::ResExeType::EWS_TYPE_SOCPERF_EXECUTOR_ASYNC_EVENT, SOCPERF_EVENT_WIRTE_NODE, payload);
         std::string log("send data to rssexe so");
         for (unsigned long i = 0; i < qosId.size(); i++) {
             log.append(",[id:").append(std::to_string(qosId[i]));

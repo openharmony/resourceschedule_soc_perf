@@ -33,7 +33,8 @@
         "safwk",
         "samgr",
         "hisysevent",
-        "libxml2"
+        "libxml2",
+        "resource_schedule_service"
       ]
     },
     "build": {
