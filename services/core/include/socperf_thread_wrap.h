@@ -42,6 +42,12 @@ enum SocPerfInnerEvent : uint32_t {
     INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST
 };
 
+enum RssExeEventType {
+    SOCPERF_EVENT_IVALID = 0,
+    SOCPERF_EVENT_INIT_NODE = 1,
+    SOCPERF_EVENT_WIRTE_NODE = 2,
+};
+
 namespace {
     const std::string QOSID_STRING = "qosId";
     const std::string VALUE_STRING = "value";
