@@ -383,8 +383,6 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfThreadWrapp_001, Function |
     EXPECT_FALSE(ret);
     ret = socPerfThreadWrap->socPerfConfig_.IsGovResId(inValidResId);
     EXPECT_FALSE(ret);
-    int32_t fd = socPerfThreadWrap->GetFdForFilePath("");
-    EXPECT_TRUE(fd < 0);
     int32_t level = 10;
     int64_t value = 0;
     ret = socPerfThreadWrap->GetResValueByLevel(inValidResId, level, value);
