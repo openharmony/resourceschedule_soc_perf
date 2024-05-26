@@ -19,12 +19,6 @@ socperf_common = "${socperf_path}/common"
 
 socperf_interfaces = "${socperf_path}/interfaces"
 
-resourcescheduleservice_path = "//foundation/resourceschedule/resource_schedule_service"
-
-resschedexe_common = "${resourcescheduleservice_path}/ressched_executor/common"
-
-resschedexe_interfaces = "${resourcescheduleservice_path}/ressched_executor/interfaces"
-
 socperf_test = "${socperf_path}/test"
 
 declare_args() {

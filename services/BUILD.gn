@@ -20,8 +20,6 @@ config("socperf_server_config") {
     "server/include",
     "${socperf_common}/include",
     "${socperf_interfaces}/inner_api/socperf_client/include",
-    "${resschedexe_common}/include",
-    "${resschedexe_interfaces}/innerkits/resource_schedule_service/include",
   ]
 }
 
