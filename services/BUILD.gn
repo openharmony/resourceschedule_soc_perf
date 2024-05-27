@@ -47,6 +47,7 @@ ohos_shared_library("socperf_server") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "libxml2:libxml2",
+    "resource_schedule_service:resschedexe_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -89,6 +90,7 @@ ohos_static_library("socperf_server_static") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "libxml2:libxml2",
+    "resource_schedule_service:resschedexe_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

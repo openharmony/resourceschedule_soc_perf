@@ -18,6 +18,8 @@
 #include <fcntl.h>           // for O_RDWR, O_CLOEXEC
 #include "hisysevent.h"
 #include "hitrace_meter.h"
+#include "res_exe_type.h"
+#include "res_sched_exe_client.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -84,18 +86,6 @@ void SocPerfThreadWrap::InitResourceNodeInfo(std::shared_ptr<ResourceNode> resou
 #ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& initResourceNodeInfoFunc = [this, resourceNode]() {
 #endif
-        if (resourceNode->isGov) {
-            std::shared_ptr<GovResNode> govResNode = std::static_pointer_cast<GovResNode>(resourceNode);
-            for (int32_t i = 0; govResNode->persistMode != REPORT_TO_PERFSO &&
-                i < (int32_t)govResNode->paths.size(); i++) {
-                WriteNode(govResNode->id, govResNode->paths[i], govResNode->levelToStr[govResNode->def][i]);
-                }
-        } else {
-            std::shared_ptr<ResNode> resNode = std::static_pointer_cast<ResNode>(resourceNode);
-            if (resNode->persistMode != REPORT_TO_PERFSO) {
-                WriteNode(resNode->id, resNode->path, std::to_string(resNode->def));
-            }
-        }
         auto resStatus = std::make_shared<ResStatus>(resourceNode->def);
         resStatusInfo_.insert(std::pair<int32_t, std::shared_ptr<ResStatus>>(resourceNode->id, resStatus));
 #ifdef SOCPERF_ADAPTOR_FFRT
@@ -227,24 +217,58 @@ void SocPerfThreadWrap::SendResStatusToPerfSo()
     std::vector<int32_t> qosId;
     std::vector<int64_t> value;
     std::vector<int64_t> endTime;
+    std::vector<int32_t> qosIdToRssEx;
+    std::vector<int64_t> valueToRssEx;
+    std::vector<int64_t> endTimeToRssEx;
     for (auto iter = resStatusInfo_.begin(); iter != resStatusInfo_.end(); ++iter) {
         int32_t resId = iter->first;
         std::shared_ptr<ResStatus> resStatus = iter->second;
-        if ((socPerfConfig_.resourceNodeInfo_.find(resId) != socPerfConfig_.resourceNodeInfo_.end() &&
-            socPerfConfig_.resourceNodeInfo_[resId]->persistMode == REPORT_TO_PERFSO)) {
-            if (resStatus->previousValue != resStatus->currentValue
-                || resStatus->previousEndTime != resStatus->currentEndTime) {
+        if (socPerfConfig_.resourceNodeInfo_.find(resId) != socPerfConfig_.resourceNodeInfo_.end() &&
+            (resStatus->previousValue != resStatus->currentValue ||
+            resStatus->previousEndTime != resStatus->currentEndTime)) {
+            if (socPerfConfig_.resourceNodeInfo_[resId]->persistMode == REPORT_TO_PERFSO) {
                 qosId.push_back(resId);
                 value.push_back(resStatus->currentValue);
                 endTime.push_back(resStatus->currentEndTime);
-                resStatus->previousValue = resStatus->currentValue;
-                resStatus->previousEndTime = resStatus->currentEndTime;
+            } else {
+                qosIdToRssEx.push_back(resId);
+                valueToRssEx.push_back(resStatus->currentValue);
+                endTimeToRssEx.push_back(resStatus->currentEndTime);
             }
+            resStatus->previousValue = resStatus->currentValue;
+            resStatus->previousEndTime = resStatus->currentEndTime;
         }
     }
+    ReportToPerfSo(qosId, value, endTime);
+    ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
+}
+
+void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
+    std::vector<int64_t>& endTime)
+{
     if (qosId.size() > 0) {
         socPerfConfig_.reportFunc_(qosId, value, endTime, "");
         std::string log("send data to perf so");
+        for (unsigned long i = 0; i < qosId.size(); i++) {
+            log.append(",[id:").append(std::to_string(qosId[i]));
+            log.append(", value:").append(std::to_string(value[i]));
+            log.append(", endTime:").append(std::to_string(endTime[i])).append("]");
+        }
+        StartTrace(HITRACE_TAG_OHOS, log.c_str());
+        FinishTrace(HITRACE_TAG_OHOS);
+    }
+}
+
+void SocPerfThreadWrap::ReportToRssExe(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
+    std::vector<int64_t>& endTime)
+{
+    if (qosId.size() > 0) {
+        nlohmann::json payload;
+        payload[QOSID_STRING] = qosId;
+        payload[VALUE_STRING] = value;
+        ResourceSchedule::ResSchedExeClient::GetInstance().SendRequestAsync(
+            ResourceSchedule::ResExeType::EWS_TYPE_SOCPERF_EXECUTOR_ASYNC_EVENT, SOCPERF_EVENT_WIRTE_NODE, payload);
+        std::string log("send data to rssexe so");
         for (unsigned long i = 0; i < qosId.size(); i++) {
             log.append(",[id:").append(std::to_string(qosId[i]));
             log.append(", value:").append(std::to_string(value[i]));
@@ -561,49 +585,6 @@ void SocPerfThreadWrap::UpdatePairResValue(int32_t minResId, int64_t minResValue
 void SocPerfThreadWrap::UpdateCurrentValue(int32_t resId, int64_t currValue)
 {
     resStatusInfo_[resId]->currentValue = currValue;
-    if (socPerfConfig_.IsGovResId(resId)) {
-        std::shared_ptr<GovResNode> govResNode =
-            std::static_pointer_cast<GovResNode>(socPerfConfig_.resourceNodeInfo_[resId]);
-        if (govResNode->persistMode != REPORT_TO_PERFSO &&
-            govResNode->levelToStr.find(currValue) != govResNode->levelToStr.end()) {
-            std::vector<std::string> targetStrs = govResNode->levelToStr[resStatusInfo_[resId]->currentValue];
-            for (int32_t i = 0; i < (int32_t)govResNode->paths.size(); i++) {
-                WriteNode(resId, govResNode->paths[i], targetStrs[i]);
-            }
-        }
-    } else {
-        std::shared_ptr<ResNode> resNode = std::static_pointer_cast<ResNode>(socPerfConfig_.resourceNodeInfo_[resId]);
-        WriteNode(resId, resNode->path, std::to_string(resStatusInfo_[resId]->currentValue));
-    }
-}
-
-void SocPerfThreadWrap::WriteNode(int32_t resId, const std::string& filePath, const std::string& value)
-{
-    if (socPerfConfig_.resourceNodeInfo_[resId]->persistMode == REPORT_TO_PERFSO) {
-        return;
-    }
-    int32_t fd = GetFdForFilePath(filePath);
-    if (fd < 0) {
-        return;
-    }
-    write(fd, value.c_str(), value.size());
-}
-
-int32_t SocPerfThreadWrap::GetFdForFilePath(const std::string& filePath)
-{
-    if (fdInfo_.find(filePath) != fdInfo_.end()) {
-        return fdInfo_[filePath];
-    }
-    char path[PATH_MAX + 1] = {0};
-    if (filePath.size() == 0 || filePath.size() > PATH_MAX || !realpath(filePath.c_str(), path)) {
-        return -1;
-    }
-    int32_t fd = open(path, O_RDWR | O_CLOEXEC);
-    if (fd < 0) {
-        return fd;
-    }
-    fdInfo_.insert(std::pair<std::string, int32_t>(filePath, fd));
-    return fdInfo_[filePath];
 }
 
 bool SocPerfThreadWrap::ExistNoCandidate(int32_t resId, std::shared_ptr<ResStatus> resStatus)
