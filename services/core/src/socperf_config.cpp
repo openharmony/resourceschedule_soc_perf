@@ -145,7 +145,13 @@ void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfSoFunc)
         return;
     }
 
-    g_handle = dlopen(perfSoPath, RTLD_NOW);
+    char path[PATH_MAX + 1] = {0};
+    size_t perfSoPathLen = strlen(perfSoPath);
+    if (perfSoPathLen == 0 || perfSoPathLen > PATH_MAX || !realpath(perfSoPath, path)) {
+        return;
+    }
+
+    g_handle = dlopen(path, RTLD_NOW);
     if (g_handle == nullptr) {
         SOC_PERF_LOGE("perf so doesn't exist");
         return;
