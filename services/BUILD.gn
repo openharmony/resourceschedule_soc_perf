@@ -50,6 +50,7 @@ ohos_shared_library("socperf_server") {
     "resource_schedule_service:resschedexe_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "json:nlohmann_json_static"
   ]
 
   defines = [ "SOCPERF_ADAPTOR_FFRT" ]
@@ -93,6 +94,7 @@ ohos_static_library("socperf_server_static") {
     "resource_schedule_service:resschedexe_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "json:nlohmann_json_static"
   ]
 
   defines = []
