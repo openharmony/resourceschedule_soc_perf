@@ -46,11 +46,11 @@ ohos_shared_library("socperf_server") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "libxml2:libxml2",
     "resource_schedule_service:resschedexe_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "json:nlohmann_json_static"
   ]
 
   defines = [ "SOCPERF_ADAPTOR_FFRT" ]
@@ -90,11 +90,11 @@ ohos_static_library("socperf_server_static") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "libxml2:libxml2",
     "resource_schedule_service:resschedexe_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "json:nlohmann_json_static"
   ]
 
   defines = []
