@@ -395,7 +395,7 @@ static inline bool IsValidPersistMode(int32_t persistMode)
     return true;
 }
 
-static std::vector<std::string> Split(const std::string& str, const std::string& pattern)
+static std::vector<std::string> SplitEx(const std::string& str, const std::string& pattern)
 {
     int32_t position;
     std::vector<std::string> result;
@@ -412,6 +412,12 @@ static std::vector<std::string> Split(const std::string& str, const std::string&
     }
     return result;
 }
+
+static inline std::vector<std::string> Split(const std::string& str, const std::string& pattern)
+{
+    return SplitEx(str, pattern);
+}
+
 } // namespace SOCPERF
 } // namespace OHOS
 
