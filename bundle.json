@@ -34,7 +34,8 @@
         "samgr",
         "hisysevent",
         "libxml2",
-        "resource_schedule_service"
+        "resource_schedule_service",
+        "json"
       ]
     },
     "build": {
