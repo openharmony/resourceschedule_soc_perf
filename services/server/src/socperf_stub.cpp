@@ -81,7 +81,7 @@ int32_t SocPerfStub::OnRemoteRequestExt(uint32_t code, MessageParcel &data,
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_REQUEST_CMDID_COUNT): {
-            StubRequestDeviceMode(data, reply);
+            StubRequestCmdIdCount(data, reply);
             break;
         }
         default:
@@ -219,7 +219,7 @@ int32_t SocPerfStub::StubRequestDeviceMode(MessageParcel &data)
     return ERR_OK;
 }
 
-int32_t SocPerfStub::StubRequestDeviceMode(MessageParcel &data, MessageParcel &reply)
+int32_t SocPerfStub::StubRequestCmdIdCount(MessageParcel &data, MessageParcel &reply)
 {
     int32_t callingUid = IPCSkeleton::GetCallingUid();
     std::string msg;
