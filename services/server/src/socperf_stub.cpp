@@ -37,57 +37,60 @@ int32_t SocPerfStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     if (GetDescriptor() != remoteDescriptor || !HasPerfPermission()) {
         return ERR_INVALID_STATE;
     }
+
+    int32_t ret = ERR_OK;
     switch (code) {
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_PERF_REQUEST): {
-            StubPerfRequest(data);
+            ret = StubPerfRequest(data);
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_PERF_REQUEST_EX): {
-            StubPerfRequestEx(data);
+            ret = StubPerfRequestEx(data);
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_POWER_LIMIT_BOOST_FREQ): {
-            StubPowerLimitBoost(data);
+            ret = StubPowerLimitBoost(data);
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_THERMAL_LIMIT_BOOST_FREQ): {
-            StubThermalLimitBoost(data);
+            ret = StubThermalLimitBoost(data);
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_LIMIT_REQUEST): {
-            StubLimitRequest(data);
+            ret = StubLimitRequest(data);
             break;
         }
         default:
             return OnRemoteRequestExt(code, data, reply, option);
     }
-    return ERR_OK;
+    return ret;
 }
 
 int32_t SocPerfStub::OnRemoteRequestExt(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
+    int32_t ret = ERR_OK;
     switch (code) {
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_STATUS): {
-            StubSetRequestStatus(data);
+            ret = StubSetRequestStatus(data);
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_THERMAL_LEVEL): {
-            StubSetThermalLevel(data);
+            ret = StubSetThermalLevel(data);
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_DEVICE_MODE): {
-            StubRequestDeviceMode(data);
+            ret = StubRequestDeviceMode(data);
             break;
         }
         case static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_REQUEST_CMDID_COUNT): {
-            StubRequestCmdIdCount(data, reply);
+            ret = StubRequestCmdIdCount(data, reply);
             break;
         }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-    return ERR_OK;
+    return ret;
 }
 
 int32_t SocPerfStub::StubPerfRequest(MessageParcel &data)
