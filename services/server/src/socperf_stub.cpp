@@ -186,7 +186,10 @@ int32_t SocPerfStub::StubThermalLimitBoost(MessageParcel &data)
 int32_t SocPerfStub::StubLimitRequest(MessageParcel &data)
 {
     int32_t clientId;
-    READ_PARCEL(data, Int32, clientId, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadInt32(clientId)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read clientId failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     std::vector<int32_t> tags;
     if (!data.ReadInt32Vector(&tags)) {
