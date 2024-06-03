@@ -96,10 +96,16 @@ int32_t SocPerfStub::OnRemoteRequestExt(uint32_t code, MessageParcel &data,
 int32_t SocPerfStub::StubPerfRequest(MessageParcel &data)
 {
     int32_t cmdId = 0;
-    READ_PARCEL(data, Int32, cmdId, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadInt32(cmdId)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read cmdId failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     std::string msg;
-    READ_PARCEL(data, String, msg, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadString(msg)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read msg failed", __func__);
+        return ERR_INVALID_STATE;
+    }
     if (msg.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
@@ -111,13 +117,22 @@ int32_t SocPerfStub::StubPerfRequest(MessageParcel &data)
 int32_t SocPerfStub::StubPerfRequestEx(MessageParcel &data)
 {
     int32_t cmdId = 0;
-    READ_PARCEL(data, Int32, cmdId, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadInt32(cmdId)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read cmdId failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     bool onOffTag = false;
-    READ_PARCEL(data, Bool, onOffTag, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadBool(onOffTag)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read onOffTag failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     std::string msg;
-    READ_PARCEL(data, String, msg, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadString(msg)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read msg failed", __func__);
+        return ERR_INVALID_STATE;
+    }
     if (msg.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
@@ -129,10 +144,16 @@ int32_t SocPerfStub::StubPerfRequestEx(MessageParcel &data)
 int32_t SocPerfStub::StubPowerLimitBoost(MessageParcel &data)
 {
     bool onOffTag = false;
-    READ_PARCEL(data, Bool, onOffTag, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadBool(onOffTag)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read onOffTag failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     std::string msg;
-    READ_PARCEL(data, String, msg, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadString(msg)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read msg failed", __func__);
+        return ERR_INVALID_STATE;
+    }
     if (msg.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
@@ -144,10 +165,16 @@ int32_t SocPerfStub::StubPowerLimitBoost(MessageParcel &data)
 int32_t SocPerfStub::StubThermalLimitBoost(MessageParcel &data)
 {
     bool onOffTag = false;
-    READ_PARCEL(data, Bool, onOffTag, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadBool(onOffTag)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read onOffTag failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     std::string msg;
-    READ_PARCEL(data, String, msg, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadString(msg)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read msg failed", __func__);
+        return ERR_INVALID_STATE;
+    }
     if (msg.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
@@ -182,7 +209,10 @@ int32_t SocPerfStub::StubLimitRequest(MessageParcel &data)
     }
 
     std::string msg;
-    READ_PARCEL(data, String, msg, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadString(msg)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read msg failed", __func__);
+        return ERR_INVALID_STATE;
+    }
     if (msg.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
@@ -194,10 +224,16 @@ int32_t SocPerfStub::StubLimitRequest(MessageParcel &data)
 int32_t SocPerfStub::StubSetRequestStatus(MessageParcel &data)
 {
     bool requestEnable;
-    READ_PARCEL(data, Bool, requestEnable, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadBool(requestEnable)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read requestEnable failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     std::string msg;
-    READ_PARCEL(data, String, msg, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadString(msg)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read msg failed", __func__);
+        return ERR_INVALID_STATE;
+    }
     if (msg.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
@@ -209,7 +245,10 @@ int32_t SocPerfStub::StubSetRequestStatus(MessageParcel &data)
 int32_t SocPerfStub::StubSetThermalLevel(MessageParcel &data)
 {
     int32_t levelId;
-    READ_PARCEL(data, Int32, levelId, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadInt32(levelId)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read levelId failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     SetThermalLevel(levelId);
     return ERR_OK;
@@ -218,13 +257,19 @@ int32_t SocPerfStub::StubSetThermalLevel(MessageParcel &data)
 int32_t SocPerfStub::StubRequestDeviceMode(MessageParcel &data)
 {
     std::string mode;
-    READ_PARCEL(data, String, mode, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadString(mode)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read mode failed", __func__);
+        return ERR_INVALID_STATE;
+    }
     if (mode.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
 
     bool status;
-    READ_PARCEL(data, Bool, status, ERR_INVALID_STATE, SocPerfStub);
+    if (!data.ReadBool(status)) {
+        SOC_PERF_LOGE("SocPerfStub::%{public}s read status failed", __func__);
+        return ERR_INVALID_STATE;
+    }
 
     RequestDeviceMode(mode, status);
     return ERR_OK;
