@@ -27,12 +27,19 @@ public:
     ~SocPerfStub() override = default;
     DISALLOW_COPY_AND_MOVE(SocPerfStub);
 
-    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data,
-        MessageParcel &reply, MessageOption &option) override;
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override;
 private:
     bool HasPerfPermission();
-    int32_t OnRemoteRequestExt(uint32_t code, MessageParcel &data,
-        MessageParcel &reply, MessageOption &option);
+    int32_t OnRemoteRequestExt(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int32_t StubPerfRequest(MessageParcel &data);
+    int32_t StubPerfRequestEx(MessageParcel &data);
+    int32_t StubPowerLimitBoost(MessageParcel &data);
+    int32_t StubThermalLimitBoost(MessageParcel &data);
+    int32_t StubLimitRequest(MessageParcel &data);
+    int32_t StubSetRequestStatus(MessageParcel &data);
+    int32_t StubSetThermalLevel(MessageParcel &data);
+    int32_t StubRequestDeviceMode(MessageParcel &data);
+    int32_t StubRequestCmdIdCount(MessageParcel &data, MessageParcel &reply);
 };
 } // namespace SOCPERF
 } // namespace OHOS
