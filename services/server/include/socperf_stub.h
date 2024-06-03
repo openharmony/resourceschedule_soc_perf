@@ -29,14 +29,6 @@ namespace SOCPERF {
             SOC_PERF_LOGE(""#className"::%{public}s read"#out" failed", __func__); \
             return errReturn;                                                   \
         }                                                                       \
-    } while (0)                                                                 \
-
-#define WRITE_PARCEL(parcel, type, in, errReturn, className)                    \
-    do {                                                                        \
-        if (!(parcel).Write##type(in)) {                                        \
-            SOC_PERF_LOGE(""#className"::%{public}s write"#in" failed", __func__); \
-            return errReturn;                                                   \
-        }                                                                       \
     } while (0)
 
 class SocPerfStub : public IRemoteStub<ISocPerfService> {
