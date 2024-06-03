@@ -155,18 +155,26 @@ int32_t SocPerfStub::StubThermalLimitBoost(MessageParcel &data)
 
 int32_t SocPerfStub::StubLimitRequest(MessageParcel &data)
 {
-    int32_t clientpid;
+    int32_t clientId;
     READ_PARCEL(data, Int32, clientId, ERR_INVALID_STATE, SocPerfStub);
 
     std::vector<int32_t> tags;
-    READ_PARCEL(data, Int32Vector, &tags, ERR_INVALID_STATE, SocPerfStub);
-    if (tags.size() <= MSG_VECTOR_INVALID_LEN || tags.size() > MSG_VECTOR_MAX_LEN) {
+    if (!data.ReadInt32Vector(&tags)) {
+        SOC_PERF_LOGE("error tags to do StubLimitRequest");
+        return ERR_INVALID_STATE;
+    }
+    if (tags.size() == MSG_VECTOR_INVALID_LEN || tags.size() > MSG_VECTOR_MAX_LEN) {
+        SOC_PERF_LOGE("error tags to do StubLimitRequest");
         return ERR_INVALID_STATE;
     }
 
     std::vector<int64_t> configs;
-    READ_PARCEL(data, Int32Vector, &configs, ERR_INVALID_STATE, SocPerfStub);
-    if (configs.size() <= MSG_VECTOR_INVALID_LEN || configs.size() > MSG_VECTOR_MAX_LEN) {
+    if (!data.ReadInt32Vector(&configs)) {
+        SOC_PERF_LOGE("error configs to do StubLimitRequest");
+        return ERR_INVALID_STATE;
+    }
+    if (configs.size() == MSG_VECTOR_INVALID_LEN || configs.size() > MSG_VECTOR_MAX_LEN) {
+        SOC_PERF_LOGE("error configs to do StubLimitRequest");
         return ERR_INVALID_STATE;
     }
 
@@ -208,7 +216,7 @@ int32_t SocPerfStub::StubRequestDeviceMode(MessageParcel &data)
 {
     std::string mode;
     READ_PARCEL(data, String, mode, ERR_INVALID_STATE, SocPerfStub);
-    if (msg.length() > MSG_STRING_MAX_LEN) {
+    if (mode.length() > MSG_STRING_MAX_LEN) {
         return ERR_INVALID_STATE;
     }
 

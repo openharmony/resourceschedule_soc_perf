@@ -18,9 +18,27 @@
 
 #include <cstdint>              // for int32_t, uint32_t
 #include "i_socperf_service.h"
+#include "socperf_log.h"
 
 namespace OHOS {
 namespace SOCPERF {
+
+#define READ_PARCEL(parcel, type, out, errReturn, className)                    \
+    do {                                                                        \
+        if (!(parcel).Read##type(out)) {                                        \
+            SOC_PERF_LOGE(""#className"::%{public}s read"#out" failed", __func__); \
+            return errReturn;                                                   \
+        }                                                                       \
+    } while (0)                                                                 \
+
+#define WRITE_PARCEL(parcel, type, in, errReturn, className)                    \
+    do {                                                                        \
+        if (!(parcel).Write##type(in)) {                                        \
+            SOC_PERF_LOGE(""#className"::%{public}s write"#in" failed", __func__); \
+            return errReturn;                                                   \
+        }                                                                       \
+    } while (0)
+
 class SocPerfStub : public IRemoteStub<ISocPerfService> {
 public:
     SocPerfStub() = default;
