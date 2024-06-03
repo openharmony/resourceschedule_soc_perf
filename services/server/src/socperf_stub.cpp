@@ -169,7 +169,7 @@ int32_t SocPerfStub::StubLimitRequest(MessageParcel &data)
     }
 
     std::vector<int64_t> configs;
-    if (!data.ReadInt32Vector(&configs)) {
+    if (!data.ReadInt64Vector(&configs)) {
         SOC_PERF_LOGE("error configs to do StubLimitRequest");
         return ERR_INVALID_STATE;
     }
