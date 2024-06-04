@@ -396,21 +396,18 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
         }
 #ifdef SOCPERF_ADAPTOR_FFRT
         socperfThreadWraps_[i]->DoFreqActionPack(header[i]);
+        socperfThreadWraps_[i]->PostDelayTask(header[i]);
 #else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_PACK, header[i]);
         socperfThreadWraps_[i]->SendEvent(event);
-#endif
         std::shared_ptr<ResActionItem> queueHead = header[i];
         while (queueHead) {
-#ifdef SOCPERF_ADAPTOR_FFRT
-            socperfThreadWraps_[i]->PostDelayTask(queueHead->resId, queueHead->resAction);
-#else
             auto eventRes = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED, queueHead->resAction,
                 queueHead->resId);
             socperfThreadWraps_[i]->SendEvent(eventRes, queueHead->resAction->duration);
-#endif
             queueHead = queueHead->next;
         }
+#endif
     }
 }
 
