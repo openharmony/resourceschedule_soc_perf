@@ -462,7 +462,7 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
         if (iter != actions->modeMap.end()) {
             iter->second = cmdId;
         } else {
-            std::unique_lock<std::mutex> lockModeMap(actions->modeMapMutex);
+            std::unique_lock<std::mutex> lockModeMap(actions->modeMapMutex_);
             actions->modeMap.insert(std::pair<std::string, int32_t>(modeDeviceStr, cmdId));
             lockModeMap.unlock();
         }
@@ -662,7 +662,7 @@ bool SocPerfConfig::LoadGovResourceAvailable(std::shared_ptr<GovResNode> govResN
         SOC_PERF_LOGE("Invalid governor resource node matches paths");
         return false;
     }
-    std::unique_lock<std::mutex> levelMutex(govResNode->levelToStrMutex);
+    std::unique_lock<std::mutex> levelMutex(govResNode->levelToStrMutex_);
     govResNode->levelToStr.insert(std::pair<int32_t, std::vector<std::string>>(atoll(level), result));
     levelMutex.unlock();
     return true;

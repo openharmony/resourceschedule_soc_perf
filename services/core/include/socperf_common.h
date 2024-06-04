@@ -120,7 +120,7 @@ public:
 class GovResNode : public ResourceNode {
 public:
     std::vector<std::string> paths;
-    std::mutex levelToStrMutex;
+    std::mutex levelToStrMutex_;
     std::unordered_map<int64_t, std::vector<std::string>> levelToStr;
 
 public:
@@ -178,7 +178,7 @@ public:
     int32_t id;
     std::string name;
     std::list<std::shared_ptr<Action>> actionList;
-    std::mutex modeMapMutex;
+    std::mutex modeMapMutex_;
     std::unordered_map<std::string, int32_t> modeMap;
     bool isLongTimePerf = false;
 
