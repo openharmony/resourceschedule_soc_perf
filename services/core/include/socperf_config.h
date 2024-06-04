@@ -36,7 +36,9 @@ public:
 public:
     bool wrapSwitch_[MAX_QUEUE_NUM] = { false };
     ReportDataFunc reportFunc_ = nullptr;
+    std::mutex resourceNodeMutex_;
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
+    std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
 
 private:
