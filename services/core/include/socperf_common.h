@@ -18,6 +18,7 @@
 
 #include <climits>
 #include <list>
+#include <mutex>
 #include <string>
 #include <vector>
 #include <unordered_map>
