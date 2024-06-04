@@ -423,9 +423,9 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
         if (!TraversalBoostResource(grandson, configFile, actions)) {
             return false;
         }
-        std::unique_lock<std::mutex> lockperfActions(perfActionsMutex_);
+        std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
         perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
-        lockperfActions.unlock();
+        lockPerfActions.unlock();
     }
 
     if (!CheckActionResIdAndValueValid(configFile)) {
@@ -462,9 +462,9 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
         if (iter != actions->modeMap.end()) {
             iter->second = cmdId;
         } else {
-            std::unique_lock<std::mutex> lockmodeMap(modeMapMutex);
+            std::unique_lock<std::mutex> lockModeMap(actions->modeMapMutex);
             actions->modeMap.insert(std::pair<std::string, int32_t>(modeDeviceStr, cmdId));
-            lockmodeMap.unlock();
+            lockModeMap.unlock();
         }
     }
 }

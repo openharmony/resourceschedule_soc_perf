@@ -38,7 +38,7 @@ public:
     ReportDataFunc reportFunc_ = nullptr;
     std::mutex resourceNodeMutex_;
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
-    std::mutex rperfActionsMutex_;
+    std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
 
 private:
