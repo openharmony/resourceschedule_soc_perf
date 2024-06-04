@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace SOCPERF {
 namespace {
+    std::mutex g_resStrToIdMutex;
     std::unordered_map<std::string, int32_t> g_resStrToIdInfo;
     void* g_handle;
     const std::string SPLIT_OR = "|";
@@ -61,8 +62,10 @@ bool SocPerfConfig::Init()
     }
 
     PrintCachedInfo();
+    std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
     g_resStrToIdInfo.clear();
     g_resStrToIdInfo = std::unordered_map<std::string, int32_t>();
+    lock.unlock();
     SOC_PERF_LOGD("SocPerf Init SUCCESS!");
     return true;
 }
@@ -271,8 +274,14 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
     }
     xmlFree(node);
 
+    std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
     g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
+    lock.unlock();
+
+    std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
     resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
+    lockResourceNode.unlock();
+
     wrapSwitch_[resNode->id / GetResIdNumsPerType(resNode->id)] = true;
     return true;
 }
@@ -299,8 +308,15 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
             name, persistMode ? atoi(persistMode) : 0);
         xmlFree(id);
         xmlFree(name);
+
+        std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
         g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
+        lock.unlock();
+
+        std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
         resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
+        lockResourceNode.unlock();
+
         wrapSwitch_[govResNode->id / GetResIdNumsPerType(govResNode->id)] = true;
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
             xmlFree(persistMode);
@@ -407,7 +423,9 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
         if (!TraversalBoostResource(grandson, configFile, actions)) {
             return false;
         }
+        std::unique_lock<std::mutex> lockperfActions(perfActionsMutex_);
         perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
+        lockperfActions.unlock();
     }
 
     if (!CheckActionResIdAndValueValid(configFile)) {
@@ -444,7 +462,9 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
         if (iter != actions->modeMap.end()) {
             iter->second = cmdId;
         } else {
+            std::unique_lock<std::mutex> lockmodeMap(modeMapMutex);
             actions->modeMap.insert(std::pair<std::string, int32_t>(modeDeviceStr, cmdId));
+            lockmodeMap.unlock();
         }
     }
 }
@@ -642,7 +662,9 @@ bool SocPerfConfig::LoadGovResourceAvailable(std::shared_ptr<GovResNode> govResN
         SOC_PERF_LOGE("Invalid governor resource node matches paths");
         return false;
     }
+    std::unique_lock<std::mutex> levelMutex(govResNode->levelToStrMutex);
     govResNode->levelToStr.insert(std::pair<int32_t, std::vector<std::string>>(atoll(level), result));
+    levelMutex.unlock();
     return true;
 }
 
