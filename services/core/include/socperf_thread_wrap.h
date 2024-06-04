@@ -71,6 +71,9 @@ public:
     void UpdateThermalLimitBoostFreq(bool thermalLimitBoost);
     void UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId);
     void PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction);
+#ifdef SOCPERF_ADAPTOR_FFRT
+    void PostDelayTask(std::shared_ptr<ResActionItem> queueHead);
+#endif
     void ClearAllAliveRequest();
 
 private:

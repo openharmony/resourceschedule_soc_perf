@@ -314,6 +314,33 @@ void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> 
 #endif
 }
 
+#ifdef SOCPERF_ADAPTOR_FFRT
+void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
+{
+    std::unordered_map<int32_t, std::vector<std::shared_ptr<ResActionItem>>> resActionMap;
+    std::shared_ptr<ResActionItem> head = queueHead;
+    while (head) {
+        if (!head->resAction || head->resAction->duration == 0) {
+            head = head->next;
+            continue;
+        }
+        resActionMap[head->resAction->duration].push_back(head);
+        head = head->next;
+    }
+    for (auto item : resActionMap) {
+        ffrt::task_attr taskAttr;
+        taskAttr.delay(item.first * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
+        std::function<void()>&& postDelayTaskFunc = [this, item]() {
+            for (int32_t i = 0; i < item.second.size(); i++) {
+                UpdateResActionList(item.second[i]->resId, item.second[i]->resAction, true);
+            }
+            SendResStatusToPerfSo();
+        };
+        socperfQueue_.submit(postDelayTaskFunc, taskAttr);
+    }
+}
+#endif
+
 bool SocPerfThreadWrap::GetResValueByLevel(int32_t resId, int32_t level, int64_t& resValue)
 {
     if (socPerfConfig_.resourceNodeInfo_.find(resId) == socPerfConfig_.resourceNodeInfo_.end()
