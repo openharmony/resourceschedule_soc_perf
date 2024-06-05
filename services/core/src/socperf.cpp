@@ -244,7 +244,9 @@ void SocPerf::SendLimitRequestEventOn(std::shared_ptr<SocPerfThreadWrap> threadW
 
 void SocPerf::SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t resValue)
 {
-    int32_t eventId, realResId, levelResId;
+    int32_t eventId = 0;
+    int32_t realResId = 0;
+    int32_t levelResId = 0;
     if (resId > RES_ID_ADDITION) {
         realResId = resId - RES_ID_ADDITION;
         levelResId = resId;
