@@ -120,7 +120,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
         SOC_PERF_LOGD("Invalid PerfRequest cmdId[%{public}d]", cmdId);
         return;
     }
- 
+
     int32_t matchCmdId = MatchDeviceModeCmd(cmdId, false);
     SOC_PERF_LOGI("cmdId[%{public}d]matchCmdId[%{public}d]msg[%{public}s]", cmdId, matchCmdId, msg.c_str());
 
