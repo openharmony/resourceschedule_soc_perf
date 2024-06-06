@@ -24,7 +24,7 @@ namespace OHOS {
 namespace SOCPERF {
 namespace {
     const int64_t TIME_INTERVAL = 8;
-    const int32_t CANCEL_CMDID_PERFIX = 100000;
+    const int32_t CANCEL_CMDID_PREFIX = 100000;
 }
 SocPerf::SocPerf()
 {
@@ -503,7 +503,7 @@ bool SocPerf::CheckTimeInterval(bool onOff, int32_t cmdId)
     std::lock_guard<std::mutex> lock(mutexBoostTime_);
     auto now = std::chrono::system_clock::now();
     int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
-    int32_t cancelCmdId = cmdId + CANCEL_CMDID_PERFIX;
+    int32_t cancelCmdId = cmdId + CANCEL_CMDID_PREFIX;
     int32_t recordCmdId = cmdId;
     if (onOff) {
         boostTime_[cancelCmdId] = 0;
@@ -519,7 +519,7 @@ bool SocPerf::CheckTimeInterval(bool onOff, int32_t cmdId)
         boostTime_[recordCmdId] = curMs;
         return true;
     }
-    return true;
+    return false;
 }
 } // namespace SOCPERF
 } // namespace OHOS
