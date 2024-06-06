@@ -497,6 +497,7 @@ std::string SocPerf::RequestCmdIdCount(const std::string &msg)
     }
     return ret.str();
 }
+
 bool SocPerf::CheckTimeInterval(bool onOff, int32_t cmdId)
 {
     std::lock_guard<std::mutex> lock(mutexBoostTime_);
