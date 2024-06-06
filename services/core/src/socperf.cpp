@@ -120,10 +120,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
         SOC_PERF_LOGD("Invalid PerfRequest cmdId[%{public}d]", cmdId);
         return;
     }
-    if (!CheckTimeInterval(onOffTag, cmdId)) {
-        SOC_PERF_LOGD("cmdId %{public}d can not trigger, because time interval", cmdId);
-        return;
-    }
+ 
     int32_t matchCmdId = MatchDeviceModeCmd(cmdId, false);
     SOC_PERF_LOGI("cmdId[%{public}d]matchCmdId[%{public}d]msg[%{public}s]", cmdId, matchCmdId, msg.c_str());
 
@@ -146,7 +143,10 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
         SOC_PERF_LOGD("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
         return;
     }
-
+    if (!CheckTimeInterval(onOffTag, cmdId)) {
+        SOC_PERF_LOGD("cmdId %{public}d can not trigger, because time interval", cmdId);
+        return;
+    }
     int32_t matchCmdId = MatchDeviceModeCmd(cmdId, true);
     SOC_PERF_LOGI("cmdId[%{public}d]matchCmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
         cmdId, matchCmdId, onOffTag, msg.c_str());
