@@ -331,7 +331,7 @@ void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
         ffrt::task_attr taskAttr;
         taskAttr.delay(item.first * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
         std::function<void()>&& postDelayTaskFunc = [this, item]() {
-            for (int32_t i = 0; i < item.second.size(); i++) {
+            for (uint32_t i = 0; i < item.second.size(); i++) {
                 UpdateResActionList(item.second[i]->resId, item.second[i]->resAction, true);
             }
             SendResStatusToPerfSo();

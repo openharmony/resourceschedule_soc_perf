@@ -57,6 +57,7 @@ const int32_t RES_ID_NUMS_PER_TYPE_EXT            = 10000;
 const int32_t WRITE_NODE                          = 0;
 const int32_t REPORT_TO_PERFSO                    = 1;
 const int32_t INVALID_THERMAL_CMD_ID              = -1;
+const int32_t INVALID_DURATION                    = -1;
 const int32_t MIN_THERMAL_LVL                     = 0;
 const int32_t RES_MODE_AND_ID_PAIR                = 2;
 const int32_t MAX_RES_MODE_LEN                    = 64;
@@ -165,7 +166,7 @@ class Action {
 public:
     int32_t thermalCmdId_ = INVALID_THERMAL_CMD_ID;
     int32_t thermalLvl_ = MIN_THERMAL_LVL;
-    int32_t duration;
+    int32_t duration = INVALID_DURATION;
     std::vector<int64_t> variable;
 
 public:
