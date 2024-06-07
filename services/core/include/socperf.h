@@ -50,10 +50,12 @@ private:
     int32_t thermalLvl_ = MIN_THERMAL_LVL;
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
     std::unordered_map<int32_t, uint32_t> boostCmdCount_;
+    std::unordered_map<int32_t, uint64_t> boostTime_;
 private:
     std::mutex mutex_;
     std::mutex mutexDeviceMode_;
     std::mutex mutexBoostCmdCount_;
+    std::mutex mutexBoostTime_;
     bool CreateThreadWraps();
     void InitThreadWraps();
     std::shared_ptr<SocPerfThreadWrap> GetThreadWrapByResId(int32_t resId) const;
@@ -67,6 +69,7 @@ private:
         int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
+    bool CheckTimeInterval(bool onOff, int32_t cmdId);
 };
 } // namespace SOCPERF
 } // namespace OHOS

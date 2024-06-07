@@ -22,6 +22,10 @@
 
 namespace OHOS {
 namespace SOCPERF {
+namespace {
+    const int64_t TIME_INTERVAL = 8;
+    const int32_t CANCEL_CMDID_PREFIX = 100000;
+}
 SocPerf::SocPerf()
 {
 }
@@ -108,6 +112,10 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
+    if (!CheckTimeInterval(true, cmdId)) {
+        SOC_PERF_LOGD("cmdId %{public}d can not trigger, because time interval", cmdId);
+        return;
+    }
     if (socPerfConfig_.perfActionsInfo_.find(cmdId) == socPerfConfig_.perfActionsInfo_.end()) {
         SOC_PERF_LOGD("Invalid PerfRequest cmdId[%{public}d]", cmdId);
         return;
@@ -135,7 +143,10 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
         SOC_PERF_LOGD("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
         return;
     }
-
+    if (!CheckTimeInterval(onOffTag, cmdId)) {
+        SOC_PERF_LOGD("cmdId %{public}d can not trigger, because time interval", cmdId);
+        return;
+    }
     int32_t matchCmdId = MatchDeviceModeCmd(cmdId, true);
     SOC_PERF_LOGI("cmdId[%{public}d]matchCmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
         cmdId, matchCmdId, onOffTag, msg.c_str());
@@ -485,6 +496,30 @@ std::string SocPerf::RequestCmdIdCount(const std::string &msg)
         ret << pair.first << ":" << pair.second;
     }
     return ret.str();
+}
+
+bool SocPerf::CheckTimeInterval(bool onOff, int32_t cmdId)
+{
+    std::lock_guard<std::mutex> lock(mutexBoostTime_);
+    auto now = std::chrono::system_clock::now();
+    int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    int32_t cancelCmdId = cmdId + CANCEL_CMDID_PREFIX;
+    int32_t recordCmdId = cmdId;
+    if (onOff) {
+        boostTime_[cancelCmdId] = 0;
+    }
+    if (!onOff) {
+        recordCmdId = cancelCmdId;
+    }
+    if (boostTime_.find(recordCmdId) == boostTime_.end()) {
+        boostTime_[recordCmdId] = curMs;
+        return true;
+    }
+    if (curMs - boostTime_[recordCmdId] > TIME_INTERVAL) {
+        boostTime_[recordCmdId] = curMs;
+        return true;
+    }
+    return false;
 }
 } // namespace SOCPERF
 } // namespace OHOS
