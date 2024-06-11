@@ -439,6 +439,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_002, Function | Med
     MessageParcel data;
     data.WriteInterfaceToken(SocPerfStub::GetDescriptor());
     data.WriteInt32(10000);
+    data.WriteBool(true);
     data.WriteString("");
     MessageParcel reply;
     MessageOption option;
@@ -483,6 +484,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_004, Function | Med
     MessageParcel data;
     data.WriteInterfaceToken(SocPerfStub::GetDescriptor());
     data.WriteBool(true);
+    data.WriteString("");
     MessageParcel reply;
     MessageOption option;
     uint32_t powerLimitIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_POWER_LIMIT_BOOST_FREQ);
@@ -502,6 +504,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_005, Function | Med
     MessageParcel data;
     data.WriteInterfaceToken(SocPerfStub::GetDescriptor());
     data.WriteBool(true);
+    data.WriteString("");
     MessageParcel reply;
     MessageOption option;
     uint32_t thermalLimitIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_THERMAL_LIMIT_BOOST_FREQ);
