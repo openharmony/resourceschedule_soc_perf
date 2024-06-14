@@ -502,7 +502,8 @@ bool SocPerf::CheckTimeInterval(bool onOff, int32_t cmdId)
 {
     std::lock_guard<std::mutex> lock(mutexBoostTime_);
     auto now = std::chrono::system_clock::now();
-    int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    uint64_t curMs = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count());
     int32_t cancelCmdId = cmdId + CANCEL_CMDID_PREFIX;
     int32_t recordCmdId = cmdId;
     if (onOff) {
