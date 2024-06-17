@@ -86,7 +86,7 @@ void SocPerfThreadWrap::InitResourceNodeInfo(std::shared_ptr<ResourceNode> resou
 #ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& initResourceNodeInfoFunc = [this, resourceNode]() {
 #endif
-        auto resStatus = std::make_shared<ResStatus>(resourceNode->def);
+        auto resStatus = std::make_shared<ResStatus>();
         resStatusInfo_.insert(std::pair<int32_t, std::shared_ptr<ResStatus>>(resourceNode->id, resStatus));
 #ifdef SOCPERF_ADAPTOR_FFRT
     };
@@ -573,6 +573,11 @@ void SocPerfThreadWrap::ArbitratePairRes(int32_t resId, bool perfRequestLimit)
         return;
     }
 
+    if (resStatusInfo_[pairResId]->candidate == NODE_DEFAULT_VALUE) {
+        UpdateCurrentValue(resId, resStatusInfo_[resId]->candidate);
+        return;
+    }
+
     if (socPerfConfig_.resourceNodeInfo_[resId]->isMaxValue) {
         if (resStatusInfo_[resId]->candidate < resStatusInfo_[pairResId]->candidate) {
             if (limit) {
@@ -622,7 +627,7 @@ bool SocPerfThreadWrap::ExistNoCandidate(int32_t resId, std::shared_ptr<ResStatu
     int64_t perfLvlCandidate = resStatus->candidatesValue[ACTION_TYPE_PERFLVL];
     if (perfCandidate == INVALID_VALUE && powerCandidate == INVALID_VALUE && thermalCandidate == INVALID_VALUE
         && perfLvlCandidate == INVALID_VALUE) {
-        resStatus->candidate = socPerfConfig_.resourceNodeInfo_[resId]->def;
+        resStatus->candidate = NODE_DEFAULT_VALUE;
         resStatus->currentEndTime = MAX_INT_VALUE;
         ArbitratePairRes(resId, false);
         return true;
