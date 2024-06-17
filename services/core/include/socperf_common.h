@@ -62,6 +62,7 @@ const int32_t MIN_THERMAL_LVL                     = 0;
 const int32_t RES_MODE_AND_ID_PAIR                = 2;
 const int32_t MAX_RES_MODE_LEN                    = 64;
 const int32_t MAX_FREQUE_NODE                     = 1;
+const int32_t NODE_DEFAULT_VALUE                  = -1;
 
 const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
     {"displaySub", {"displayMain", "displayFull"}},
@@ -285,7 +286,7 @@ public:
     int64_t previousEndTime;
 
 public:
-    explicit ResStatus(int64_t val)
+    explicit ResStatus()
     {
         resActionList = std::vector<std::list<std::shared_ptr<ResAction>>>(ACTION_TYPE_MAX);
         candidatesValue = std::vector<int64_t>(ACTION_TYPE_MAX);
@@ -298,9 +299,9 @@ public:
         candidatesEndTime[ACTION_TYPE_POWER] = MAX_INT_VALUE;
         candidatesEndTime[ACTION_TYPE_THERMAL] = MAX_INT_VALUE;
         candidatesEndTime[ACTION_TYPE_PERFLVL] = MAX_INT_VALUE;
-        candidate = val;
-        currentValue = val;
-        previousValue = val;
+        candidate = NODE_DEFAULT_VALUE;
+        currentValue = NODE_DEFAULT_VALUE;
+        previousValue = NODE_DEFAULT_VALUE;
         currentEndTime = MAX_INT_VALUE;
         previousEndTime = MAX_INT_VALUE;
     }
