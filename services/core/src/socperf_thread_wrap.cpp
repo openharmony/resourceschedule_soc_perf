@@ -251,8 +251,7 @@ void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<
         std::string log("send data to perf so");
         for (unsigned long i = 0; i < qosId.size(); i++) {
             log.append(",[id:").append(std::to_string(qosId[i]));
-            log.append(", value:").append(std::to_string(value[i]));
-            log.append(", endTime:").append(std::to_string(endTime[i])).append("]");
+            log.append(", value:").append(std::to_string(value[i])).append("]");
         }
         StartTrace(HITRACE_TAG_OHOS, log.c_str());
         FinishTrace(HITRACE_TAG_OHOS);
@@ -271,8 +270,7 @@ void SocPerfThreadWrap::ReportToRssExe(std::vector<int32_t>& qosId, std::vector<
         std::string log("send data to rssexe so");
         for (unsigned long i = 0; i < qosId.size(); i++) {
             log.append(",[id:").append(std::to_string(qosId[i]));
-            log.append(", value:").append(std::to_string(value[i]));
-            log.append(", endTime:").append(std::to_string(endTime[i])).append("]");
+            log.append(", value:").append(std::to_string(value[i])).append("]");
         }
         StartTrace(HITRACE_TAG_OHOS, log.c_str());
         FinishTrace(HITRACE_TAG_OHOS);
@@ -298,9 +296,6 @@ void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> 
         return;
     }
 #ifdef SOCPERF_ADAPTOR_FFRT
-    if (resAction->duration == 0) {
-        return;
-    }
     ffrt::task_attr taskAttr;
     taskAttr.delay(resAction->duration * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
     std::function<void()>&& postDelayTaskFunc = [this, resId, resAction]() {
@@ -390,19 +385,12 @@ void SocPerfThreadWrap::UpdateResActionListByDelayedMsg(int32_t resId, int32_t t
     }
 }
 
-void SocPerfThreadWrap::HandleShortTimeResAction(int32_t resId, int32_t type,
-    std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus)
-{
-    resStatus->resActionList[type].push_back(resAction);
-    UpdateCandidatesValue(resId, type);
-}
-
-void SocPerfThreadWrap::HandleLongTimeResAction(int32_t resId, int32_t type,
+void SocPerfThreadWrap::HandleResAction(int32_t resId, int32_t type,
     std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus)
 {
     for (auto iter = resStatus->resActionList[type].begin();
          iter != resStatus->resActionList[type].end(); ++iter) {
-        if (resAction->TotalSame(*iter)) {
+        if (resAction->PartSame(*iter)) {
             resStatus->resActionList[type].erase(iter);
             break;
         }
@@ -416,15 +404,11 @@ void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t t
 {
     switch (resAction->onOff) {
         case EVENT_INVALID: {
-            HandleShortTimeResAction(resId, type, resAction, resStatus);
+            HandleResAction(resId, type, resAction, resStatus);
             break;
         }
         case EVENT_ON: {
-            if (resAction->duration == 0) {
-                HandleLongTimeResAction(resId, type, resAction, resStatus);
-            } else {
-                HandleShortTimeResAction(resId, type, resAction, resStatus);
-            }
+            HandleResAction(resId, type, resAction, resStatus);
             break;
         }
         case EVENT_OFF: {

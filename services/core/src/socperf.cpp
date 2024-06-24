@@ -409,7 +409,9 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
         }
 #ifdef SOCPERF_ADAPTOR_FFRT
         socperfThreadWraps_[i]->DoFreqActionPack(header[i]);
-        socperfThreadWraps_[i]->PostDelayTask(header[i]);
+        if (!actions->isLongTimePerf && onOff != EVENT_OFF) {
+            socperfThreadWraps_[i]->PostDelayTask(header[i]);
+        }
 #else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_PACK, header[i]);
         socperfThreadWraps_[i]->SendEvent(event);

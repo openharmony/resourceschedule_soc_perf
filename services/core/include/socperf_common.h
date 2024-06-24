@@ -236,18 +236,6 @@ public:
     }
     ~ResAction() {}
 
-    bool TotalSame(std::shared_ptr<ResAction> resAction)
-    {
-        if (value == resAction->value
-            && duration == resAction->duration
-            && type == resAction->type
-            && onOff == resAction->onOff
-            && cmdId == resAction->cmdId) {
-            return true;
-        }
-        return false;
-    }
-
     bool PartSame(std::shared_ptr<ResAction> resAction)
     {
         if (value == resAction->value

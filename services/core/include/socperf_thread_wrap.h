@@ -107,9 +107,7 @@ private:
     bool ExistNoCandidate(int32_t resId, std::shared_ptr<ResStatus> resStatus);
     void DoFreqAction(int32_t resId, std::shared_ptr<ResAction> resAction);
     void DoFreqActionLevel(int32_t resId, std::shared_ptr<ResAction> resAction);
-    void HandleLongTimeResAction(int32_t resId, int32_t type,
-        std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus);
-    void HandleShortTimeResAction(int32_t resId, int32_t type,
+    void HandleResAction(int32_t resId, int32_t type,
         std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus);
 };
 } // namespace SOCPERF
