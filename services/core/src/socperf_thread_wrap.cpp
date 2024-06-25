@@ -296,6 +296,9 @@ void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> 
         return;
     }
 #ifdef SOCPERF_ADAPTOR_FFRT
+    if (resAction->duration == 0) {
+        return;
+    }
     ffrt::task_attr taskAttr;
     taskAttr.delay(resAction->duration * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
     std::function<void()>&& postDelayTaskFunc = [this, resId, resAction]() {
@@ -390,7 +393,7 @@ void SocPerfThreadWrap::HandleResAction(int32_t resId, int32_t type,
 {
     for (auto iter = resStatus->resActionList[type].begin();
          iter != resStatus->resActionList[type].end(); ++iter) {
-        if (resAction->PartSame(*iter)) {
+        if (resAction->TotalSame(*iter)) {
             resStatus->resActionList[type].erase(iter);
             break;
         }
@@ -403,10 +406,7 @@ void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t t
     std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus)
 {
     switch (resAction->onOff) {
-        case EVENT_INVALID: {
-            HandleResAction(resId, type, resAction, resStatus);
-            break;
-        }
+        case EVENT_INVALID:
         case EVENT_ON: {
             HandleResAction(resId, type, resAction, resStatus);
             break;
