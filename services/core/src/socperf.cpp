@@ -122,7 +122,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
     }
 
     int32_t matchCmdId = MatchDeviceModeCmd(cmdId, false);
-    SOC_PERF_LOGI("cmdId[%{public}d]matchCmdId[%{public}d]msg[%{public}s]", cmdId, matchCmdId, msg.c_str());
+    SOC_PERF_LOGD("cmdId[%{public}d]matchCmdId[%{public}d]msg[%{public}s]", cmdId, matchCmdId, msg.c_str());
 
     std::string trace_str(__func__);
     trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
@@ -148,7 +148,7 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
         return;
     }
     int32_t matchCmdId = MatchDeviceModeCmd(cmdId, true);
-    SOC_PERF_LOGI("cmdId[%{public}d]matchCmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
+    SOC_PERF_LOGD("cmdId[%{public}d]matchCmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
         cmdId, matchCmdId, onOffTag, msg.c_str());
 
     std::string trace_str(__func__);
@@ -390,6 +390,11 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             if (!socPerfConfig_.IsValidResId(action->variable[i])) {
                 continue;
             }
+
+            if (onOff == EVENT_INVALID && action->duration == 0) {
+                continue;
+            }
+
             auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
             int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
             resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], action->duration,
