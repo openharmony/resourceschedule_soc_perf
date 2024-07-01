@@ -44,8 +44,7 @@ enum SocPerfInnerEvent : uint32_t {
 
 enum RssExeEventType {
     SOCPERF_EVENT_IVALID = 0,
-    SOCPERF_EVENT_INIT_NODE = 1,
-    SOCPERF_EVENT_WIRTE_NODE = 2,
+    SOCPERF_EVENT_WIRTE_NODE = 1,
 };
 
 namespace {

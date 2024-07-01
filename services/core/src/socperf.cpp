@@ -17,8 +17,6 @@
 #include "hisysevent.h"
 #include "hitrace_meter.h"
 #include "parameters.h"
-#include "res_exe_type.h"
-#include "res_sched_exe_client.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -93,9 +91,6 @@ void SocPerf::InitThreadWraps()
         threadWrap->SendEvent(event);
 #endif
     }
-    nlohmann::json payload;
-    ResourceSchedule::ResSchedExeClient::GetInstance().SendRequestAsync(
-        ResourceSchedule::ResExeType::EWS_TYPE_SOCPERF_EXECUTOR_ASYNC_EVENT, SOCPERF_EVENT_INIT_NODE, payload);
 }
 
 std::shared_ptr<SocPerfThreadWrap> SocPerf::GetThreadWrapByResId(int32_t resId) const
