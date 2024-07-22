@@ -293,6 +293,8 @@ int32_t SocPerfStub::StubRequestCmdIdCount(MessageParcel &data, MessageParcel &r
     return ERR_OK;
 }
 
+const std::string NEEDED_PERMISSION = "ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT";
+
 bool SocPerfStub::HasPerfPermission()
 {
     uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
@@ -303,6 +305,11 @@ bool SocPerfStub::HasPerfPermission()
             SOC_PERF_LOGE("Invalid Permission to SocPerf");
             return false;
         }
+    }
+    int32_t hasPermission = Security::AccessToken::AccessTokenKit::VerifyAccessToken(accessToken, NEEDED_PERMISSION);
+    if (hasPermission != 0) {
+        SOC_PERF_LOGE("SocPerf: not have Permission");
+        return false;
     }
     return true;
 }
