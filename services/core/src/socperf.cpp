@@ -235,6 +235,9 @@ void SocPerf::SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t res
         eventId = INNER_EVENT_ID_DO_FREQ_ACTION;
     }
 
+    if (!socPerfConfig_.IsValidResId(realResId)) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     SendLimitRequestEventOff(socperfThreadWrap_, clientId, realResId, INNER_EVENT_ID_DO_FREQ_ACTION);
     SendLimitRequestEventOff(socperfThreadWrap_, clientId, levelResId, INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL);
