@@ -62,6 +62,7 @@ class SocPerfThreadWrap : public AppExecFwk::EventHandler {
 public:
     explicit SocPerfThreadWrap(const std::shared_ptr<AppExecFwk::EventRunner>& runner);
     ~SocPerfThreadWrap() override;
+    void ProcessEvent(const AppExecFwk::InnerEvent::Pointer& event) override;
 #endif
     void InitResourceNodeInfo(std::shared_ptr<ResourceNode> resourceNode);
     void DoFreqActionPack(std::shared_ptr<ResActionItem> head);
@@ -70,6 +71,8 @@ public:
     void UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId);
 #ifdef SOCPERF_ADAPTOR_FFRT
     void PostDelayTask(std::shared_ptr<ResActionItem> queueHead);
+#else
+    void PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction);
 #endif
     void ClearAllAliveRequest();
 

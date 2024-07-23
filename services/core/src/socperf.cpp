@@ -53,7 +53,7 @@ bool SocPerf::CreateThreadWraps()
 #ifdef SOCPERF_ADAPTOR_FFRT
     socperfThreadWrap_ = std::make_shared<SocPerfThreadWrap>();
 #else
-    auto runner = AppExecFwk::EventRunner::Create("socperf#" + std::to_string(i));
+    auto runner = AppExecFwk::EventRunner::Create("socperf#runner");
     if (!runner) {
         SOC_PERF_LOGE("Failed to Create EventRunner");
         return false;

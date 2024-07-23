@@ -315,6 +315,15 @@ void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
         socperfQueue_.submit(postDelayTaskFunc, taskAttr);
     }
 }
+#else
+void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction)
+{
+    if (!socPerfConfig_.IsValidResId(resId) || resAction == nullptr) {
+        return;
+    }
+    UpdateResActionList(resId, resAction, true);
+    SendResStatusToPerfSo();
+}
 #endif
 
 bool SocPerfThreadWrap::GetResValueByLevel(int32_t resId, int32_t level, int64_t& resValue)
