@@ -41,13 +41,6 @@ const int64_t MAX_INT_VALUE                       = 0x7FFFFFFFFFFFFFFF;
 const int64_t MIN_INT_VALUE                       = 0x8000000000000000;
 const int32_t INVALID_VALUE                       = INT_MIN;
 const int32_t RESET_VALUE                         = -1;
-/*
- * Divide all resource id into five sections, resource of each section is processed in an individual queue.
- * threadWrapId = resourceId / RES_ID_NUMS_PER_TYPE - 1
- * Resource section:    [1000, 1999]   [2000, 2999]   [3000, 3999]   [4000, 4999]   [5000, 5999]
- * queue: socperfThreadWraps[0] socperfThreadWraps[1] socperfThreadWraps[2] socperfThreadWraps[3] socperfThreadWraps[4]
- */
-const int32_t MAX_QUEUE_NUM                 = 5;
 const int32_t MIN_RESOURCE_ID                     = 1000;
 const int32_t MAX_RESOURCE_ID                     = 5999;
 const int32_t RES_ID_ADDITION                     = 10000;
@@ -98,25 +91,6 @@ public:
         pair = resPair;
     }
     ~ResNode() {}
-
-    void PrintString()
-    {
-        SOC_PERF_LOGD("resNode-> id: [%{public}d], name: [%{public}s]", id, name.c_str());
-        SOC_PERF_LOGD("          path: [%{public}s]", path.c_str());
-        SOC_PERF_LOGD("          def: [%{public}lld], mode: [%{public}d], pair: [%{public}d]",
-            (long long)def, isMaxValue, pair);
-        std::string str;
-        str.append("available(").append(std::to_string((int32_t)available.size())).append("): ");
-        str.append("[");
-        for (auto validValue : available) {
-            str.append(std::to_string(validValue)).append(",");
-        }
-        if (!available.empty()) {
-            str.pop_back();
-        }
-        str.append("]");
-        SOC_PERF_LOGD("          %{public}s", str.c_str());
-    }
 };
 
 class GovResNode : public ResourceNode {
@@ -129,38 +103,6 @@ public:
     GovResNode(int32_t govResId, const std::string& govResName, int32_t govPersistMode)
         : ResourceNode(govResId, govResName, govPersistMode, true, false) {}
     ~GovResNode() {}
-
-    void PrintString()
-    {
-        SOC_PERF_LOGD("govResNode-> id: [%{public}d], name: [%{public}s]", id, name.c_str());
-        SOC_PERF_LOGD("             def: [%{public}lld]", (long long)def);
-        for (auto path : paths) {
-            SOC_PERF_LOGD("             path: [%{public}s]", path.c_str());
-        }
-        std::string str;
-        str.append("available(").append(std::to_string((int32_t)available.size())).append("): ");
-        str.append("[");
-        for (auto validValue : available) {
-            str.append(std::to_string(validValue)).append(",");
-        }
-        if (!available.empty()) {
-            str.pop_back();
-        }
-        str.append("]");
-        SOC_PERF_LOGD("             %{public}s", str.c_str());
-        for (auto iter = levelToStr.begin(); iter != levelToStr.end(); ++iter) {
-            std::string str2;
-            int64_t level = iter->first;
-            std::vector<std::string> result = iter->second;
-            for (int32_t i = 0; i < (int32_t)result.size(); i++) {
-                str2.append(result[i]).append(",");
-            }
-            if (!result.empty()) {
-                str2.pop_back();
-            }
-            SOC_PERF_LOGD("             %{public}lld: [%{public}s]", (long long)level, str2.c_str());
-        }
-    }
 };
 
 class Action {
@@ -191,27 +133,6 @@ public:
         name = cmdName;
     }
     ~Actions() {}
-
-    void PrintString()
-    {
-        SOC_PERF_LOGD("Actions-> id: [%{public}d], name: [%{public}s]", id, name.c_str());
-        for (auto kv : modeMap) {
-            SOC_PERF_LOGD("mode: [%{public}s], cmdid %{public}d", kv.first.c_str(), kv.second);
-        }
-        for (auto iter = actionList.begin(); iter != actionList.end(); iter++) {
-            std::shared_ptr<Action> action = *iter;
-            std::string str;
-            str.append("variable(").append(std::to_string((int32_t)action->variable.size())).append("): [");
-            for (int32_t i = 0; i < (int32_t)action->variable.size(); i++) {
-                str.append(std::to_string(action->variable[i])).append(",");
-            }
-            if (!action->variable.empty()) {
-                str.pop_back();
-            }
-            str.append("]");
-            SOC_PERF_LOGD("   duration: [%{public}d], %{public}s", action->duration, str.c_str());
-        }
-    }
 };
 
 class ResAction {
@@ -306,43 +227,6 @@ public:
         previousEndTime = MAX_INT_VALUE;
     }
     ~ResStatus() {}
-
-    std::string ToString()
-    {
-        std::string str;
-        str.append("perf:[");
-        for (auto iter = resActionList[ACTION_TYPE_PERF].begin();
-            iter != resActionList[ACTION_TYPE_PERF].end(); ++iter) {
-            str.append(std::to_string((*iter)->value)).append(",");
-        }
-        if (!resActionList[ACTION_TYPE_PERF].empty()) {
-            str.pop_back();
-        }
-        str.append("]power:[");
-        for (auto iter = resActionList[ACTION_TYPE_POWER].begin();
-            iter != resActionList[ACTION_TYPE_POWER].end(); ++iter) {
-            str.append(std::to_string((*iter)->value)).append(",");
-        }
-        if (!resActionList[ACTION_TYPE_POWER].empty()) {
-            str.pop_back();
-        }
-        str.append("]thermal:[");
-        for (auto iter = resActionList[ACTION_TYPE_THERMAL].begin();
-            iter != resActionList[ACTION_TYPE_THERMAL].end(); ++iter) {
-            str.append(std::to_string((*iter)->value)).append(",");
-        }
-        if (!resActionList[ACTION_TYPE_THERMAL].empty()) {
-            str.pop_back();
-        }
-        str.append("]candidatesValue[");
-        for (auto iter = candidatesValue.begin(); iter != candidatesValue.end(); ++iter) {
-            str.append(std::to_string(*iter)).append(",");
-        }
-        str.pop_back();
-        str.append("]candidate[").append(std::to_string(candidate));
-        str.append("]currentValue[").append(std::to_string(currentValue)).append("]");
-        return str;
-    }
 };
 
 static inline int64_t Max(int64_t num1, int64_t num2)
