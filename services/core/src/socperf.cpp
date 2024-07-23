@@ -72,10 +72,6 @@ void SocPerf::InitThreadWraps()
 {
     for (auto iter = socPerfConfig_.resourceNodeInfo_.begin(); iter != socPerfConfig_.resourceNodeInfo_.end(); ++iter) {
         std::shared_ptr<ResourceNode> resourceNode = iter->second;
-        auto threadWrap = GetThreadWrapByResId(resourceNode->id);
-        if (!threadWrap) {
-            continue;
-        }
 #ifdef SOCPERF_ADAPTOR_FFRT
         socperfThreadWrap_->InitResourceNodeInfo(resourceNode);
 #else
