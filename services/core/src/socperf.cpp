@@ -50,27 +50,19 @@ bool SocPerf::Init()
 
 bool SocPerf::CreateThreadWraps()
 {
-    socperfThreadWraps_ = std::vector<std::shared_ptr<SocPerfThreadWrap>>(MAX_QUEUE_NUM);
-    for (int32_t i = 0; i < (int32_t)socperfThreadWraps_.size(); i++) {
-        if (!socPerfConfig_.wrapSwitch_[i]) {
-            socperfThreadWraps_[i] = nullptr;
-            continue;
-        }
 #ifdef SOCPERF_ADAPTOR_FFRT
-        auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>();
+    socperfThreadWrap_ = std::make_shared<SocPerfThreadWrap>();
 #else
-        auto runner = AppExecFwk::EventRunner::Create("socperf#" + std::to_string(i));
-        if (!runner) {
-            SOC_PERF_LOGE("Failed to Create EventRunner");
-            return false;
-        }
-        auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>(runner);
+    auto runner = AppExecFwk::EventRunner::Create("socperf#" + std::to_string(i));
+    if (!runner) {
+        SOC_PERF_LOGE("Failed to Create EventRunner");
+        return false;
+    }
+    socperfThreadWrap_ = std::make_shared<SocPerfThreadWrap>(runner);
 #endif
-        if (!socPerfThreadWrap) {
-            SOC_PERF_LOGE("Failed to Create socPerfThreadWrap");
-            return false;
-        }
-        socperfThreadWraps_[i] = socPerfThreadWrap;
+    if (!socperfThreadWrap_) {
+        SOC_PERF_LOGE("Failed to Create socPerfThreadWrap");
+        return false;
     }
     SOC_PERF_LOGD("Success to Create All threadWrap threads");
     return true;
@@ -85,20 +77,12 @@ void SocPerf::InitThreadWraps()
             continue;
         }
 #ifdef SOCPERF_ADAPTOR_FFRT
-        threadWrap->InitResourceNodeInfo(resourceNode);
+        socperfThreadWrap_->InitResourceNodeInfo(resourceNode);
 #else
         auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO, resourceNode);
-        threadWrap->SendEvent(event);
+        socperfThreadWrap_->SendEvent(event);
 #endif
     }
-}
-
-std::shared_ptr<SocPerfThreadWrap> SocPerf::GetThreadWrapByResId(int32_t resId) const
-{
-    if (!socPerfConfig_.IsValidResId(resId)) {
-        return nullptr;
-    }
-    return socperfThreadWraps_[resId / socPerfConfig_.GetResIdNumsPerType(resId)];
 }
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
@@ -170,16 +154,12 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    for (auto threadWrap : socperfThreadWraps_) {
-        if (threadWrap) {
 #ifdef SOCPERF_ADAPTOR_FFRT
-            threadWrap->UpdatePowerLimitBoostFreq(onOffTag);
+    socperfThreadWrap_->UpdatePowerLimitBoostFreq(onOffTag);
 #else
-            auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_POWER_LIMIT_BOOST_FREQ, onOffTag ? 1 : 0);
-            threadWrap->SendEvent(event);
+    auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_POWER_LIMIT_BOOST_FREQ, onOffTag ? 1 : 0);
+    socperfThreadWrap_->SendEvent(event);
 #endif
-        }
-    }
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_POWER,
@@ -198,16 +178,12 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
-    for (auto threadWrap : socperfThreadWraps_) {
-        if (threadWrap) {
 #ifdef SOCPERF_ADAPTOR_FFRT
-            threadWrap->UpdateThermalLimitBoostFreq(onOffTag);
+    socperfThreadWrap_->UpdateThermalLimitBoostFreq(onOffTag);
 #else
-            auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_THERMAL_LIMIT_BOOST_FREQ, onOffTag ? 1 : 0);
-            threadWrap->SendEvent(event);
+    auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_THERMAL_LIMIT_BOOST_FREQ, onOffTag ? 1 : 0);
+    socperfThreadWrap_->SendEvent(event);
 #endif
-        }
-    }
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_THERMAL,
@@ -263,14 +239,10 @@ void SocPerf::SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t res
         eventId = INNER_EVENT_ID_DO_FREQ_ACTION;
     }
 
-    auto threadWrap = GetThreadWrapByResId(realResId);
-    if (!threadWrap) {
-        return;
-    }
     std::lock_guard<std::mutex> lock(mutex_);
-    SendLimitRequestEventOff(threadWrap, clientId, realResId, INNER_EVENT_ID_DO_FREQ_ACTION);
-    SendLimitRequestEventOff(threadWrap, clientId, levelResId, INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL);
-    SendLimitRequestEventOn(threadWrap, clientId, resId, resValue, eventId);
+    SendLimitRequestEventOff(socperfThreadWrap_, clientId, realResId, INNER_EVENT_ID_DO_FREQ_ACTION);
+    SendLimitRequestEventOff(socperfThreadWrap_, clientId, levelResId, INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL);
+    SendLimitRequestEventOn(socperfThreadWrap_, clientId, resId, resValue, eventId);
 }
 
 void SocPerf::LimitRequest(int32_t clientId,
@@ -311,17 +283,12 @@ void SocPerf::ClearAllAliveRequest()
         SOC_PERF_LOGE("SocPerf disabled!");
         return;
     }
-    for (int32_t i = 0; i < MAX_QUEUE_NUM; ++i) {
-        if (socperfThreadWraps_[i] == nullptr) {
-            continue;
-        }
 #ifdef SOCPERF_ADAPTOR_FFRT
-        socperfThreadWraps_[i]->ClearAllAliveRequest();
+    socperfThreadWrap_->ClearAllAliveRequest();
 #else
-        auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST);
-        socperfThreadWraps_[i]->SendEvent(event);
+    auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST);
+    socperfThreadWrap_->SendEvent(event);
 #endif
-    }
 }
 
 void SocPerf::SetThermalLevel(int32_t level)
@@ -371,8 +338,8 @@ bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> act
 
 void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType)
 {
-    std::shared_ptr<ResActionItem> header[MAX_QUEUE_NUM] = { nullptr };
-    std::shared_ptr<ResActionItem> curItem[MAX_QUEUE_NUM] = { nullptr };
+    std::shared_ptr<ResActionItem> header = nullptr;
+    std::shared_ptr<ResActionItem> curItem = nullptr;
     auto now = std::chrono::system_clock::now();
     int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
@@ -394,34 +361,28 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
             resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], action->duration,
                 actionType, onOff, actions->id, endTime);
-            int32_t id = action->variable[i] / socPerfConfig_.GetResIdNumsPerType(action->variable[i]);
-            if (curItem[id]) {
-                curItem[id]->next = resActionItem;
+            if (curItem) {
+                curItem->next = resActionItem;
             } else {
-                header[id] = resActionItem;
+                header = resActionItem;
             }
-            curItem[id] = resActionItem;
+            curItem = resActionItem;
         }
     }
-    for (int32_t i = 0; i < MAX_QUEUE_NUM; ++i) {
-        if (!socperfThreadWraps_[i] || !header[i]) {
-            continue;
-        }
 #ifdef SOCPERF_ADAPTOR_FFRT
-        socperfThreadWraps_[i]->DoFreqActionPack(header[i]);
-        socperfThreadWraps_[i]->PostDelayTask(header[i]);
+    socperfThreadWraps_[i]->DoFreqActionPack(header[i]);
+    socperfThreadWraps_[i]->PostDelayTask(header[i]);
 #else
-        auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_PACK, header[i]);
-        socperfThreadWraps_[i]->SendEvent(event);
-        std::shared_ptr<ResActionItem> queueHead = header[i];
-        while (queueHead) {
-            auto eventRes = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED, queueHead->resAction,
-                queueHead->resId);
-            socperfThreadWraps_[i]->SendEvent(eventRes, queueHead->resAction->duration);
-            queueHead = queueHead->next;
-        }
-#endif
+    auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_PACK, header[i]);
+    socperfThreadWraps_[i]->SendEvent(event);
+    std::shared_ptr<ResActionItem> queueHead = header[i];
+    while (queueHead) {
+        auto eventRes = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED, queueHead->resAction,
+            queueHead->resId);
+        socperfThreadWraps_[i]->SendEvent(eventRes, queueHead->resAction->duration);
+        queueHead = queueHead->next;
     }
+#endif
 }
 
 void SocPerf::RequestDeviceMode(const std::string& mode, bool status)

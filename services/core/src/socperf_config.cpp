@@ -61,7 +61,6 @@ bool SocPerfConfig::Init()
         return false;
     }
 
-    PrintCachedInfo();
     std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
     g_resStrToIdInfo.clear();
     g_resStrToIdInfo = std::unordered_map<std::string, int32_t>();
@@ -282,7 +281,6 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
     resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
     lockResourceNode.unlock();
 
-    wrapSwitch_[resNode->id / GetResIdNumsPerType(resNode->id)] = true;
     return true;
 }
 
@@ -317,7 +315,6 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         lockResourceNode.unlock();
 
-        wrapSwitch_[govResNode->id / GetResIdNumsPerType(govResNode->id)] = true;
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
             xmlFree(persistMode);
             return false;
@@ -330,15 +327,6 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
     }
 
     return true;
-}
-
-int32_t SocPerfConfig::GetResIdNumsPerType(int32_t resId) const
-{
-    auto item = resourceNodeInfo_.find(resId);
-    if (item != resourceNodeInfo_.end() && item->second->persistMode == REPORT_TO_PERFSO) {
-        return RES_ID_NUMS_PER_TYPE_EXT;
-    }
-    return RES_ID_NUMS_PER_TYPE;
 }
 
 void SocPerfConfig::LoadInfo(xmlNode* child, const std::string& configFile)
@@ -716,22 +704,6 @@ bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
         }
     }
     return true;
-}
-
-void SocPerfConfig::PrintCachedInfo() const
-{
-    SOC_PERF_LOGD("------------------------------------");
-    SOC_PERF_LOGD("resourceNodeInfo_(%{public}d)", (int32_t)resourceNodeInfo_.size());
-    for (auto iter = resourceNodeInfo_.begin(); iter != resourceNodeInfo_.end(); ++iter) {
-        iter->second->PrintString();
-    }
-    SOC_PERF_LOGD("------------------------------------");
-    SOC_PERF_LOGD("perfActionsInfo_(%{public}d)", (int32_t)perfActionsInfo_.size());
-    for (auto iter = perfActionsInfo_.begin(); iter != perfActionsInfo_.end(); ++iter) {
-        std::shared_ptr<Actions> actions = iter->second;
-        actions->PrintString();
-    }
-    SOC_PERF_LOGD("------------------------------------");
 }
 } // namespace SOCPERF
 } // namespace OHOS
