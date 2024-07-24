@@ -143,7 +143,7 @@ HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | Med
 {
     int firstCheckColdStartNum = 0;
     int secondCheckColdStartNum = 0;
-    map<int, int> Map;
+    map<int, int> myMap;
     char colon, comma;
     int key, value;
 
