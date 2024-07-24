@@ -42,7 +42,7 @@ public:
 
 private:
     bool enabled_ = false;
-    std::vector<std::shared_ptr<SocPerfThreadWrap>> socperfThreadWraps_;
+    std::shared_ptr<SocPerfThreadWrap> socperfThreadWrap_;
     std::set<std::string> recordDeviceMode_;
     std::vector<std::unordered_map<int32_t, int32_t>> limitRequest_ =
         std::vector<std::unordered_map<int32_t, int32_t>>(ACTION_TYPE_MAX);
@@ -58,7 +58,6 @@ private:
     std::mutex mutexBoostTime_;
     bool CreateThreadWraps();
     void InitThreadWraps();
-    std::shared_ptr<SocPerfThreadWrap> GetThreadWrapByResId(int32_t resId) const;
     void DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
     bool DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> action, int32_t onOff);
     void SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t resValue);

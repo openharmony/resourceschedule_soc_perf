@@ -290,28 +290,6 @@ void SocPerfThreadWrap::DoFreqActionLevel(int32_t resId, std::shared_ptr<ResActi
     UpdateResActionList(realResId, resAction, false);
 }
 
-void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction)
-{
-    if (!socPerfConfig_.IsValidResId(resId) || resAction == nullptr) {
-        return;
-    }
-#ifdef SOCPERF_ADAPTOR_FFRT
-    if (resAction->duration == 0) {
-        return;
-    }
-    ffrt::task_attr taskAttr;
-    taskAttr.delay(resAction->duration * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
-    std::function<void()>&& postDelayTaskFunc = [this, resId, resAction]() {
-        UpdateResActionList(resId, resAction, true);
-        SendResStatusToPerfSo();
-    };
-    socperfQueue_.submit(postDelayTaskFunc, taskAttr);
-#else
-    UpdateResActionList(resId, resAction, true);
-    SendResStatusToPerfSo();
-#endif
-}
-
 #ifdef SOCPERF_ADAPTOR_FFRT
 void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
 {
@@ -336,6 +314,15 @@ void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
         };
         socperfQueue_.submit(postDelayTaskFunc, taskAttr);
     }
+}
+#else
+void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction)
+{
+    if (!socPerfConfig_.IsValidResId(resId) || resAction == nullptr) {
+        return;
+    }
+    UpdateResActionList(resId, resAction, true);
+    SendResStatusToPerfSo();
 }
 #endif
 

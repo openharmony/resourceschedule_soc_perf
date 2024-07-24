@@ -30,11 +30,9 @@ public:
     bool Init();
     bool IsGovResId(int32_t resId) const;
     bool IsValidResId(int32_t resId) const;
-    int32_t GetResIdNumsPerType(int32_t resId) const;
     static SocPerfConfig& GetInstance();
 
 public:
-    bool wrapSwitch_[MAX_QUEUE_NUM] = { false };
     ReportDataFunc reportFunc_ = nullptr;
     std::mutex resourceNodeMutex_;
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
@@ -76,7 +74,6 @@ private:
     bool CheckCmdTag(const char* id, const char* name, const std::string& configFile) const;
     bool CheckActionResIdAndValueValid(const std::string& configFile);
     bool TraversalActions(std::shared_ptr<Action> action, int32_t actionId);
-    void PrintCachedInfo() const;
 };
 } // namespace SOCPERF
 } // namespace OHOS
