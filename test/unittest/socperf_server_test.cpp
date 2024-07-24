@@ -134,6 +134,41 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_000, Function | M
 }
 
 /*
+ * @tc.name: SocPerfSubTest_RequestCmdIdCount_001
+ * @tc.desc: RequestCmdIdCount
+ * @tc.type FUNC
+ * @tc.require: issueI9H4NS
+ */
+HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | MediumTest | Level0)
+{
+    int firstCheckColdStartNum = 0;
+    int secondCheckColdStartNum = 0;
+    map<int, int> Map;
+    char colon, comma;
+    int key, value;
+
+    std::string ret = socPerfServer_->socPerf.RequestCmdIdCount("");
+    std::stringstream ssfirst(ret);
+    while (ssfirst >> key >> colon >> value >> comma) {
+        myMap[key] = value;
+    }
+    ssfirst >> key >> colon >> value;
+    myMap[key] = value;
+    firstCheckColdStartNum = myMap[10000];
+
+    ret = socPerfServer_->socPerf.RequestCmdIdCount("");
+    std::stringstream sssecond(ret);
+    while (sssecond >> key >> colon >> value >> comma) {
+        myMap[key] = value;
+    }
+    sssecond >> key >> colon >> value;
+    myMap[key] = value;
+    secondCheckColdStartNum = myMap[10000];
+
+    EXPECT_TRUE(secondCheckColdStartNum == firstCheckColdStartNum + 1);
+}
+
+/*
  * @tc.name: SocPerfServerTest_SocPerfServerAPI_001
  * @tc.desc: test socperf server api
  * @tc.type FUNC
@@ -709,8 +744,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Functi
 {
     int32_t litCpuMinFreq = 1000;
     int32_t litCpuMaxFreq = 1001;
-    int32_t resIdType = litCpuMinFreq / socPerfServer_->socPerf.socPerfConfig_.GetResIdNumsPerType(litCpuMinFreq);
-    std::shared_ptr<SocPerfThreadWrap> socPerfThreadWrap = socPerfServer_->socPerf.socperfThreadWraps_[resIdType];
+    std::shared_ptr<SocPerfThreadWrap> socPerfThreadWrap = socPerfServer_->socPerf.socperfThreadWrap_;
     socPerfThreadWrap->resStatusInfo_[litCpuMinFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = 1000;
     bool ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(litCpuMinFreq);
     EXPECT_TRUE(ret);
@@ -724,19 +758,6 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Functi
     socPerfThreadWrap->resStatusInfo_[litCpuMaxFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
     ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(litCpuMinFreq);
     EXPECT_FALSE(ret);
-}
-
-/*
- * @tc.name: SocPerfSubTest_RequestCmdIdCount_001
- * @tc.desc: RequestCmdIdCount
- * @tc.type FUNC
- * @tc.require: issueI9H4NS
- */
-HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | MediumTest | Level0)
-{
-    std::string ret = socPerfServer_->socPerf.RequestCmdIdCount("");
-    bool isContain = ret.find("10000:4") != std::string::npos;;
-    EXPECT_TRUE(isContain);
 }
 } // namespace SOCPERF
 } // namespace OHOS
