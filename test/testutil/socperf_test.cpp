@@ -18,8 +18,11 @@
 #include <cstdlib>           // for atoi
 #include <vector>            // for vector
 #include <cstring>           // for strcmp
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "socperf_client.h"  // for SocPerfClient
 #include "socperf_log.h"
+#include "token_setproc.h"
 
 const static int32_t PARAMETERS_NUM_MIN        = 2;
 const static int32_t PARAMETERS_NUM_WITHOUT_EX = 3;
@@ -132,8 +135,30 @@ static void RequestCmdIdCount(int32_t argc, char *argv[])
     }
 }
 
+static void MockProcess()
+{
+    static const char *perms[] = {
+        "ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT"
+    };
+    uint64_t tokenId;
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = sizeof(perms) / sizeof(perms[0]),
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = perms,
+        .acls = nullptr,
+        .processName = "socperf_test",
+        .aplStr = "system_core",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
 int32_t main(int32_t argc, char *argv[])
 {
+    MockProcess();
     if (argc >= PARAMETERS_NUM_MIN && argv) {
         char* function = argv[1];
         if (strcmp(function, "PerfRequest") == 0) {

@@ -20,6 +20,7 @@ group("fuzztest") {
     "perfrequest_fuzzer:fuzztest",
     "perfrequestex_fuzzer:fuzztest",
     "powerlimitboost_fuzzer:fuzztest",
+    "requestcmdidcount_fuzzer:fuzztest",
     "requestdevicemode_fuzzer:fuzztest",
     "setstatus_fuzzer:fuzztest",
     "setthermallevel_fuzzer:fuzztest",
