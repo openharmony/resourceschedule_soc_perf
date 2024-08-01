@@ -483,7 +483,7 @@ bool SocPerfConfig::ParseResValue(xmlNode* greatGrandson, const std::string& con
     char* resValue = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
     if (!resStr || g_resStrToIdInfo.find(resStr) == g_resStrToIdInfo.end()
         || !resValue || !IsNumber(resValue)) {
-        SOC_PERF_LOGE("Invalid cmd resource(%{private}s) for %{private}s", resStr, configFile.c_str());
+        SOC_PERF_LOGE("Invalid cmd resource(%{public}s) for %{private}s", resStr, configFile.c_str());
         xmlFree(resValue);
         return false;
     }
@@ -601,7 +601,7 @@ bool SocPerfConfig::CheckPairResIdValid() const
         std::shared_ptr<ResNode> resNode = std::static_pointer_cast<ResNode>(iter->second);
         int32_t pairResId = resNode->pair;
         if (pairResId != INVALID_VALUE && resourceNodeInfo_.find(pairResId) == resourceNodeInfo_.end()) {
-            SOC_PERF_LOGE("resId[%{private}d]'s pairResId[%{private}d] is not valid", resId, pairResId);
+            SOC_PERF_LOGE("resId[%{public}d]'s pairResId[%{public}d] is not valid", resId, pairResId);
             return false;
         }
     }
@@ -615,7 +615,7 @@ bool SocPerfConfig::CheckDefValid() const
         std::shared_ptr<ResourceNode> resourceNode = iter->second;
         int64_t def = resourceNode->def;
         if (!resourceNode->available.empty() && resourceNode->available.find(def) == resourceNode->available.end()) {
-            SOC_PERF_LOGE("resId[%{private}d]'s def[%{private}lld] is not valid", resId, (long long)def);
+            SOC_PERF_LOGE("resId[%{public}d]'s def[%{public}lld] is not valid", resId, (long long)def);
             return false;
         }
     }
@@ -678,12 +678,12 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
             if (resourceNodeInfo_[resId]->persistMode != REPORT_TO_PERFSO &&
                 !resourceNodeInfo_[resId]->available.empty() &&
                 resourceNodeInfo_[resId]->available.find(resValue) == resourceNodeInfo_[resId]->available.end()) {
-                SOC_PERF_LOGE("action[%{private}d]'s resValue[%{private}lld] is not valid",
+                SOC_PERF_LOGE("action[%{public}d]'s resValue[%{public}lld] is not valid",
                     actionId, (long long)resValue);
                 return false;
             }
         } else {
-            SOC_PERF_LOGE("action[%{private}d]'s resId[%{private}d] is not valid", actionId, resId);
+            SOC_PERF_LOGE("action[%{public}d]'s resId[%{public}d] is not valid", actionId, resId);
             return false;
         }
     }
