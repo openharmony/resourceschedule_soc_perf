@@ -20,6 +20,9 @@ ohos_executable("socperf_test") {
   deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_client" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
