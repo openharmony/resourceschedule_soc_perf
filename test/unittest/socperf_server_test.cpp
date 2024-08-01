@@ -156,6 +156,10 @@ HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | Med
     myMap[key] = value;
     firstCheckColdStartNum = myMap[10000];
 
+    sleep(1);
+    std::string msg = "testBoost";
+    socPerfServer_->PerfRequest(10000, msg);
+
     ret = socPerfServer_->socPerf.RequestCmdIdCount("");
     std::stringstream sssecond(ret);
     while (sssecond >> key >> colon >> value >> comma) {
