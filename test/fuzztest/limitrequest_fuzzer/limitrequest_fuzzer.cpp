@@ -37,7 +37,7 @@ namespace SOCPERF {
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    MockProcess()
+    OHOS::SOCPERF::MockProcess();
     OHOS::SOCPERF::TestLimitRequest(data, size);
     return 0;
 }
