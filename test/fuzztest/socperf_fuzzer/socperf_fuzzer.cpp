@@ -19,6 +19,7 @@
 #include "system_ability_definition.h"
 
 #include "i_socperf_service.h"
+#include "socperf_fuzz_mock.h"
 #include "socperf_log.h"
 
 namespace OHOS {
@@ -81,6 +82,7 @@ namespace SOCPERF {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
+    OHOS::SOCPERF::MockProcess();
     OHOS::SOCPERF::DoSomethingInterestingWithMyAPI(data, size);
     return 0;
 }
