@@ -52,12 +52,12 @@ bool SocPerfConfig::Init()
 {
     std::string resourceConfigXml = system::GetParameter("ohos.boot.kernel", "").size() > 0 ?
         SOCPERF_BOOST_CONFIG_XML_EXT : SOCPERF_BOOST_CONFIG_XML;
-    if (!LoadConfigXmlFile(SOCPERF_RESOURCE_CONFIG_XML)) {
+    if (!LoadAllConfigXmlFile(SOCPERF_RESOURCE_CONFIG_XML)) {
         SOC_PERF_LOGE("Failed to load %{private}s", SOCPERF_RESOURCE_CONFIG_XML.c_str());
         return false;
     }
 
-    if (!LoadConfigXmlFile(resourceConfigXml)) {
+    if (!LoadAllConfigXmlFile(resourceConfigXml)) {
         SOC_PERF_LOGE("Failed to load %{private}s", resourceConfigXml.c_str());
         return false;
     }
@@ -104,10 +104,10 @@ std::vector<std::string> SocPerfConfig::GetAllRealConfigPath(const std::string& 
 {
     std::vector<std::string> configFilePaths;
     auto cfgFiles = GetCfgFiles(configFile.c_str());
-    if(cfgFiles == nullptr) {
+    if (cfgFiles == nullptr) {
         return configFilePaths;
     }
-    for(const auto& file : cfgFiles->paths){
+    for (const auto& file : cfgFiles->paths) {
         if(file == nullptr) {
             continue;
         }
@@ -115,52 +115,61 @@ std::vector<std::string> SocPerfConfig::GetAllRealConfigPath(const std::string& 
         configFilePaths.emplace_back(std::string(file));
     }
     FreeCfgFiles(cfgFiles);
-    reverse(configFilePaths.begin(),configFilePaths.end());
+    reverse(configFilePaths.begin(), configFilePaths.end());
     return configFilePaths;
 }
 
-bool SocPerfConfig::LoadConfigXmlFile(const std::string& configFile)
+bool SocPerfConfig::LoadAllConfigXmlFile(const std::string& configFile)
 {
     std::vector<std::string> filePaths = GetAllRealConfigPath(configFile);
-    for(auto realConfigFile : filePaths){
-        if (realConfigFile.size() == 0) {
+    for (auto realConfigFile : filePaths) {
+        if (!(LoadConfigXmlFile(realConfigFile.c_str()))) {
             return false;
         }
-        xmlKeepBlanksDefault(0);
-        xmlDoc* file = xmlReadFile(realConfigFile.c_str(), nullptr, XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
-        if (!file) {
-            SOC_PERF_LOGE("Failed to open xml file");
-            return false;
-        }
-        xmlNode* rootNode = xmlDocGetRootElement(file);
-        if (!rootNode) {
-            SOC_PERF_LOGE("Failed to get xml file's RootNode");
-            xmlFreeDoc(file);
-            return false;
-        }
-        if (!xmlStrcmp(rootNode->name, reinterpret_cast<const xmlChar*>("Configs"))) {
-            if (realConfigFile.find(SOCPERF_RESOURCE_CONFIG_XML) != std::string::npos) {
-                bool ret = ParseResourceXmlFile(rootNode, realConfigFile, file);
-                if (!ret) {
-                    xmlFreeDoc(file);
-                    return false;
-                }
-            } else {
-                bool ret = ParseBoostXmlFile(rootNode, realConfigFile, file);
-                if (!ret) {
-                    xmlFreeDoc(file);
-                    return false;
-                }
-            }
-        } else {
-            SOC_PERF_LOGE("Wrong format for xml file");
-            xmlFreeDoc(file);
-            return false;
-        }
-        xmlFreeDoc(file);
-        SOC_PERF_LOGD("Success to access %{private}s", realConfigFile.c_str());
     }
     SOC_PERF_LOGD("Success to Load %{private}s", configFile.c_str());
+    return true;
+}
+
+bool SocPerfConfig::LoadConfigXmlFile(const std::string& realConfigFile)
+{
+    if (realConfigFile.size() == 0) {
+        return false;
+    }
+    xmlKeepBlanksDefault(0);
+    xmlDoc* file = xmlReadFile(realConfigFile.c_str(), nullptr, XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
+    if (!file) {
+        SOC_PERF_LOGE("Failed to open xml file");
+        return false;
+    }
+    xmlNode* rootNode = xmlDocGetRootElement(file);
+    if (!rootNode) {
+        SOC_PERF_LOGE("Failed to get xml file's RootNode");
+        xmlFreeDoc(file);
+        return false;
+    }
+    if (!xmlStrcmp(rootNode->name, reinterpret_cast<const xmlChar*>("Configs"))) {
+        if (realConfigFile.find(SOCPERF_RESOURCE_CONFIG_XML) != std::string::npos) {
+            bool ret = ParseResourceXmlFile(rootNode, realConfigFile, file);
+            if (!ret) {
+                xmlFreeDoc(file);
+                return false;
+            }
+        } else {
+            bool ret = ParseBoostXmlFile(rootNode, realConfigFile, file);
+            if (!ret) {
+                xmlFreeDoc(file);
+                return false;
+            }
+        }
+    } else {
+        SOC_PERF_LOGE("Wrong format for xml file");
+        xmlFreeDoc(file);
+        return false;
+    }
+    xmlFreeDoc(file);
+    SOC_PERF_LOGD("Success to access %{private}s", realConfigFile.c_str());
+
     return true;
 }
 
@@ -298,14 +307,14 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
 
     std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
     auto iter = g_resStrToIdInfo.find(resNode->name);
-    if(iter == g_resStrToIdInfo.end()) {
+    if (iter == g_resStrToIdInfo.end()) {
         g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
     }
     lock.unlock();
     
     std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
     auto it = resourceNodeInfo_.find(resNode->id);
-    if(it == resourceNodeInfo_.end()) {
+    if (it == resourceNodeInfo_.end()) {
         resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
     }
     lockResourceNode.unlock();
@@ -338,14 +347,14 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
 
         std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
         auto iter = g_resStrToIdInfo.find(govResNode->name);
-        if(iter == g_resStrToIdInfo.end()) {
+        if (iter == g_resStrToIdInfo.end()) {
             g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         }
         lock.unlock();
 
         std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
         auto it = resourceNodeInfo_.find(govResNode->id);
-        if(it == resourceNodeInfo_.end()) {
+        if (it == resourceNodeInfo_.end()) {
             resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         }
         lockResourceNode.unlock();
@@ -449,7 +458,7 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
 
         std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
         auto it = perfActionsInfo_.find(actions->id);
-        if(it == perfActionsInfo_.end()) { 
+        if (it == perfActionsInfo_.end()) { 
             perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
         }
         lockPerfActions.unlock();
