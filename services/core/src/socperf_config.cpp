@@ -19,6 +19,7 @@
 #include "hisysevent.h"
 #include "hitrace_meter.h"
 #include "parameters.h"
+#include <algorithm>
 
 namespace OHOS {
 namespace SOCPERF {
@@ -99,44 +100,66 @@ std::string SocPerfConfig::GetRealConfigPath(const std::string& configFile)
     return std::string(tmpPath);
 }
 
+std::vector<std::string> SocPerfConfig::GetAllRealConfigPath(const std::string& configFile)
+{
+    std::vector<std::string> configFilePaths;
+    auto cfgFiles = GetCfgFiles(configFile.c_str());
+    if(cfgFiles == nullptr) {
+        return configFilePaths;
+    }
+    for(const auto& file : cfgFiles->paths){
+        if(file == nullptr) {
+            continue;
+        }
+        SOC_PERF_LOGE("GetCfgFiles()----------%{private}s", std::string(file).c_str());
+        configFilePaths.emplace_back(std::string(file));
+    }
+    FreeCfgFiles(cfgFiles);
+    reverse(configFilePaths.begin(),configFilePaths.end());
+    return configFilePaths;
+}
+
 bool SocPerfConfig::LoadConfigXmlFile(const std::string& configFile)
 {
-    std::string realConfigFile = GetRealConfigPath(configFile);
-    if (realConfigFile.size() == 0) {
-        return false;
-    }
-    xmlKeepBlanksDefault(0);
-    xmlDoc* file = xmlReadFile(realConfigFile.c_str(), nullptr, XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
-    if (!file) {
-        SOC_PERF_LOGE("Failed to open xml file");
-        return false;
-    }
-    xmlNode* rootNode = xmlDocGetRootElement(file);
-    if (!rootNode) {
-        SOC_PERF_LOGE("Failed to get xml file's RootNode");
-        xmlFreeDoc(file);
-        return false;
-    }
-    if (!xmlStrcmp(rootNode->name, reinterpret_cast<const xmlChar*>("Configs"))) {
-        if (realConfigFile.find(SOCPERF_RESOURCE_CONFIG_XML) != std::string::npos) {
-            bool ret = ParseResourceXmlFile(rootNode, realConfigFile, file);
-            if (!ret) {
-                xmlFreeDoc(file);
-                return false;
+    std::vector<std::string> filePaths = GetAllRealConfigPath(configFile);
+    for(auto realConfigFile : filePaths){
+        if (realConfigFile.size() == 0) {
+            return false;
+        }
+        xmlKeepBlanksDefault(0);
+        xmlDoc* file = xmlReadFile(realConfigFile.c_str(), nullptr, XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
+        if (!file) {
+            SOC_PERF_LOGE("Failed to open xml file");
+            return false;
+        }
+        xmlNode* rootNode = xmlDocGetRootElement(file);
+        if (!rootNode) {
+            SOC_PERF_LOGE("Failed to get xml file's RootNode");
+            xmlFreeDoc(file);
+            return false;
+        }
+        if (!xmlStrcmp(rootNode->name, reinterpret_cast<const xmlChar*>("Configs"))) {
+            if (realConfigFile.find(SOCPERF_RESOURCE_CONFIG_XML) != std::string::npos) {
+                bool ret = ParseResourceXmlFile(rootNode, realConfigFile, file);
+                if (!ret) {
+                    xmlFreeDoc(file);
+                    return false;
+                }
+            } else {
+                bool ret = ParseBoostXmlFile(rootNode, realConfigFile, file);
+                if (!ret) {
+                    xmlFreeDoc(file);
+                    return false;
+                }
             }
         } else {
-            bool ret = ParseBoostXmlFile(rootNode, realConfigFile, file);
-            if (!ret) {
-                xmlFreeDoc(file);
-                return false;
-            }
+            SOC_PERF_LOGE("Wrong format for xml file");
+            xmlFreeDoc(file);
+            return false;
         }
-    } else {
-        SOC_PERF_LOGE("Wrong format for xml file");
         xmlFreeDoc(file);
-        return false;
+        SOC_PERF_LOGD("Success to access %{private}s", realConfigFile.c_str());
     }
-    xmlFreeDoc(file);
     SOC_PERF_LOGD("Success to Load %{private}s", configFile.c_str());
     return true;
 }
@@ -274,11 +297,17 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
     xmlFree(node);
 
     std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
-    g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
+    auto iter = g_resStrToIdInfo.find(resNode->name);
+    if(iter == g_resStrToIdInfo.end()) {
+        g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
+    }
     lock.unlock();
-
+    
     std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
-    resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
+    auto it = resourceNodeInfo_.find(resNode->id);
+    if(it == resourceNodeInfo_.end()) {
+        resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
+    }
     lockResourceNode.unlock();
 
     return true;
@@ -308,11 +337,17 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         xmlFree(name);
 
         std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
-        g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
+        auto iter = g_resStrToIdInfo.find(govResNode->name);
+        if(iter == g_resStrToIdInfo.end()) {
+            g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
+        }
         lock.unlock();
 
         std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
-        resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
+        auto it = resourceNodeInfo_.find(govResNode->id);
+        if(it == resourceNodeInfo_.end()) {
+            resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
+        }
         lockResourceNode.unlock();
 
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
@@ -411,8 +446,12 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
         if (!TraversalBoostResource(grandson, configFile, actions)) {
             return false;
         }
+
         std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
-        perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
+        auto it = perfActionsInfo_.find(actions->id);
+        if(it == perfActionsInfo_.end()) { 
+            perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
+        }
         lockPerfActions.unlock();
     }
 

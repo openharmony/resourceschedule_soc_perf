@@ -43,6 +43,7 @@ private:
     SocPerfConfig();
     ~SocPerfConfig();
     std::string GetRealConfigPath(const std::string& configFile);
+    std::vector<std::string> GetAllRealConfigPath(const std::string& configFile);
     bool LoadConfigXmlFile(const std::string& configFile);
     void InitPerfFunc(const char* perfSoPath, const char* perfSoFunc);
     bool ParseBoostXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file);
