@@ -108,7 +108,7 @@ std::vector<std::string> SocPerfConfig::GetAllRealConfigPath(const std::string& 
         return configFilePaths;
     }
     for (const auto& file : cfgFiles->paths) {
-        if(file == nullptr) {
+        if (file == nullptr) {
             continue;
         }
         SOC_PERF_LOGE("GetCfgFiles()----------%{private}s", std::string(file).c_str());
@@ -458,7 +458,7 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
 
         std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
         auto it = perfActionsInfo_.find(actions->id);
-        if (it == perfActionsInfo_.end()) { 
+        if (it == perfActionsInfo_.end()) {
             perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
         }
         lockPerfActions.unlock();
