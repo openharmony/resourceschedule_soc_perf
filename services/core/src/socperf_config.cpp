@@ -111,7 +111,7 @@ std::vector<std::string> SocPerfConfig::GetAllRealConfigPath(const std::string& 
         if (file == nullptr) {
             continue;
         }
-        SOC_PERF_LOGE("GetCfgFiles()----------%{private}s", std::string(file).c_str());
+        SOC_PERF_LOGD("GetCfgFiles()----------%{public}s", std::string(file).c_str());
         configFilePaths.emplace_back(std::string(file));
     }
     FreeCfgFiles(cfgFiles);
@@ -252,6 +252,15 @@ bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& 
         xmlFree(persistMode);
         return false;
     }
+    auto it = resourceNodeInfo_.find(atoi(id));
+    if (it != resourceNodeInfo_.end()) {
+        xmlFree(id);
+        xmlFree(name);
+        xmlFree(pair);
+        xmlFree(mode);
+        xmlFree(persistMode);
+        return true;
+    }
     xmlNode* greatGrandson = grandson->children;
     std::shared_ptr<ResNode> resNode = std::make_shared<ResNode>(atoi(id), name, mode ? atoi(mode) : 0,
         pair ? atoi(pair) : INVALID_VALUE, persistMode ? atoi(persistMode) : 0);
@@ -306,17 +315,11 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
     xmlFree(node);
 
     std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
-    auto iter = g_resStrToIdInfo.find(resNode->name);
-    if (iter == g_resStrToIdInfo.end()) {
-        g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
-    }
+    g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
     lock.unlock();
     
     std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
-    auto it = resourceNodeInfo_.find(resNode->id);
-    if (it == resourceNodeInfo_.end()) {
-        resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
-    }
+    resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
     lockResourceNode.unlock();
 
     return true;
@@ -339,6 +342,13 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
             xmlFree(persistMode);
             return false;
         }
+        auto it = resourceNodeInfo_.find(atoi(id));
+        if (it != resourceNodeInfo_.end()) {
+            xmlFree(id);
+            xmlFree(name);
+            xmlFree(persistMode);
+            continue;
+        }
         xmlNode* greatGrandson = grandson->children;
         std::shared_ptr<GovResNode> govResNode = std::make_shared<GovResNode>(atoi(id),
             name, persistMode ? atoi(persistMode) : 0);
@@ -346,17 +356,11 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         xmlFree(name);
 
         std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
-        auto iter = g_resStrToIdInfo.find(govResNode->name);
-        if (iter == g_resStrToIdInfo.end()) {
-            g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
-        }
+        g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         lock.unlock();
 
         std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
-        auto it = resourceNodeInfo_.find(govResNode->id);
-        if (it == resourceNodeInfo_.end()) {
-            resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
-        }
+        resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         lockResourceNode.unlock();
 
         if (!TraversalGovResource(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, govResNode)) {
@@ -441,6 +445,14 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
             xmlFree(name);
             return false;
         }
+
+        auto it = perfActionsInfo_.find(atoi(id));
+        if (it != perfActionsInfo_.end()) {
+            xmlFree(id);
+            xmlFree(name);
+            continue;
+        }
+        
         xmlNode* grandson = child->children;
         std::shared_ptr<Actions> actions = std::make_shared<Actions>(atoi(id), name);
         xmlFree(id);
@@ -457,10 +469,7 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
         }
 
         std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
-        auto it = perfActionsInfo_.find(actions->id);
-        if (it == perfActionsInfo_.end()) {
-            perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
-        }
+        perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
         lockPerfActions.unlock();
     }
 
