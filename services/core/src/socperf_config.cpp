@@ -317,7 +317,7 @@ bool SocPerfConfig::LoadFreqResourceContent(int32_t persistMode, xmlNode* greatG
     std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
     g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(resNode->name, resNode->id));
     lock.unlock();
-    
+
     std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
     resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<ResNode>>(resNode->id, resNode));
     lockResourceNode.unlock();
@@ -467,7 +467,6 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
         if (!TraversalBoostResource(grandson, configFile, actions)) {
             return false;
         }
-
         std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
         perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
         lockPerfActions.unlock();
