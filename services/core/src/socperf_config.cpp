@@ -111,7 +111,7 @@ std::vector<std::string> SocPerfConfig::GetAllRealConfigPath(const std::string& 
         if (file == nullptr) {
             continue;
         }
-        SOC_PERF_LOGD("GetCfgFiles()----------%{public}s", std::string(file).c_str());
+        SOC_PERF_LOGD("GetCfgFiles()----------%{private}s", std::string(file).c_str());
         configFilePaths.emplace_back(std::string(file));
     }
     FreeCfgFiles(cfgFiles);
