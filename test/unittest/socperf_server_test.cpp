@@ -763,5 +763,16 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Functi
     ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(litCpuMinFreq);
     EXPECT_FALSE(ret);
 }
+
+/*
+ * @tc.name: SocPerfServerTest_End_001
+ * @tc.desc: perf end
+ * @tc.type FUNC
+ * @tc.require: issue#I95U8S
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_End_001, Function | MediumTest | Level0)
+{
+    sleep(5);
+}
 } // namespace SOCPERF
 } // namespace OHOS
