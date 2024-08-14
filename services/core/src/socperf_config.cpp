@@ -19,6 +19,7 @@
 #include "hisysevent.h"
 #include "hitrace_meter.h"
 #include "parameters.h"
+#include <algorithm>
 
 namespace OHOS {
 namespace SOCPERF {
@@ -51,12 +52,12 @@ bool SocPerfConfig::Init()
 {
     std::string resourceConfigXml = system::GetParameter("ohos.boot.kernel", "").size() > 0 ?
         SOCPERF_BOOST_CONFIG_XML_EXT : SOCPERF_BOOST_CONFIG_XML;
-    if (!LoadConfigXmlFile(SOCPERF_RESOURCE_CONFIG_XML)) {
+    if (!LoadAllConfigXmlFile(SOCPERF_RESOURCE_CONFIG_XML)) {
         SOC_PERF_LOGE("Failed to load %{private}s", SOCPERF_RESOURCE_CONFIG_XML.c_str());
         return false;
     }
 
-    if (!LoadConfigXmlFile(resourceConfigXml)) {
+    if (!LoadAllConfigXmlFile(resourceConfigXml)) {
         SOC_PERF_LOGE("Failed to load %{private}s", resourceConfigXml.c_str());
         return false;
     }
@@ -99,9 +100,38 @@ std::string SocPerfConfig::GetRealConfigPath(const std::string& configFile)
     return std::string(tmpPath);
 }
 
-bool SocPerfConfig::LoadConfigXmlFile(const std::string& configFile)
+std::vector<std::string> SocPerfConfig::GetAllRealConfigPath(const std::string& configFile)
 {
-    std::string realConfigFile = GetRealConfigPath(configFile);
+    std::vector<std::string> configFilePaths;
+    auto cfgFiles = GetCfgFiles(configFile.c_str());
+    if (cfgFiles == nullptr) {
+        return configFilePaths;
+    }
+    for (const auto& file : cfgFiles->paths) {
+        if (file == nullptr) {
+            continue;
+        }
+        configFilePaths.emplace_back(std::string(file));
+    }
+    FreeCfgFiles(cfgFiles);
+    reverse(configFilePaths.begin(), configFilePaths.end());
+    return configFilePaths;
+}
+
+bool SocPerfConfig::LoadAllConfigXmlFile(const std::string& configFile)
+{
+    std::vector<std::string> filePaths = GetAllRealConfigPath(configFile);
+    for (auto realConfigFile : filePaths) {
+        if (!(LoadConfigXmlFile(realConfigFile.c_str()))) {
+            return false;
+        }
+    }
+    SOC_PERF_LOGD("Success to Load %{private}s", configFile.c_str());
+    return true;
+}
+
+bool SocPerfConfig::LoadConfigXmlFile(const std::string& realConfigFile)
+{
     if (realConfigFile.size() == 0) {
         return false;
     }
@@ -137,13 +167,18 @@ bool SocPerfConfig::LoadConfigXmlFile(const std::string& configFile)
         return false;
     }
     xmlFreeDoc(file);
-    SOC_PERF_LOGD("Success to Load %{private}s", configFile.c_str());
+    SOC_PERF_LOGD("Success to access %{private}s", realConfigFile.c_str());
+
     return true;
 }
 
 void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfSoFunc)
 {
     if (perfSoPath == nullptr || perfSoFunc == nullptr) {
+        return;
+    }
+
+    if (reportFunc_ != nullptr) {
         return;
     }
 
@@ -219,6 +254,15 @@ bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& 
         xmlFree(mode);
         xmlFree(persistMode);
         return false;
+    }
+    auto it = resourceNodeInfo_.find(atoi(id));
+    if (it != resourceNodeInfo_.end()) {
+        xmlFree(id);
+        xmlFree(name);
+        xmlFree(pair);
+        xmlFree(mode);
+        xmlFree(persistMode);
+        return true;
     }
     xmlNode* greatGrandson = grandson->children;
     std::shared_ptr<ResNode> resNode = std::make_shared<ResNode>(atoi(id), name, mode ? atoi(mode) : 0,
@@ -300,6 +344,13 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
             xmlFree(name);
             xmlFree(persistMode);
             return false;
+        }
+        auto it = resourceNodeInfo_.find(atoi(id));
+        if (it != resourceNodeInfo_.end()) {
+            xmlFree(id);
+            xmlFree(name);
+            xmlFree(persistMode);
+            continue;
         }
         xmlNode* greatGrandson = grandson->children;
         std::shared_ptr<GovResNode> govResNode = std::make_shared<GovResNode>(atoi(id),
@@ -397,6 +448,14 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
             xmlFree(name);
             return false;
         }
+
+        auto it = perfActionsInfo_.find(atoi(id));
+        if (it != perfActionsInfo_.end()) {
+            xmlFree(id);
+            xmlFree(name);
+            continue;
+        }
+        
         xmlNode* grandson = child->children;
         std::shared_ptr<Actions> actions = std::make_shared<Actions>(atoi(id), name);
         xmlFree(id);
