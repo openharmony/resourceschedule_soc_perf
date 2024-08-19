@@ -12,14 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <algorithm>
 #include <chrono>
 #include <dlfcn.h>
 #include "socperf_config.h"
 #include "config_policy_utils.h"
-#include "hisysevent.h"
-#include "hitrace_meter.h"
-#include "parameters.h"
-#include <algorithm>
 
 namespace OHOS {
 namespace SOCPERF {
@@ -30,7 +27,6 @@ namespace {
     const std::string SPLIT_OR = "|";
     const std::string SPLIT_EQUAL = "=";
     const std::string SPLIT_SPACE = " ";
-    const std::string TYPE_DOMESTIC_BETA = "3";
 }
 
 SocPerfConfig& SocPerfConfig::GetInstance()
@@ -781,12 +777,6 @@ bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
         }
     }
     return true;
-}
-
-bool SocPerfConfig::CheckDomesticBeta()
-{
-    static bool isbeta = system::SetParameter("ro.logsystem.usertype", TYPE_DOMESTIC_BETA);
-    return isbeta;
 }
 } // namespace SOCPERF
 } // namespace OHOS

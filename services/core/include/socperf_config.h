@@ -17,6 +17,7 @@
 #define SOC_PERF_SERVICES_CORE_INCLUDE_SOCPERF_CONFIG_H
 
 #include "libxml/tree.h"
+#include "parameters.h"
 #include "socperf_common.h"
 #include <string>
 #include <vector>
@@ -31,7 +32,6 @@ public:
     bool IsGovResId(int32_t resId) const;
     bool IsValidResId(int32_t resId) const;
     static SocPerfConfig& GetInstance();
-    bool CheckDomesticBeta();
 
 public:
     ReportDataFunc reportFunc_ = nullptr;
@@ -39,6 +39,7 @@ public:
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
+    const bool isbeta = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_DOMESTIC_BETA;
 
 private:
     SocPerfConfig();
