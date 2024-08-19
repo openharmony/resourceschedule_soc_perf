@@ -238,7 +238,7 @@ void SocPerfThreadWrap::SendResStatusToPerfSo()
             }
             resStatus->previousValue = resStatus->currentValue;
             resStatus->previousEndTime = resStatus->currentEndTime;
-            if (socPerfConfig_.resourceNodeInfo_[resId]->trace && socPerfConfig_.CheckDomesticBeta()) {
+            if (socPerfConfig_.resourceNodeInfo_[resId]->trace && socPerfConfig_.isbeta) {
                 SOCPERF_TRACE_COUNTTRACE(socPerfConfig_.resourceNodeInfo_[resId]->name,
                     resStatus->currentValue == MAX_INT32_VALUE ? NODE_DEFAULT_VALUE : resStatus->currentValue);
             }
