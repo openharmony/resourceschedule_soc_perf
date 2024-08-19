@@ -31,6 +31,7 @@ public:
     bool IsGovResId(int32_t resId) const;
     bool IsValidResId(int32_t resId) const;
     static SocPerfConfig& GetInstance();
+    bool CheckDomesticBeta();
 
 public:
     ReportDataFunc reportFunc_ = nullptr;
@@ -76,6 +77,7 @@ private:
     bool CheckCmdTag(const char* id, const char* name, const std::string& configFile) const;
     bool CheckActionResIdAndValueValid(const std::string& configFile);
     bool TraversalActions(std::shared_ptr<Action> action, int32_t actionId);
+    bool CheckTrace(const char* trace);
 };
 } // namespace SOCPERF
 } // namespace OHOS
