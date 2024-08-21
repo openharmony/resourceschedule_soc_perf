@@ -12,11 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "socperf_config.h"
+
 #include <algorithm>
 #include <chrono>
 #include <dlfcn.h>
-#include "socperf_config.h"
+
 #include "config_policy_utils.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -65,6 +68,11 @@ bool SocPerfConfig::Init()
     lock.unlock();
     SOC_PERF_LOGD("SocPerf Init SUCCESS!");
     return true;
+}
+
+bool SocPerfConfig::IsDug()
+{
+    isbeta = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_DOMESTIC_BETA;
 }
 
 bool SocPerfConfig::IsGovResId(int32_t resId) const

@@ -17,7 +17,6 @@
 #define SOC_PERF_SERVICES_CORE_INCLUDE_SOCPERF_CONFIG_H
 
 #include "libxml/tree.h"
-#include "parameters.h"
 #include "socperf_common.h"
 #include <string>
 #include <vector>
@@ -39,7 +38,7 @@ public:
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
-    const bool isbeta = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_DOMESTIC_BETA;
+    bool isbeta = false;
 
 private:
     SocPerfConfig();
