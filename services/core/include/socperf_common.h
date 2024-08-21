@@ -39,6 +39,7 @@ const std::string SOCPERF_BOOST_CONFIG_XML    = "etc/soc_perf/socperf_boost_conf
 const std::string SOCPERF_BOOST_CONFIG_XML_EXT    = "etc/soc_perf/socperf_boost_config_ext.xml";
 const int64_t MAX_INT_VALUE                       = 0x7FFFFFFFFFFFFFFF;
 const int64_t MIN_INT_VALUE                       = 0x8000000000000000;
+const int32_t MAX_INT32_VALUE                     = 0x7FFFFFFF;
 const int32_t INVALID_VALUE                       = INT_MIN;
 const int32_t RESET_VALUE                         = -1;
 const int32_t MIN_RESOURCE_ID                     = 1000;
@@ -49,6 +50,7 @@ const int32_t RES_ID_NUMS_PER_TYPE                = 1000;
 const int32_t RES_ID_NUMS_PER_TYPE_EXT            = 10000;
 const int32_t WRITE_NODE                          = 0;
 const int32_t REPORT_TO_PERFSO                    = 1;
+const int32_t PERF_OPEN_TRACE                     = 1;
 const int32_t INVALID_THERMAL_CMD_ID              = -1;
 const int32_t INVALID_DURATION                    = -1;
 const int32_t MIN_THERMAL_LVL                     = 0;
@@ -56,6 +58,7 @@ const int32_t RES_MODE_AND_ID_PAIR                = 2;
 const int32_t MAX_RES_MODE_LEN                    = 64;
 const int32_t MAX_FREQUE_NODE                     = 1;
 const int32_t NODE_DEFAULT_VALUE                  = -1;
+const int32_t TYPE_TRACE_DEBUG                    = 3;
 
 const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
     {"displaySub", {"displayMain", "displayFull"}},
@@ -72,6 +75,7 @@ public:
     int32_t persistMode;
     bool isGov;
     bool isMaxValue;
+    bool trace = false;
 public:
     ResourceNode(int32_t id, const std::string& name, int32_t persistMode, bool isGov, bool isMaxValue) : id(id),
         name(name), def(INVALID_VALUE), persistMode(persistMode), isGov(isGov), isMaxValue(isMaxValue) {}

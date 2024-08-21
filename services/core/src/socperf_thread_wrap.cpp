@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 #include "socperf_thread_wrap.h"
+
 #include <set>               // for set
 #include <unistd.h>          // for open, write
 #include <fcntl.h>           // for O_RDWR, O_CLOEXEC
-#include "hisysevent.h"
-#include "hitrace_meter.h"
+
 #include "res_exe_type.h"
 #include "res_sched_exe_client.h"
+#include "socperf_trace.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -237,6 +238,10 @@ void SocPerfThreadWrap::SendResStatusToPerfSo()
             }
             resStatus->previousValue = resStatus->currentValue;
             resStatus->previousEndTime = resStatus->currentEndTime;
+            if (socPerfConfig_.resourceNodeInfo_[resId]->trace && socPerfConfig_.isTraceDug) {
+                SOCPERF_TRACE_COUNTTRACE(socPerfConfig_.resourceNodeInfo_[resId]->name,
+                    resStatus->currentValue == MAX_INT32_VALUE ? NODE_DEFAULT_VALUE : resStatus->currentValue);
+            }
         }
     }
     ReportToPerfSo(qosId, value, endTime);
@@ -253,8 +258,10 @@ void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<
             log.append(",[id:").append(std::to_string(qosId[i]));
             log.append(", value:").append(std::to_string(value[i])).append("]");
         }
-        StartTrace(HITRACE_TAG_OHOS, log.c_str());
-        FinishTrace(HITRACE_TAG_OHOS);
+        if (socPerfConfig_.isTraceDug) {
+            SOCPERF_TRACE_BEGIN(log.c_str());
+            SOCPERF_TRACE_END();
+        }
     }
 }
 
@@ -272,8 +279,8 @@ void SocPerfThreadWrap::ReportToRssExe(std::vector<int32_t>& qosId, std::vector<
             log.append(",[id:").append(std::to_string(qosId[i]));
             log.append(", value:").append(std::to_string(value[i])).append("]");
         }
-        StartTrace(HITRACE_TAG_OHOS, log.c_str());
-        FinishTrace(HITRACE_TAG_OHOS);
+        SOCPERF_TRACE_BEGIN(log.c_str());
+        SOCPERF_TRACE_END();
     }
 }
 

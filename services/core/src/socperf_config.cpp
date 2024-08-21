@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "socperf_config.h"
+
+#include <algorithm>
 #include <chrono>
 #include <dlfcn.h>
-#include "socperf_config.h"
+
 #include "config_policy_utils.h"
-#include "hisysevent.h"
-#include "hitrace_meter.h"
 #include "parameters.h"
-#include <algorithm>
 
 namespace OHOS {
 namespace SOCPERF {
@@ -66,8 +66,15 @@ bool SocPerfConfig::Init()
     g_resStrToIdInfo.clear();
     g_resStrToIdInfo = std::unordered_map<std::string, int32_t>();
     lock.unlock();
+
+    IsTeaceDug();
     SOC_PERF_LOGD("SocPerf Init SUCCESS!");
     return true;
+}
+
+void SocPerfConfig::IsTeaceDug()
+{
+    isTraceDug = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_TRACE_DEBUG;
 }
 
 bool SocPerfConfig::IsGovResId(int32_t resId) const
@@ -240,6 +247,14 @@ bool SocPerfConfig::LoadResource(xmlNode* child, const std::string& configFile)
     return true;
 }
 
+bool SocPerfConfig::CheckTrace(const char* trace)
+{
+    if (trace && IsNumber(trace) && atoi(trace) == PERF_OPEN_TRACE) {
+        return true;
+    }
+    return false;
+}
+
 bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& configFile)
 {
     char* id = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
@@ -247,12 +262,14 @@ bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& 
     char* pair = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("pair")));
     char* mode = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("mode")));
     char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("switch")));
+    char* trace = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("trace")));
     if (!CheckResourceTag(id, name, pair, mode, persistMode, configFile)) {
         xmlFree(id);
         xmlFree(name);
         xmlFree(pair);
         xmlFree(mode);
         xmlFree(persistMode);
+        xmlFree(trace);
         return false;
     }
     auto it = resourceNodeInfo_.find(atoi(id));
@@ -262,15 +279,18 @@ bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& 
         xmlFree(pair);
         xmlFree(mode);
         xmlFree(persistMode);
+        xmlFree(trace);
         return true;
     }
     xmlNode* greatGrandson = grandson->children;
     std::shared_ptr<ResNode> resNode = std::make_shared<ResNode>(atoi(id), name, mode ? atoi(mode) : 0,
         pair ? atoi(pair) : INVALID_VALUE, persistMode ? atoi(persistMode) : 0);
+    resNode->trace = CheckTrace(trace);
     xmlFree(id);
     xmlFree(name);
     xmlFree(pair);
     xmlFree(mode);
+    xmlFree(trace);
     if (!LoadFreqResourceContent(persistMode ? atoi(persistMode) : 0, greatGrandson, configFile, resNode)) {
         xmlFree(persistMode);
         return false;
@@ -339,10 +359,12 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
         char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson,
             reinterpret_cast<const xmlChar*>("switch")));
+        char* trace = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("trace")));
         if (!CheckGovResourceTag(id, name, persistMode, configFile)) {
             xmlFree(id);
             xmlFree(name);
             xmlFree(persistMode);
+            xmlFree(trace);
             return false;
         }
         auto it = resourceNodeInfo_.find(atoi(id));
@@ -350,14 +372,16 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
             xmlFree(id);
             xmlFree(name);
             xmlFree(persistMode);
+            xmlFree(trace);
             continue;
         }
         xmlNode* greatGrandson = grandson->children;
         std::shared_ptr<GovResNode> govResNode = std::make_shared<GovResNode>(atoi(id),
             name, persistMode ? atoi(persistMode) : 0);
+        govResNode->trace = CheckTrace(trace);
         xmlFree(id);
         xmlFree(name);
-
+        xmlFree(trace);
         std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
         g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         lock.unlock();

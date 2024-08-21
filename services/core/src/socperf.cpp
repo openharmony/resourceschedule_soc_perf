@@ -14,9 +14,9 @@
  */
 
 #include "socperf.h"
-#include "hisysevent.h"
-#include "hitrace_meter.h"
+
 #include "parameters.h"
+#include "socperf_trace.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -102,9 +102,9 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
     std::string trace_str(__func__);
     trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
+    SOCPERF_TRACE_BEGIN(trace_str);
     DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], EVENT_INVALID, ACTION_TYPE_PERF);
-    FinishTrace(HITRACE_TAG_OHOS);
+    SOCPERF_TRACE_END();
     UpdateCmdIdCount(cmdId);
 }
 
@@ -130,9 +130,9 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
     trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
+    SOCPERF_TRACE_BEGIN(trace_str);
     DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
-    FinishTrace(HITRACE_TAG_OHOS);
+    SOCPERF_TRACE_END();
     if (onOffTag) {
         UpdateCmdIdCount(cmdId);
     }
@@ -149,7 +149,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
     std::string trace_str(__func__);
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
+    SOCPERF_TRACE_BEGIN(trace_str);
 #ifdef SOCPERF_ADAPTOR_FFRT
     socperfThreadWrap_->UpdatePowerLimitBoostFreq(onOffTag);
 #else
@@ -160,7 +160,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_POWER,
                     "ON_OFF_TAG", onOffTag);
-    FinishTrace(HITRACE_TAG_OHOS);
+    SOCPERF_TRACE_END();
 }
 
 void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
@@ -173,7 +173,7 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
     std::string trace_str(__func__);
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    StartTrace(HITRACE_TAG_OHOS, trace_str, -1);
+    SOCPERF_TRACE_BEGIN(trace_str);
 #ifdef SOCPERF_ADAPTOR_FFRT
     socperfThreadWrap_->UpdateThermalLimitBoostFreq(onOffTag);
 #else
@@ -184,7 +184,7 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_THERMAL,
                     "ON_OFF_TAG", onOffTag);
-    FinishTrace(HITRACE_TAG_OHOS);
+    SOCPERF_TRACE_END();
 }
 
 void SocPerf::SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
@@ -259,11 +259,17 @@ void SocPerf::LimitRequest(int32_t clientId,
         SOC_PERF_LOGE("clientId must be between ACTION_TYPE_PERF and ACTION_TYPE_MAX!");
         return;
     }
+    std::string trace_str(__func__);
+    trace_str.append(",clientId[").append(std::to_string(clientId)).append("]");
+    trace_str.append(",msg[").append(msg).append("]");
     for (int32_t i = 0; i < (int32_t)tags.size(); i++) {
-        SOC_PERF_LOGI("clientId[%{public}d],tags[%{public}d],configs[%{public}lld],msg[%{public}s]",
-            clientId, tags[i], (long long)configs[i], msg.c_str());
+        trace_str.append(",tags[").append(std::to_string(tags[i])).append("]");
+        trace_str.append(",configs[").append(std::to_string(configs[i])).append("]");
         SendLimitRequestEvent(clientId, tags[i], configs[i]);
     }
+    SOCPERF_TRACE_BEGIN(trace_str);
+    SOC_PERF_LOGI("socperf limit %{public}s", trace_str.c_str());
+    SOCPERF_TRACE_END();
 }
 
 void SocPerf::SetRequestStatus(bool status, const std::string& msg)
@@ -292,6 +298,11 @@ void SocPerf::ClearAllAliveRequest()
 
 void SocPerf::SetThermalLevel(int32_t level)
 {
+    std::string trace_str(__func__);
+    trace_str.append(",level[").append(std::to_string(level)).append("]");
+    SOCPERF_TRACE_BEGIN(trace_str);
+    SOC_PERF_LOGI("ThermalLevel:%{public}d", level);
+    SOCPERF_TRACE_END();
     thermalLvl_ = level;
 }
 
