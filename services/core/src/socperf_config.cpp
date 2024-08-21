@@ -66,13 +66,15 @@ bool SocPerfConfig::Init()
     g_resStrToIdInfo.clear();
     g_resStrToIdInfo = std::unordered_map<std::string, int32_t>();
     lock.unlock();
+
+    IsTeaceDug();
     SOC_PERF_LOGD("SocPerf Init SUCCESS!");
     return true;
 }
 
-bool SocPerfConfig::IsDug()
+void SocPerfConfig::IsTeaceDug()
 {
-    isbeta = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_DOMESTIC_BETA;
+    isTraceDug = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_DOMESTIC_BETA;
 }
 
 bool SocPerfConfig::IsGovResId(int32_t resId) const

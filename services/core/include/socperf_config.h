@@ -38,7 +38,7 @@ public:
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
-    bool isbeta = false;
+    bool isTraceDug = false;
 
 private:
     SocPerfConfig();
@@ -78,6 +78,7 @@ private:
     bool CheckActionResIdAndValueValid(const std::string& configFile);
     bool TraversalActions(std::shared_ptr<Action> action, int32_t actionId);
     bool CheckTrace(const char* trace);
+    void IsTeaceDug();
 };
 } // namespace SOCPERF
 } // namespace OHOS

@@ -238,7 +238,7 @@ void SocPerfThreadWrap::SendResStatusToPerfSo()
             }
             resStatus->previousValue = resStatus->currentValue;
             resStatus->previousEndTime = resStatus->currentEndTime;
-            if (socPerfConfig_.resourceNodeInfo_[resId]->trace && socPerfConfig_.isbeta) {
+            if (socPerfConfig_.resourceNodeInfo_[resId]->trace && socPerfConfig_.isTraceDug) {
                 SOCPERF_TRACE_COUNTTRACE(socPerfConfig_.resourceNodeInfo_[resId]->name,
                     resStatus->currentValue == MAX_INT32_VALUE ? NODE_DEFAULT_VALUE : resStatus->currentValue);
             }
@@ -258,8 +258,10 @@ void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<
             log.append(",[id:").append(std::to_string(qosId[i]));
             log.append(", value:").append(std::to_string(value[i])).append("]");
         }
-        SOCPERF_TRACE_BEGIN(log.c_str());
-        SOCPERF_TRACE_END();
+        if (socPerfConfig_.isTraceDug) {
+            SOCPERF_TRACE_BEGIN(log.c_str());
+            SOCPERF_TRACE_END();
+        }
     }
 }
 
