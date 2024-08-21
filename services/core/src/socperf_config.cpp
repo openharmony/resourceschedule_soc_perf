@@ -74,7 +74,7 @@ bool SocPerfConfig::Init()
 
 void SocPerfConfig::IsTeaceDug()
 {
-    isTraceDug = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_DOMESTIC_BETA;
+    isTraceDug = stoi(OHOS::system::GetParameter("ro.logsystem.usertype", "0")) == TYPE_TRACE_DEBUG;
 }
 
 bool SocPerfConfig::IsGovResId(int32_t resId) const
