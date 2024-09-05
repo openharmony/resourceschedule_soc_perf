@@ -48,13 +48,18 @@ ohos_shared_library("socperf_server") {
     "ipc:ipc_single",
     "json:nlohmann_json_static",
     "libxml2:libxml2",
-    "resource_schedule_service:ressched_client",
     "resource_schedule_service:resschedexe_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 
   defines = [ "SOCPERF_ADAPTOR_FFRT" ]
+
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:resschedexe_client" ]
+    defines += [ "RES_SCHED_SA_INIT" ]
+  }
 
   shlib_type = "sa"
   part_name = "soc_perf"
