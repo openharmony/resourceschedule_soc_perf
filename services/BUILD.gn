@@ -56,7 +56,7 @@ ohos_shared_library("socperf_server") {
   defines = [ "SOCPERF_ADAPTOR_FFRT" ]
 
   if (defined(global_parts_info) &&
-    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "RES_SCHED_SA_INIT" ]
   }
