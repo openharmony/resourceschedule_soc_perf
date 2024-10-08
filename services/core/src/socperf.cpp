@@ -30,9 +30,7 @@ SocPerf::SocPerf()
 
 SocPerf::~SocPerf()
 {
-#ifdef SOCPERF_ADAPTOR_FFRT
     socperfThreadWrap_ = nullptr;
-#else
 }
 
 bool SocPerf::Init()
