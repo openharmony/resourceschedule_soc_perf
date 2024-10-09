@@ -30,6 +30,7 @@ SocPerf::SocPerf()
 
 SocPerf::~SocPerf()
 {
+    socperfThreadWrap_ = nullptr;
 }
 
 bool SocPerf::Init()
