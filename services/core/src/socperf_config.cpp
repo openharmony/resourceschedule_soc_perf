@@ -68,6 +68,10 @@ bool SocPerfConfig::Init()
         return false;
     }
 
+    if (!LoadAllConfigXmlFile(CAMERA_AWARE_CONFIG_XML)) {
+        SOC_PERF_LOGE("Failed to load %{private}s", CAMERA_AWARE_CONFIG_XML.c_str());
+    }
+
     std::unique_lock<std::mutex> lock(g_resStrToIdMutex);
     g_resStrToIdInfo.clear();
     g_resStrToIdInfo = std::unordered_map<std::string, int32_t>();
