@@ -110,8 +110,8 @@ public:
     void ResetClient();
 
 private:
-    SocPerfClient() {}
-    ~SocPerfClient() {}
+    SocPerfClient();
+    ~SocPerfClient();
 
 private:
     bool CheckClientValid();

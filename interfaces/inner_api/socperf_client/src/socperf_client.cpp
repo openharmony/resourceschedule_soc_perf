@@ -23,6 +23,15 @@ namespace OHOS {
 namespace SOCPERF {
 const int32_t MAX_MODE_LEN = 64;
 
+SocPerfClient::SocPerfClient()
+{
+}
+
+SocPerfClient::~SocPerfClient()
+{
+    SOC_PERF_LOGI("SocPerfClient:~SocPerfClien");
+}
+
 SocPerfClient& SocPerfClient::GetInstance()
 {
     static SocPerfClient instance;
@@ -58,13 +67,14 @@ bool SocPerfClient::CheckClientValid()
         return false;
     }
     client->AsObject()->AddDeathRecipient(recipient_);
-
+    SOC_PERF_LOGI("SocPerfClient:new client");
     return true;
 }
 
 void SocPerfClient::ResetClient()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    SOC_PERF_LOGI("SocPerfClient:ResetClient");
     if (client && client->AsObject()) {
         client->AsObject()->RemoveDeathRecipient(recipient_);
     }
