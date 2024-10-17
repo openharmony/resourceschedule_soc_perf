@@ -65,7 +65,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_Init_Config_001, Function | Medium
 {
     socPerfServer_->OnStart();
     sleep(1);
-    SUCCEED();
+    EXPECT_TRUE(socPerfServer_->socPerf.enabled_);
 }
 
 /*
@@ -773,6 +773,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Functi
 HWTEST_F(SocPerfServerTest, SocPerfServerTest_End_001, Function | MediumTest | Level0)
 {
     sleep(5);
+    EXPECT_TRUE(socPerfServer_->socPerf.enabled_);
 }
 } // namespace SOCPERF
 } // namespace OHOS

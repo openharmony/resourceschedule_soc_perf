@@ -333,8 +333,9 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ThermalLimitBoost_002, Function | Medium
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_RequestCmdIdCount_001, Function | MediumTest | Level0)
 {
+    std::string msg = "";
     OHOS::SOCPERF::SocPerfClient::GetInstance().RequestCmdIdCount("");
-    SUCCEED();
+    EXPECT_EQ(msg, "");
 }
 
 /*
@@ -445,19 +446,21 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ResetClient_001, Function | MediumTest |
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_SetThermalLevel_001, Function | MediumTest | Level0)
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().SetThermalLevel(3);
-    SUCCEED();
-}
+    int level = 3;
+    OHOS::SOCPERF::SocPerfClient::GetInstance().SetThermalLevel(level);
+    EXPECT_EQ(level, 3);
 
 static void SocPerfSubTestMultithreadingTask()
 {
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(10000, "");
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, true, "");
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, false, "");
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(true, "");
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(false, "");
-    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(true, "");
-    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(false, "");
+    std::string msg = "";
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequest(10000, msg);
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, true, msg);
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(10000, false, msg);
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(true, msg);
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PowerLimitBoost(false, msg);
+    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(true, msg);
+    OHOS::SOCPERF::SocPerfClient::GetInstance().ThermalLimitBoost(false, msg);
+    EXPECT_EQ(msg, "");
 }
 
 /*
