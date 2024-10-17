@@ -449,6 +449,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_SetThermalLevel_001, Function | MediumTe
     int level = 3;
     OHOS::SOCPERF::SocPerfClient::GetInstance().SetThermalLevel(level);
     EXPECT_EQ(level, 3);
+}
 
 static void SocPerfSubTestMultithreadingTask()
 {
