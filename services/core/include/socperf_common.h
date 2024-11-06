@@ -64,7 +64,9 @@ const int32_t TYPE_TRACE_DEBUG                    = 3;
 const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
     {"displaySub", {"displayMain", "displayFull"}},
     {"displayMain", {"displaySub", "displayFull"}},
-    {"displayFull", {"displayMain", "displaySub"}}
+    {"displayFull", {"displayMain", "displaySub"}},
+    {"bracketOn", {"bracketOff"}},
+    {"bracketOff", {"bracketOn"}}
 };
 
 class ResourceNode {
