@@ -65,8 +65,8 @@ const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
     {"displaySub", {"displayMain", "displayFull"}},
     {"displayMain", {"displaySub", "displayFull"}},
     {"displayFull", {"displayMain", "displaySub"}},
-    {"bracketOn", {"bracketOff"}},
-    {"bracketOff", {"bracketOn"}}
+    {"bracketOpen", {"bracketClose"}},
+    {"bracketClose", {"bracketOpen"}}
 };
 
 class ResourceNode {
