@@ -19,6 +19,9 @@
 #include "hisysevent.h"
 #include "hitrace_meter.h"
 #include "parameters.h"
+#ifdef RES_SCHED_SA_INIT
+#include "res_sa_init.h"
+#endif
 
 namespace OHOS {
 namespace SOCPERF {
@@ -49,6 +52,9 @@ SocPerfConfig::~SocPerfConfig()
 
 bool SocPerfConfig::Init()
 {
+#ifdef RES_SCHED_SA_INIT
+    std::lock_guard<std::mutex> xmlLock(ResourceSchedule::ResSchedSaInit::GetInstance().saInitXmlMutex_);
+#endif
     std::string resourceConfigXml = system::GetParameter("ohos.boot.kernel", "").size() > 0 ?
         SOCPERF_BOOST_CONFIG_XML_EXT : SOCPERF_BOOST_CONFIG_XML;
     if (!LoadConfigXmlFile(SOCPERF_RESOURCE_CONFIG_XML)) {
