@@ -212,9 +212,6 @@ void SocPerfThreadWrap::DoFreqAction(int32_t resId, std::shared_ptr<ResAction> r
 
 void SocPerfThreadWrap::SendResStatusToPerfSo()
 {
-    if (!socPerfConfig_.reportFunc_) {
-        return;
-    }
     std::vector<int32_t> qosId;
     std::vector<int64_t> value;
     std::vector<int64_t> endTime;
@@ -251,6 +248,9 @@ void SocPerfThreadWrap::SendResStatusToPerfSo()
 void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
     std::vector<int64_t>& endTime)
 {
+    if (!socPerfConfig_.reportFunc_) {
+        return;
+    }
     if (qosId.size() > 0) {
         socPerfConfig_.reportFunc_(qosId, value, endTime, "");
         std::string log("send data to perf so");
