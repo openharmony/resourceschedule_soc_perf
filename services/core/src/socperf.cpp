@@ -23,6 +23,7 @@ namespace SOCPERF {
 namespace {
     const int64_t TIME_INTERVAL = 8;
     const int32_t CANCEL_CMDID_PREFIX = 100000;
+    const std::string DEFAULT_MODE = "def";
 }
 SocPerf::SocPerf()
 {
@@ -404,18 +405,53 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         return;
     }
 
-    auto iter = MUTEX_MODE.find(mode);
-    std::lock_guard<std::mutex> lock(mutexDeviceMode_);
-    if (status) {
-        if (iter != MUTEX_MODE.end()) {
-            for (auto res : iter->second) {
-                recordDeviceMode_.erase(res);
+    for (auto iter = socPerfConfig_.sceneResourceInfo_.begin();
+        iter != socPerfConfig_.sceneResourceInfo_.end(); ++iter) {
+            const std::string sceneName = iter->first;
+            const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
+            const std::vector<std::shared_ptr<SceneItem>> items = SceneResNode->items;
+            const int32_t persistMode = sceneResNode->persistMode;
+
+            auto item = std::find_if(items.begin(), items.end(), [mode](const std::shared_ptr<SceneItem>& item) {
+                return item->name = mode;
+            });
+            if (item == item.end()) {
+                SOC_PERF_LOGD("No matching device mode found.");
+                continue;
             }
-        }
-        recordDeviceMode_.insert(mode);
-    } else {
-        recordDeviceMode_.erase(mode);
+
+            const std::string itemName = MatchDeviceMode(made, status, items);
+            if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
+                socPerfConfig_.scenarioFunc_(sceneName + ":" + itemName);
+            }
+
+            break;
+
     }
+}
+
+std::string SocPerf::MatchDeviceMode(std::string mode, bool status,
+    const std::vector<std::shared_ptr<SceneItem>>& items)
+{
+    std::lock_guard<std::mutex> lock(mutexDeviceMode_);
+    const std::string itemName = DEFAULT_MODE;
+
+    if (!status) {
+        recordDeviceMode_.erase(mode);
+        return DEFAULT_MODE;
+    }
+
+    for (const auto& iter : items) {
+        if (iter->name == mode) {
+            recordDeviceMode_.insert(mode);
+            if (iter->req == REPORT_TO_PERFSO) {
+                itemName = mode;
+            }
+        } else {
+            recordDeviceMode_.erase(iter->name);
+        }
+    }
+    return itemName;
 }
 
 int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
@@ -430,10 +466,10 @@ int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
         return cmdId;
     }
 
-    for (auto mode : recordDeviceMode_) {
-        auto iter = actions->modeMap.find(mode);
-        if (iter != actions->modeMap.end()) {
-            int32_t deviceCmdId = iter->second;
+    for (const auto& iter : actions->modeMap) {
+        auto deviceMode = recordDeviceMode_.find(iter->mode);
+        if (deviceMode != recordDeviceMode_.end()) {
+            int32_t deviceCmdId = iter->cmdId;
             if (socPerfConfig_.perfActionsInfo_.find(deviceCmdId) == socPerfConfig_.perfActionsInfo_.end()) {
                 SOC_PERF_LOGW("Invaild actions cmdid %{public}d", deviceCmdId);
                 return cmdId;

@@ -112,6 +112,37 @@ public:
     ~GovResNode() {}
 };
 
+class SceneItem {
+public:
+    std::string name;
+    int32_t req;
+
+public:
+    SceneItem(const std::string& name, int32_t req) : name(name), req(req) {}
+    ~SceneItem() {}
+};
+
+class SceneResNode {
+public:
+    std::string name;
+    int32_t persistMode;
+    std::vector<std::shared_ptr<SceneItem>> items;
+
+public:
+    GovResNode(const std::string& govResName, int32_t persistMode) : name(name), persistMode(persistMode) {}
+    ~GovResNode() {}
+};
+
+class ModeMap {
+public:
+    std::string mode;
+    int32_t cmdId;
+
+public:
+    ModeMap(const std::string& mode, int32_t cmdId) : mode(mode), cmdId(cmdId) {}
+    ~ModeMap() {}   
+};
+
 class Action {
 public:
     int32_t thermalCmdId_ = INVALID_THERMAL_CMD_ID;
@@ -130,7 +161,7 @@ public:
     std::string name;
     std::list<std::shared_ptr<Action>> actionList;
     std::mutex modeMapMutex_;
-    std::unordered_map<std::string, int32_t> modeMap;
+    std::vector<std::shared_ptr<ModeMap>> modeMap;
     bool isLongTimePerf = false;
 
 public:

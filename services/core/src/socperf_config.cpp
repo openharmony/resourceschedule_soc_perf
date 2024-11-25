@@ -147,7 +147,7 @@ bool SocPerfConfig::LoadAllConfigXmlFile(const std::string& configFile)
     return true;
 }
 
-bool SocPerfConfig::LoadConfigXmlFile(const std::string& realConfigFile)
+bool SocPerfConfig::(const std::string& realConfigFile)
 {
     if (realConfigFile.size() == 0) {
         return false;
@@ -212,6 +212,29 @@ void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfSoFunc)
     }
 }
 
+void SocPerfConfig::InitPerfScenarioFunc(const char* perfSoPath, const char* perfScenarioFunc)
+{
+    if (perfSoPath == nullptr || perfScenarioFunc == nullptr) {
+        return;
+    }
+
+    if (scenarioFunc_ != nullptr) {
+        return;
+    }
+
+    g_handle = dlopen(perfSoPath, RTLD_NOW);
+    if (g_handle == nullptr) {
+        SOC_PERF_LOGE("perf so doesn't exist");
+        return;
+    }
+
+    reportFunc_ = reinterpret_cast<PerfScenarioFunc>(dlsym(g_handle, perfScenarioFunc));
+    if (scenarioFunc_ == nullptr) {
+        SOC_PERF_LOGE("perf scenario func doesn't exist");
+        dlclose(g_handle);
+    }
+}
+
 bool SocPerfConfig::ParseBoostXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file)
 {
     if (!LoadCmd(rootNode, realConfigFile)) {
@@ -232,6 +255,8 @@ bool SocPerfConfig::ParseResourceXmlFile(const xmlNode* rootNode, const std::str
             if (!LoadGovResource(child, realConfigFile)) {
                 return false;
             }
+        } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("SceneResource"))) {
+            LoadSceneResource(child, realConfigFile);
         } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Info"))) {
             LoadInfo(child, realConfigFile);
         }
@@ -422,9 +447,84 @@ void SocPerfConfig::LoadInfo(xmlNode* child, const std::string& configFile)
     }
     char* perfSoPath = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("path")));
     char* perfSoFunc = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("func")));
+    char* perfScenarioFunc =
+        reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("perfScenarioFunc")));
     InitPerfFunc(perfSoPath, perfSoFunc);
+    InitPerfScenarioFunc(perfSoPath, perfScenarioFunc);
     xmlFree(perfSoPath);
     xmlFree(perfSoFunc);
+    xmlFree(perfScenarioFunc);
+}
+
+bool SocPerfConfig::LoadSceneResource(xmlNode* child, const std::string& configFile)
+{
+    xmlNode* grandson = child->children;
+    for (; grandson; grandson = grandson->next) {
+        if (xmlStrcmp(grandson->name, reinterpret_cast<const xmlChar*>("scene"))) {
+            continue;
+        }
+        char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
+        char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson,
+            reinterpret_cast<const xmlChar*>("switch")));
+        if (!CheckSceneResourceTag(id, name, persistMode, configFile)) {
+            xmlFree(id);
+            xmlFree(name);
+            xmlFree(persistMode);
+            return false;
+        }
+
+        xmlNode* greatGrandson = grandson->children;
+        std::shared_ptr<SceneResNode> sceneResNode = 
+            std::make_shared<SceneResNode>(name, persistMode ? atoi(persistMode) : 0);
+
+        std::unique_lock<std::mutex> lockSceneResource(sceneResourceMutex_);
+        sceneResourceInfo_.insert(std::pair<std::string, std::shared_ptr<SceneResNode>>(sceneResNode->name,
+            sceneResNode));
+        lockSceneResource.unlock();
+
+        if (!TraversalSceneResource(greatGrandson, configFile, sceneResNode)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool SocPerfConfig::TraversalSceneResource(xmlNode* greatGrandson, const std::string& configFile,
+    std::shared_ptr<GovResNode> govResNode)
+{
+    for (; greatGrandson; greatGrandson = greatGrandson->next) {
+        if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("item"))) {
+            char* req = reinterpret_cast<char*>(
+                xmlGetProp(greatGrandson, reinterpret_cast<const xmlChar*>("req")));
+            char* item = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
+            if (!item) {
+                SOC_PERF_LOGE("Invalid sceneernor resource node for %{private}s", configFile.c_str());
+                xmlFree(level);
+                return false;
+            }
+
+            std::shared_ptr<SceneItem> sceneItem =
+                std::make_shared<SceneItem>(item, req ? atoi(req) : 1);
+            sceneResNode->items.push_back(sceneItem);
+            xmlFree(item);
+        }
+    }
+    return true;
+}
+
+bool SocPerfConfig::CheckSceneResourceTag(const char* name,
+    const char* persistMode, const std::string& configFile) const
+{
+    if (!name) {
+        SOC_PERF_LOGE("Invalid sceneernor resource name for %{private}s", configFile.c_str());
+        return false;
+    }
+    if (persistMode && (!IsNumber(persistMode) || !IsValidPersistMode(atoi(persistMode)))) {
+        SOC_PERF_LOGE("Invalid sceneernor resource persistMode for %{private}s", configFile.c_str());
+        return false;
+    }
+    return true;
 }
 
 bool SocPerfConfig::TraversalGovResource(int32_t persistMode, xmlNode* greatGrandson, const std::string& configFile,
@@ -539,14 +639,18 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
         }
 
         int32_t cmdId = atoi(modeCmdIdStr.c_str());
-        auto iter = actions->modeMap.find(modeDeviceStr);
-        if (iter != actions->modeMap.end()) {
-            iter->second = cmdId;
+        std::unique_lock<std::mutex> lockModeMap(actions->modeMapMutex_);
+        auto oldModeMap = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
+            [&](const std::shared_ptr<ModeMap>& modeItem) {
+            return modeItem->mode = modeDeviceStr;
+        });
+        if (oldModeMap != actions->modeMap.end()) {
+            (*oldModeMap)->cmdId = cmdId;
         } else {
-            std::unique_lock<std::mutex> lockModeMap(actions->modeMapMutex_);
-            actions->modeMap.insert(std::pair<std::string, int32_t>(modeDeviceStr, cmdId));
-            lockModeMap.unlock();
+            std::shared_ptr<ModeMap> newMode = std::make_shared<newMode>(modeDeviceStr, cmdId);
+            actions->modeMap.push_back(newMode);
         }
+        lockModeMap.unlock();   
     }
 }
 

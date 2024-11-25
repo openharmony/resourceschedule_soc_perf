@@ -25,6 +25,7 @@ namespace OHOS {
 namespace SOCPERF {
 using ReportDataFunc = int (*)(const std::vector<int32_t>& resId, const std::vector<int64_t>& value,
     const std::vector<int64_t>& endTime, const std::string& msgStr);
+using PerfScenarioFunc = int (*)(const std::string& msgStr);
 class SocPerfConfig {
 public:
     bool Init();
@@ -34,8 +35,11 @@ public:
 
 public:
     ReportDataFunc reportFunc_ = nullptr;
+    PerfScenarioFunc scenarioFunc_ = nullptr;
     std::mutex resourceNodeMutex_;
+    std::mutex sceneResourceMutex_;
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
+    std::unordered_map<std::string, std::shared_ptr<SceneResNode>> sceneResourceInfo_;
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
     bool isTraceDug = false;
@@ -79,6 +83,8 @@ private:
     bool TraversalActions(std::shared_ptr<Action> action, int32_t actionId);
     bool CheckTrace(const char* trace);
     void IsTeaceDug();
+    bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFile);
+
 };
 } // namespace SOCPERF
 } // namespace OHOS
