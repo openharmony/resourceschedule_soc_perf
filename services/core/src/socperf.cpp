@@ -407,25 +407,25 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
 
     for (auto iter = socPerfConfig_.sceneResourceInfo_.begin();
         iter != socPerfConfig_.sceneResourceInfo_.end(); ++iter) {
-            const std::string sceneName = iter->first;
-            const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
-            const std::vector<std::shared_ptr<SceneItem>> items = SceneResNode->items;
-            const int32_t persistMode = sceneResNode->persistMode;
+        const std::string sceneName = iter->first;
+        const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
+        const std::vector<std::shared_ptr<SceneItem>> items = SceneResNode->items;
+        const int32_t persistMode = sceneResNode->persistMode;
 
-            auto item = std::find_if(items.begin(), items.end(), [mode](const std::shared_ptr<SceneItem>& item) {
-                return item->name = mode;
-            });
-            if (item == item.end()) {
-                SOC_PERF_LOGD("No matching device mode found.");
-                continue;
-            }
+        auto item = std::find_if(items.begin(), items.end(), [mode](const std::shared_ptr<SceneItem>& item) {
+            return item->name == mode;
+        });
+        if (item == items.end()) {
+            SOC_PERF_LOGD("No matching device mode found.");
+            continue;
+        }
 
-            const std::string itemName = MatchDeviceMode(made, status, items);
-            if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
-                socPerfConfig_.scenarioFunc_(sceneName + ":" + itemName);
-            }
+        std::string itemName = MatchDeviceMode(mode, status, items);
+        if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
+            socPerfConfig_.scenarioFunc_(sceneName + ":" + itemName);
+        }
 
-            break;
+        break;
 
     }
 }

@@ -147,7 +147,7 @@ bool SocPerfConfig::LoadAllConfigXmlFile(const std::string& configFile)
     return true;
 }
 
-bool SocPerfConfig::(const std::string& realConfigFile)
+bool SocPerfConfig::LoadConfigXmlFile(const std::string& realConfigFile)
 {
     if (realConfigFile.size() == 0) {
         return false;
@@ -228,7 +228,7 @@ void SocPerfConfig::InitPerfScenarioFunc(const char* perfSoPath, const char* per
         return;
     }
 
-    reportFunc_ = reinterpret_cast<PerfScenarioFunc>(dlsym(g_handle, perfScenarioFunc));
+    scenarioFunc_ = reinterpret_cast<PerfScenarioFunc>(dlsym(g_handle, perfScenarioFunc));
     if (scenarioFunc_ == nullptr) {
         SOC_PERF_LOGE("perf scenario func doesn't exist");
         dlclose(g_handle);
@@ -466,8 +466,7 @@ bool SocPerfConfig::LoadSceneResource(xmlNode* child, const std::string& configF
         char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
         char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson,
             reinterpret_cast<const xmlChar*>("switch")));
-        if (!CheckSceneResourceTag(id, name, persistMode, configFile)) {
-            xmlFree(id);
+        if (!CheckSceneResourceTag(name, persistMode, configFile)) {
             xmlFree(name);
             xmlFree(persistMode);
             return false;
@@ -491,7 +490,7 @@ bool SocPerfConfig::LoadSceneResource(xmlNode* child, const std::string& configF
 }
 
 bool SocPerfConfig::TraversalSceneResource(xmlNode* greatGrandson, const std::string& configFile,
-    std::shared_ptr<GovResNode> govResNode)
+    std::shared_ptr<SceneResNode> sceneResNode)
 {
     for (; greatGrandson; greatGrandson = greatGrandson->next) {
         if (!xmlStrcmp(greatGrandson->name, reinterpret_cast<const xmlChar*>("item"))) {
@@ -499,8 +498,8 @@ bool SocPerfConfig::TraversalSceneResource(xmlNode* greatGrandson, const std::st
                 xmlGetProp(greatGrandson, reinterpret_cast<const xmlChar*>("req")));
             char* item = reinterpret_cast<char*>(xmlNodeGetContent(greatGrandson));
             if (!item) {
-                SOC_PERF_LOGE("Invalid sceneernor resource node for %{private}s", configFile.c_str());
-                xmlFree(level);
+                SOC_PERF_LOGE("Invalid sceneernor resource item for %{private}s", configFile.c_str());
+                xmlFree(item);
                 return false;
             }
 
@@ -513,8 +512,8 @@ bool SocPerfConfig::TraversalSceneResource(xmlNode* greatGrandson, const std::st
     return true;
 }
 
-bool SocPerfConfig::CheckSceneResourceTag(const char* name,
-    const char* persistMode, const std::string& configFile) const
+bool SocPerfConfig::CheckSceneResourceTag(const char* name, const char* persistMode,
+    const std::string& configFile) const
 {
     if (!name) {
         SOC_PERF_LOGE("Invalid sceneernor resource name for %{private}s", configFile.c_str());
@@ -642,12 +641,12 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
         std::unique_lock<std::mutex> lockModeMap(actions->modeMapMutex_);
         auto oldModeMap = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
             [&](const std::shared_ptr<ModeMap>& modeItem) {
-            return modeItem->mode = modeDeviceStr;
+            return modeItem->mode == modeDeviceStr;
         });
         if (oldModeMap != actions->modeMap.end()) {
             (*oldModeMap)->cmdId = cmdId;
         } else {
-            std::shared_ptr<ModeMap> newMode = std::make_shared<newMode>(modeDeviceStr, cmdId);
+            std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeDeviceStr, cmdId);
             actions->modeMap.push_back(newMode);
         }
         lockModeMap.unlock();   

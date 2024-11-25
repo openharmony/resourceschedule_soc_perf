@@ -129,8 +129,8 @@ public:
     std::vector<std::shared_ptr<SceneItem>> items;
 
 public:
-    GovResNode(const std::string& govResName, int32_t persistMode) : name(name), persistMode(persistMode) {}
-    ~GovResNode() {}
+    SceneResNode(const std::string& name, int32_t persistMode) : name(name), persistMode(persistMode) {}
+    ~SceneResNode() {}
 };
 
 class ModeMap {

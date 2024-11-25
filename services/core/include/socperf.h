@@ -69,8 +69,7 @@ private:
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
-    std::string SocPerf::MatchDeviceMode(std::string mode, bool status,
-        const std::vector<std::shared_ptr<SceneItem>>& items);
+    std::string MatchDeviceMode(std::string mode, bool status, const std::vector<std::shared_ptr<SceneItem>>& items);
 };
 } // namespace SOCPERF
 } // namespace OHOS

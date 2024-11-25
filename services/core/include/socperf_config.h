@@ -52,6 +52,7 @@ private:
     bool LoadAllConfigXmlFile(const std::string& configFile);
     bool LoadConfigXmlFile(const std::string& realConfigFile);
     void InitPerfFunc(const char* perfSoPath, const char* perfSoFunc);
+    void InitPerfScenarioFunc(const char* perfSoPath, const char* perfScenarioFunc);
     bool ParseBoostXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file);
     bool ParseResourceXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file);
     bool LoadResource(xmlNode* rootNode, const std::string& configFile);
@@ -83,7 +84,11 @@ private:
     bool TraversalActions(std::shared_ptr<Action> action, int32_t actionId);
     bool CheckTrace(const char* trace);
     void IsTeaceDug();
-    bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFile);
+    bool LoadSceneResource(xmlNode* child, const std::string& configFile);
+    bool TraversalSceneResource(xmlNode* greatGrandson, const std::string& configFile,
+        std::shared_ptr<GovResNode> govResNode);
+    bool CheckSceneResourceTag(const char* name, const char* persistMode,
+        const std::string& configFile) const;
 
 };
 } // namespace SOCPERF
