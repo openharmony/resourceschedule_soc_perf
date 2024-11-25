@@ -248,18 +248,18 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
     }
     std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
     if (actions->modeMap.empty()) {
-        std::shared_ptr<ModeMap> newMode = std::make_shared<newMode>(modeStr, cmdTest);
-        sceneResNode->items.push_back(newMode);
+        std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeStr, cmdTest);
+        actions->modeMap.push_back(newMode);
     }
 
     // case : normal match
     int32_t ret = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, false);
     auto iter_match = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
         [&](const std::shared_ptr<ModeMap>& modeItem) {
-        return modeItem->mode = modeStr;
+        return modeItem->mode == modeStr;
     });
     if (iter_match != actions->modeMap.end()) {
-        EXPECT_EQ(ret, (*iter_match)->second);
+        EXPECT_EQ(ret, (*iter_match)->cmdId);
     } else {
         EXPECT_EQ(ret, cmdTest);
     }
@@ -271,13 +271,13 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
         EXPECT_EQ(cmdInvaild, 60000);
     } else {
         auto iter_mode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
-            [&](const std::shared_ptr<ModeMap>& modeItem) {
-            return modeItem->mode = modeStr;
+            [modeStr](const std::shared_ptr<ModeMap>& modeItem) {
+            return modeItem->mode == modeStr;
         });
         if (iter_mode == actions->modeMap.end()) {
             EXPECT_EQ(cmdInvaild, 60000);
         } else {
-            (*iter_mode)->second = cmdInvaild;
+            (*iter_mode)->cmdId = cmdInvaild;
             int32_t retInvaild = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, false);
             EXPECT_EQ(retInvaild, cmdTest);
         }
@@ -310,7 +310,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_002, Function | Me
     }
     std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
     actions->isLongTimePerf = false;
-    actions->modeMap.insert(std::pair<std::string, int32_t>(modeStr, cmdMatch));
+    std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeStr, cmdMatch);
+    actions->modeMap.push_back(newMode);
 
     auto it_match = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdMatch);
     if (it_match == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
@@ -343,7 +344,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_003, Function | Me
     }
 
     std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
-    std::shared_ptr<ModeMap> newMode = std::make_shared<newMode>(modeStr, cmdTest);
+    std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeStr, cmdTest);
     actions->modeMap.push_back(newMode);
     socPerfServer_->socPerf.recordDeviceMode_.clear();
 
@@ -379,21 +380,21 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfParseModeCmd_001, Function 
     socPerfServer_->socPerf.socPerfConfig_.ParseModeCmd(modePairInvaild, cfgFile, actions);
     auto iter_mode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
         [&](const std::shared_ptr<ModeMap>& modeItem) {
-        return modeItem->mode = deviceMode;
+        return modeItem->mode == deviceMode;
     });
     EXPECT_TRUE(iter_mode == actions->modeMap.end());
 
     socPerfServer_->socPerf.socPerfConfig_.ParseModeCmd(modeNumberInvaild, cfgFile, actions);
     iter_mode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
         [&](const std::shared_ptr<ModeMap>& modeItem) {
-        return modeItem->mode = deviceMode;
+        return modeItem->mode == deviceMode;
     });
     EXPECT_TRUE(iter_mode == actions->modeMap.end());
 
     socPerfServer_->socPerf.socPerfConfig_.ParseModeCmd(modeCmdInvaild, cfgFile, actions);
     iter_mode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
         [&](const std::shared_ptr<ModeMap>& modeItem) {
-        return modeItem->mode = deviceMode;
+        return modeItem->mode == deviceMode;
     });
     EXPECT_TRUE(iter_mode == actions->modeMap.end());
 
@@ -402,10 +403,10 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfParseModeCmd_001, Function 
     EXPECT_EQ(size + 1, actions->modeMap.size());
     auto iterSame = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
         [&](const std::shared_ptr<ModeMap>& modeItem) {
-        return modeItem->mode = deviceMode;
+        return modeItem->mode == deviceMode;
     });
     ASSERT_TRUE(iterSame != actions->modeMap.end());
-    EXPECT_EQ(exceptSame, (*iterSame)->second);
+    EXPECT_EQ(exceptSame, (*iterSame)->cmdId);
 
     int32_t sizeBefore = actions->modeMap.size();
     const char *modeNullInvaild = nullptr;
