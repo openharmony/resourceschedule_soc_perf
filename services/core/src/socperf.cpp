@@ -430,7 +430,7 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
     }
 }
 
-std::string SocPerf::MatchDeviceMode(std::string mode, bool status,
+std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
     const std::vector<std::shared_ptr<SceneItem>>& items)
 {
     std::lock_guard<std::mutex> lock(mutexDeviceMode_);
