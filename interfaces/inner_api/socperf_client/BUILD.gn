@@ -37,6 +37,8 @@ ohos_shared_library("socperf_client") {
     "samgr:samgr_proxy",
   ]
 
+  public_external_deps = [ "ipc:ipc_core", ]
+
   innerapi_tags = [
     "platformsdk",
     "chipsetsdk",
