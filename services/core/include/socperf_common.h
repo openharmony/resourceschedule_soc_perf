@@ -132,7 +132,7 @@ public:
 
 public:
     ModeMap(const std::string& mode, int32_t cmdId) : mode(mode), cmdId(cmdId) {}
-    ~ModeMap() {}   
+    ~ModeMap() {}
 };
 
 class Action {

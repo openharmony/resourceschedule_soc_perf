@@ -191,7 +191,7 @@ bool SocPerfConfig::LoadConfigXmlFile(const std::string& realConfigFile)
 
 void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfReportFunc, const char* perfScenarioFunc)
 {
-    if (perfSoPath == nullptr || (perfReportFunc == nullptr && perfReportFunc == nullptr)) {
+    if (perfSoPath == nullptr || (perfReportFunc == nullptr && perfScenarioFunc == nullptr)) {
         return;
     }
 
@@ -210,7 +210,7 @@ void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfReportF
     }
 
     if (scenarioFunc_ == nullptr && perfScenarioFunc != nullptr) {
-        scenarioFunc_ = reinterpret_cast<ReportDataFunc>(dlsym(g_handle, perfScenarioFunc));
+        scenarioFunc_ = reinterpret_cast<PerfScenarioFunc>(dlsym(g_handle, perfScenarioFunc));
     }
 
     if (reportFunc_ == nullptr && scenarioFunc_ == nullptr) {
@@ -436,7 +436,7 @@ void SocPerfConfig::LoadInfo(xmlNode* child, const std::string& configFile)
         reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("scenarioFunc")));
     InitPerfFunc(perfSoPath, perfReportFunc, perfScenarioFunc);
     xmlFree(perfSoPath);
-    xmlFree(perfSoFunc);
+    xmlFree(perfReportFunc);
     xmlFree(perfScenarioFunc);
 }
 
@@ -464,7 +464,7 @@ bool SocPerfConfig::LoadSceneResource(xmlNode* child, const std::string& configF
         }
 
         xmlNode* greatGrandson = grandson->children;
-        std::shared_ptr<SceneResNode> sceneResNode = 
+        std::shared_ptr<SceneResNode> sceneResNode =
             std::make_shared<SceneResNode>(name, persistMode ? atoi(persistMode) : 0);
         xmlFree(name);
         xmlFree(persistMode);
@@ -642,7 +642,7 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
         } else {
             std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeDeviceStr, cmdId);
             actions->modeMap.push_back(newMode);
-        }  
+        }
     }
 }
 

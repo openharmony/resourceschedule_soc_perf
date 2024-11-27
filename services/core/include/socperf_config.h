@@ -88,7 +88,6 @@ private:
     bool TraversalSceneResource(xmlNode* greatGrandson, const std::string& configFile,
         std::shared_ptr<SceneResNode> sceneResNode);
     bool CheckSceneResourceTag(const char* name, const char* persistMode, const std::string& configFile) const;
-
 };
 } // namespace SOCPERF
 } // namespace OHOS
