@@ -160,7 +160,6 @@ public:
     int32_t id;
     std::string name;
     std::list<std::shared_ptr<Action>> actionList;
-    std::mutex modeMapMutex_;
     std::vector<std::shared_ptr<ModeMap>> modeMap;
     bool isLongTimePerf = false;
 

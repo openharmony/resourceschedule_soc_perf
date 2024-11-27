@@ -51,7 +51,7 @@ private:
     std::vector<std::string> GetAllRealConfigPath(const std::string& configFile);
     bool LoadAllConfigXmlFile(const std::string& configFile);
     bool LoadConfigXmlFile(const std::string& realConfigFile);
-    void InitPerfFunc(const char* perfSoPath, const char* perfSoFunc);
+    void InitPerfFunc(const char* perfSoPath, const char* perfReportFunc, const char* perfScenarioFunc);
     void InitPerfScenarioFunc(const char* perfSoPath, const char* perfScenarioFunc);
     bool ParseBoostXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file);
     bool ParseResourceXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file);

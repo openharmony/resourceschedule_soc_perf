@@ -23,7 +23,7 @@ namespace SOCPERF {
 namespace {
     const int64_t TIME_INTERVAL = 8;
     const int32_t CANCEL_CMDID_PREFIX = 100000;
-    const std::string DEFAULT_MODE = "def";
+    const std::string DEFAULT_MODE = "default";
 }
 SocPerf::SocPerf()
 {
@@ -422,11 +422,12 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
 
         std::string itemName = MatchDeviceMode(mode, status, items);
         if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
+            const std::string msgStr = sceneName + ":" + itemName;
+            SOC_PERF_LOGD("send scenario to perfgenius : %{public}s", msgStr.c_str());
             socPerfConfig_.scenarioFunc_(sceneName + ":" + itemName);
         }
 
         break;
-
     }
 }
 
