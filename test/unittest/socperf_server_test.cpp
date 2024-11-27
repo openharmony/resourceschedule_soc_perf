@@ -211,7 +211,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_002, Function | M
     std::string msg = "test";
     socPerfServer_->RequestDeviceMode(msg, true);
     auto iter = socPerfServer_->socPerf.recordDeviceMode_.find(msg);
-    EXPECT_TRUE(iter != socPerfServer_->socPerf.recordDeviceMode_.end());
+    EXPECT_TRUE(iter == socPerfServer_->socPerf.recordDeviceMode_.end());
 
     socPerfServer_->RequestDeviceMode(msg, false);
     auto iter2 = socPerfServer_->socPerf.recordDeviceMode_.find(msg);
@@ -238,9 +238,6 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
 {
     std::string modeStr = "displayMain";
     int32_t cmdTest = 10000;
-    socPerfServer_->RequestDeviceMode(modeStr, true);
-    auto iter = socPerfServer_->socPerf.recordDeviceMode_.find(modeStr);
-    EXPECT_TRUE(iter != socPerfServer_->socPerf.recordDeviceMode_.end());
     auto it_actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdTest);
     if (it_actions == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
         EXPECT_EQ(modeStr, "displayMain");

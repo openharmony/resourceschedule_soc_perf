@@ -423,8 +423,8 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         std::string itemName = MatchDeviceMode(mode, status, items);
         if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
             const std::string msgStr = sceneName + ":" + itemName;
-            SOC_PERF_LOGD("send scenario to perfgenius : %{public}s", msgStr.c_str());
-            socPerfConfig_.scenarioFunc_(sceneName + ":" + itemName);
+            SOC_PERF_LOGD("send deviceMode to PerfScenario : %{public}s", msgStr.c_str());
+            socPerfConfig_.scenarioFunc_(msgStr);
         }
 
         break;
@@ -435,7 +435,7 @@ std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
     const std::vector<std::shared_ptr<SceneItem>>& items)
 {
     std::lock_guard<std::mutex> lock(mutexDeviceMode_);
-    const std::string itemName = DEFAULT_MODE;
+    std::string itemName = DEFAULT_MODE;
 
     if (!status) {
         recordDeviceMode_.erase(mode);

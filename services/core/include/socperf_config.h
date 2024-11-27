@@ -84,11 +84,10 @@ private:
     bool TraversalActions(std::shared_ptr<Action> action, int32_t actionId);
     bool CheckTrace(const char* trace);
     void IsTeaceDug();
-    bool LoadSceneResource(xmlNode* child, const std::string& configFile);
+    bool LoadSceneResource(xmlNode* rootNode, const std::string& configFile);
     bool TraversalSceneResource(xmlNode* greatGrandson, const std::string& configFile,
-        std::shared_ptr<GovResNode> govResNode);
-    bool CheckSceneResourceTag(const char* name, const char* persistMode,
-        const std::string& configFile) const;
+        std::shared_ptr<SceneResNode> sceneResNode);
+    bool CheckSceneResourceTag(const char* name, const char* persistMode, const std::string& configFile) const;
 
 };
 } // namespace SOCPERF
