@@ -409,7 +409,7 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         iter != socPerfConfig_.sceneResourceInfo_.end(); ++iter) {
         const std::string sceneName = iter->first;
         const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
-        const std::vector<std::shared_ptr<SceneItem>> items = SceneResNode->items;
+        const std::vector<std::shared_ptr<SceneItem>> items = sceneResNode->items;
         const int32_t persistMode = sceneResNode->persistMode;
 
         auto item = std::find_if(items.begin(), items.end(), [mode](const std::shared_ptr<SceneItem>& item) {
@@ -420,7 +420,7 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
             continue;
         }
 
-        std::string itemName = MatchDeviceMode(mode, status, items);
+        const std::string itemName = MatchDeviceMode(mode, status, items);
         if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
             const std::string msgStr = sceneName + ":" + itemName;
             SOC_PERF_LOGD("send deviceMode to PerfScenario : %{public}s", msgStr.c_str());

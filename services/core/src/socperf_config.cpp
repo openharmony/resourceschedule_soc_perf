@@ -431,7 +431,7 @@ void SocPerfConfig::LoadInfo(xmlNode* child, const std::string& configFile)
     }
     char* perfSoPath = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("path")));
     char* perfReportFunc =
-        reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("cmdHandlefunc")));
+        reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("cmdHandleFunc")));
     char* perfScenarioFunc =
         reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("scenarioFunc")));
     InitPerfFunc(perfSoPath, perfReportFunc, perfScenarioFunc);
