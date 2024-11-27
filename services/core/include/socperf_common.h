@@ -61,14 +61,6 @@ const int32_t MAX_FREQUE_NODE                     = 1;
 const int32_t NODE_DEFAULT_VALUE                  = -1;
 const int32_t TYPE_TRACE_DEBUG                    = 3;
 
-const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
-    {"displaySub", {"displayMain", "displayFull"}},
-    {"displayMain", {"displaySub", "displayFull"}},
-    {"displayFull", {"displayMain", "displaySub"}},
-    {"bracketOpen", {"bracketClose"}},
-    {"bracketClose", {"bracketOpen"}}
-};
-
 class ResourceNode {
 public:
     int32_t id;
