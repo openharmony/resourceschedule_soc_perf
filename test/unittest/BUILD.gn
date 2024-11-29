@@ -38,11 +38,7 @@ ohos_unittest("SocPerfServerTest") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [
-    "${socperf_services}:socperf_server_static",
-    "//third_party/googletest:gtest_main",
-    "//third_party/libxml2:libxml2",
-  ]
+  deps = [ "${socperf_services}:socperf_server_static" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
@@ -52,6 +48,7 @@ ohos_unittest("SocPerfServerTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "libxml2:libxml2",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -71,11 +68,7 @@ ohos_unittest("SocPerfSubTest") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [
-    "${socperf_interfaces}/inner_api/socperf_client:socperf_client",
-    "//third_party/googletest:gtest_main",
-    "//third_party/libxml2:libxml2",
-  ]
+  deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_client" ]
 
   external_deps = [
     "c_utils:utils",
@@ -83,6 +76,7 @@ ohos_unittest("SocPerfSubTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "libxml2:libxml2",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -98,11 +92,7 @@ ohos_unittest("SocPerfSubMockTest") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [
-    "${socperf_interfaces}/inner_api/socperf_client:socperf_client",
-    "//third_party/googletest:gtest_main",
-    "//third_party/libxml2:libxml2",
-  ]
+  deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_client" ]
 
   external_deps = [
     "c_utils:utils",
@@ -110,6 +100,7 @@ ohos_unittest("SocPerfSubMockTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "libxml2:libxml2",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
