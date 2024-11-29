@@ -412,7 +412,7 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         const std::vector<std::shared_ptr<SceneItem>> items = sceneResNode->items;
         const int32_t persistMode = sceneResNode->persistMode;
 
-        auto item = std::find_if(items.begin(), items.end(), [mode](const std::shared_ptr<SceneItem>& item) {
+        auto item = std::find_if(items.begin(), items.end(), [&mode](const std::shared_ptr<SceneItem>& item) {
             return item->name == mode;
         });
         if (item == items.end()) {

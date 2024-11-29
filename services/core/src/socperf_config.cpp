@@ -216,6 +216,7 @@ void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfReportF
     if (reportFunc_ == nullptr && scenarioFunc_ == nullptr) {
         SOC_PERF_LOGE("perf func doesn't exist");
         dlclose(g_handle);
+        g_handle = nullptr;
     }
 }
 
@@ -431,7 +432,7 @@ void SocPerfConfig::LoadInfo(xmlNode* child, const std::string& configFile)
     }
     char* perfSoPath = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("path")));
     char* perfReportFunc =
-        reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("cmdHandleFunc")));
+        reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("func")));
     char* perfScenarioFunc =
         reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("scenarioFunc")));
     InitPerfFunc(perfSoPath, perfReportFunc, perfScenarioFunc);
@@ -633,12 +634,12 @@ void SocPerfConfig::ParseModeCmd(const char* mode, const std::string& configFile
         }
 
         int32_t cmdId = atoi(modeCmdIdStr.c_str());
-        auto oldModeMap = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
-            [modeDeviceStr](const std::shared_ptr<ModeMap>& modeItem) {
+        auto existMode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
+            [&modeDeviceStr](const std::shared_ptr<ModeMap>& modeItem) {
             return modeItem->mode == modeDeviceStr;
         });
-        if (oldModeMap != actions->modeMap.end()) {
-            (*oldModeMap)->cmdId = cmdId;
+        if (existMode != actions->modeMap.end()) {
+            (*existMode)->cmdId = cmdId;
         } else {
             std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeDeviceStr, cmdId);
             actions->modeMap.push_back(newMode);
