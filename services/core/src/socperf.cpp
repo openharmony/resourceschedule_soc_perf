@@ -24,6 +24,8 @@ namespace {
     const int64_t TIME_INTERVAL = 8;
     const int32_t CANCEL_CMDID_PREFIX = 100000;
     const std::string DEFAULT_MODE = "default";
+    const std::string SPLIT_COLON = ":";
+    const int32_t DEVICEMODE_PARAM_NUMBER = "default";
 }
 SocPerf::SocPerf()
 {
@@ -405,29 +407,30 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         return;
     }
 
-    for (auto iter = socPerfConfig_.sceneResourceInfo_.begin();
-        iter != socPerfConfig_.sceneResourceInfo_.end(); ++iter) {
-        const std::string sceneName = iter->first;
-        const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
-        const std::vector<std::shared_ptr<SceneItem>> items = sceneResNode->items;
-        const int32_t persistMode = sceneResNode->persistMode;
+    std::vector<std::string> modeParamList = Split(mode, SPLIT_COLON);
+    if (modeParamList.size() != DEVICEMODE_PARAM_NUMBER) {
+        SOC_PERF_LOGE("device mode %{public}s format is wrong.", mode.c_str());
+        return;
+    }
 
-        auto item = std::find_if(items.begin(), items.end(), [&mode](const std::shared_ptr<SceneItem>& item) {
-            return item->name == mode;
-        });
-        if (item == items.end()) {
-            SOC_PERF_LOGD("No matching device mode found.");
-            continue;
-        }
+    const std::string modeType = modeParamList[0];
+    const std::string modeName = modeParamList[1];
 
-        const std::string itemName = MatchDeviceMode(mode, status, items);
-        if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
-            const std::string msgStr = sceneName + ":" + itemName;
-            SOC_PERF_LOGD("send deviceMode to PerfScenario : %{public}s", msgStr.c_str());
-            socPerfConfig_.scenarioFunc_(msgStr);
-        }
+    auto iter = socPerfConfig_.sceneResourceInfo_.find(modeType);
+    if (iter == socPerfConfig_.sceneResourceInfo_.end()) {
+        SOC_PERF_LOGD("No matching device mode found.");
+        return;
+    }
 
-        break;
+    const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
+    const std::vector<std::shared_ptr<SceneItem>> items = sceneResNode->items;
+    const int32_t persistMode = sceneResNode->persistMode;
+
+    const std::string modeStr = MatchDeviceMode(modeName, status, items);
+    if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
+        const std::string msgStr = modeType + ":" + modeStr;
+        SOC_PERF_LOGD("send deviceMode to PerfScenario : %{public}s", msgStr.c_str());
+        socPerfConfig_.scenarioFunc_(msgStr);
     }
 }
 
@@ -435,13 +438,13 @@ std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
     const std::vector<std::shared_ptr<SceneItem>>& items)
 {
     std::lock_guard<std::mutex> lock(mutexDeviceMode_);
-    std::string itemName = DEFAULT_MODE;
 
     if (!status) {
         recordDeviceMode_.erase(mode);
         return DEFAULT_MODE;
     }
 
+    std::string itemName = DEFAULT_MODE;
     for (const auto& iter : items) {
         if (iter->name == mode) {
             recordDeviceMode_.insert(mode);
