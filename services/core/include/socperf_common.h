@@ -61,14 +61,6 @@ const int32_t MAX_FREQUE_NODE                     = 1;
 const int32_t NODE_DEFAULT_VALUE                  = -1;
 const int32_t TYPE_TRACE_DEBUG                    = 3;
 
-const std::unordered_map<std::string, std::vector<std::string>> MUTEX_MODE = {
-    {"displaySub", {"displayMain", "displayFull"}},
-    {"displayMain", {"displaySub", "displayFull"}},
-    {"displayFull", {"displayMain", "displaySub"}},
-    {"bracketOpen", {"bracketClose"}},
-    {"bracketClose", {"bracketOpen"}}
-};
-
 class ResourceNode {
 public:
     int32_t id;
@@ -112,6 +104,37 @@ public:
     ~GovResNode() {}
 };
 
+class SceneItem {
+public:
+    std::string name;
+    int32_t req;
+
+public:
+    SceneItem(const std::string& name, int32_t req) : name(name), req(req) {}
+    ~SceneItem() {}
+};
+
+class SceneResNode {
+public:
+    std::string name;
+    int32_t persistMode;
+    std::vector<std::shared_ptr<SceneItem>> items;
+
+public:
+    SceneResNode(const std::string& name, int32_t persistMode) : name(name), persistMode(persistMode) {}
+    ~SceneResNode() {}
+};
+
+class ModeMap {
+public:
+    std::string mode;
+    int32_t cmdId;
+
+public:
+    ModeMap(const std::string& mode, int32_t cmdId) : mode(mode), cmdId(cmdId) {}
+    ~ModeMap() {}
+};
+
 class Action {
 public:
     int32_t thermalCmdId_ = INVALID_THERMAL_CMD_ID;
@@ -129,8 +152,7 @@ public:
     int32_t id;
     std::string name;
     std::list<std::shared_ptr<Action>> actionList;
-    std::mutex modeMapMutex_;
-    std::unordered_map<std::string, int32_t> modeMap;
+    std::vector<std::shared_ptr<ModeMap>> modeMap;
     bool isLongTimePerf = false;
 
 public:
