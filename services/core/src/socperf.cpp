@@ -26,6 +26,8 @@ namespace {
     const std::string DEFAULT_MODE = "default";
     const std::string SPLIT_COLON = ":";
     const int32_t DEVICEMODE_PARAM_NUMBER = 2;
+    const int32_t MODE_TYPE_INDEX = 0;
+    const int32_t MODE_NAME_INDEX = 1;
 }
 SocPerf::SocPerf()
 {
@@ -413,8 +415,8 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         return;
     }
 
-    const std::string modeType = modeParamList[0];
-    const std::string modeName = modeParamList[1];
+    const std::string modeType = modeParamList[MODE_TYPE_INDEX];
+    const std::string modeName = modeParamList[MODE_NAME_INDEX];
 
     auto iter = socPerfConfig_.sceneResourceInfo_.find(modeType);
     if (iter == socPerfConfig_.sceneResourceInfo_.end()) {
