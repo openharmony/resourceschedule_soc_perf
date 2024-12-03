@@ -527,7 +527,7 @@ bool SocPerfThreadWrap::ArbitratePairResInPerfLvl(int32_t resId)
     // if this resource has PerfRequestLvl value, the final arbitrate value change to PerfRequestLvl value
     if (resStatus->candidatesValue[ACTION_TYPE_PERFLVL] != INVALID_VALUE) {
         if (thermalLvl_ == 0 && resStatus->candidate != INVALID_VALUE) {
-            resStatus->candidate = Min(resStatus->candidate, resStatus->candidatesValue[ACTION_TYPE_PERFLVL])
+            resStatus->candidate = Min(resStatus->candidate, resStatus->candidatesValue[ACTION_TYPE_PERFLVL]);
         } else {
             resStatus->candidate = resStatus->candidatesValue[ACTION_TYPE_PERFLVL];
         }
