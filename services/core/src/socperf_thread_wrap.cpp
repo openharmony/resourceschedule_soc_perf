@@ -45,7 +45,7 @@ void SocPerfThreadWrap::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &even
     }
     switch (event->GetInnerEventId()) {
         case INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO: {
-            InitResourceNodeInfo(event->GetSharedObject<ResourceNode>());
+            InitResourceNodeInfo();
             break;
         }
         case INNER_EVENT_ID_DO_FREQ_ACTION_PACK: {
@@ -79,16 +79,20 @@ void SocPerfThreadWrap::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &even
 }
 #endif
 
-void SocPerfThreadWrap::InitResourceNodeInfo(std::shared_ptr<ResourceNode> resourceNode)
+void SocPerfThreadWrap::InitResourceNodeInfo()
 {
-    if (resourceNode == nullptr) {
-        return;
-    }
 #ifdef SOCPERF_ADAPTOR_FFRT
-    std::function<void()>&& initResourceNodeInfoFunc = [this, resourceNode]() {
+    std::function<void()>&& initResourceNodeInfoFunc = [this]() {
 #endif
-        auto resStatus = std::make_shared<ResStatus>();
-        resStatusInfo_.insert(std::pair<int32_t, std::shared_ptr<ResStatus>>(resourceNode->id, resStatus));
+        for (auto iter = socPerfConfig_.resourceNodeInfo_.begin(); iter != socPerfConfig_.end(); ++iter) {
+            std::shared_ptr<ResourceNode> resourceNode = iter.second;
+            if (resourceNode == nullptr) {
+                continue;
+            }
+            auto resStatus = std::make_shared<ResStatus>();
+            resStatusInfo_.insert(std::pair<int32_t, std::shared_ptr<ResStatus>>(resourceNode->id, resStatus));
+        }
+        InitResStatus();
 #ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(initResourceNodeInfoFunc);
@@ -110,7 +114,7 @@ void SocPerfThreadWrap::DoFreqActionPack(std::shared_ptr<ResActionItem> head)
             }
             queueHead = queueHead->next;
         }
-        SendResStatusToPerfSo();
+        SendResStatus();
 #ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(doFreqActionPackFunc);
@@ -129,7 +133,7 @@ void SocPerfThreadWrap::UpdatePowerLimitBoostFreq(bool powerLimitBoost)
             }
             ArbitrateCandidate(iter->first);
         }
-        SendResStatusToPerfSo();
+        SendResStatus();
 #ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(updatePowerLimitBoostFreqFunc);
@@ -148,7 +152,7 @@ void SocPerfThreadWrap::UpdateThermalLimitBoostFreq(bool thermalLimitBoost)
             }
             ArbitrateCandidate(iter->first);
         }
-        SendResStatusToPerfSo();
+        SendResStatus();
 #ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(updateThermalLimitBoostFreqFunc);
@@ -168,7 +172,7 @@ void SocPerfThreadWrap::UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAc
         } else if (eventId == INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL) {
             DoFreqActionLevel(resId, resAction);
         }
-        SendResStatusToPerfSo();
+        SendResStatus();
         if (resAction->onOff && resStatusInfo_[resId] != nullptr) {
             HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_REQUEST",
                             OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
@@ -195,7 +199,7 @@ void SocPerfThreadWrap::ClearAllAliveRequest()
         resActionList.clear();
         UpdateCandidatesValue(item.first, ACTION_TYPE_PERF);
     }
-    SendResStatusToPerfSo();
+    SendResStatus();
 #ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(updateLimitStatusFunc);
@@ -210,7 +214,34 @@ void SocPerfThreadWrap::DoFreqAction(int32_t resId, std::shared_ptr<ResAction> r
     UpdateResActionList(resId, resAction, false);
 }
 
-void SocPerfThreadWrap::SendResStatusToPerfSo()
+void SocPerfThreadWrap::InitResStatus()
+{
+    std::vector<int32_t> qosId;
+    std::vector<int64_t> value;
+    std::vector<int64_t> endTime;
+    std::vector<int32_t> qosIdToRssEx;
+    std::vector<int64_t> valueToRssEx;
+    std::vector<int64_t> endTimeToRssEx;
+    for (auto iter = resStatusInfo_.begin(); iter != resStatusInfo_.end(); ++iter) {
+        int32_t resId = iter->first;
+        std::shared_ptr <ResStatus> resStatus = iter->second;
+        if (socPerfConfig_.resourceNodeInfo_.find(resId) != socPerfConfig_.resourceNodeInfo_.end()) {
+            if (socPerfConfig_.resourceNodeInfo_[resId]->persistMode == REPORT_TO_PERFSO) {
+                qosId.push_back(resId);
+                value.push_back(NODE_DEFAULT_VALUE);
+                endTime.push_back(MAX_INT_VALUE);
+            } else {
+                qosIdToRssEx.push_back(resId);
+                valueToRssEx.push_back(NODE_DEFAULT_VALUE);
+                endTimeToRssEx.push_back(MAX_INT_VALUE);
+            }
+        }
+    }
+    ReportToPerfSo(qosId, value, endTime);
+    ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
+}
+
+void SocPerfThreadWrap::SendResStatus()
 {
     std::vector<int32_t> qosId;
     std::vector<int64_t> value;
@@ -317,7 +348,7 @@ void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
             for (uint32_t i = 0; i < item.second.size(); i++) {
                 UpdateResActionList(item.second[i]->resId, item.second[i]->resAction, true);
             }
-            SendResStatusToPerfSo();
+            SendResStatus();
         };
         socperfQueue_.submit(postDelayTaskFunc, taskAttr);
     }
@@ -329,7 +360,7 @@ void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> 
         return;
     }
     UpdateResActionList(resId, resAction, true);
-    SendResStatusToPerfSo();
+    SendResStatus();
 }
 #endif
 
