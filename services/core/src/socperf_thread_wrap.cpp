@@ -84,8 +84,9 @@ void SocPerfThreadWrap::InitResourceNodeInfo()
 #ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& initResourceNodeInfoFunc = [this]() {
 #endif
-        for (auto iter = socPerfConfig_.resourceNodeInfo_.begin(); iter != socPerfConfig_.end(); ++iter) {
-            std::shared_ptr<ResourceNode> resourceNode = iter.second;
+        for (auto iter = socPerfConfig_.resourceNodeInfo_.begin();
+            iter != socPerfConfig_.resourceNodeInfo_.end(); ++iter) {
+            std::shared_ptr<ResourceNode> resourceNode = iter->second;
             if (resourceNode == nullptr) {
                 continue;
             }

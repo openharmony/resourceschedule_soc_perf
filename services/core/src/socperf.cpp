@@ -77,12 +77,11 @@ bool SocPerf::CreateThreadWraps()
 void SocPerf::InitThreadWraps()
 {
 #ifdef SOCPERF_ADAPTOR_FFRT
-        socperfThreadWrap_->InitResourceNodeInfo();
+    socperfThreadWrap_->InitResourceNodeInfo();
 #else
-        auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO);
-        socperfThreadWrap_->SendEvent(event);
+    auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO);
+    socperfThreadWrap_->SendEvent(event);
 #endif
-    }
 }
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
