@@ -75,6 +75,8 @@ public:
     void PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction);
 #endif
     void ClearAllAliveRequest();
+public:
+    int32_t thermalLvl_ = MIN_THERMAL_LVL;
 
 private:
     static const int32_t SCALES_OF_MILLISECONDS_TO_MICROSECONDS = 1000;
