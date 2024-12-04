@@ -427,7 +427,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfThreadWrapp_001, Function |
     auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>(runner);
 #endif
     socPerfThreadWrap->PostDelayTask(1000, nullptr);
-    socPerfThreadWrap->InitResourceNodeInfo(nullptr);
+    socPerfThreadWrap->InitResourceNodeInfo();
     socPerfThreadWrap->socPerfConfig_.InitPerfFunc(nullptr, nullptr, nullptr);
     socPerfThreadWrap->socPerfConfig_.InitPerfFunc(nullptr, msg.c_str(), msg.c_str());
     socPerfThreadWrap->socPerfConfig_.InitPerfFunc(msg.c_str(), nullptr, nullptr);
