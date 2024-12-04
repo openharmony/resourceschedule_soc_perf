@@ -64,7 +64,7 @@ public:
     ~SocPerfThreadWrap() override;
     void ProcessEvent(const AppExecFwk::InnerEvent::Pointer& event) override;
 #endif
-    void InitResourceNodeInfo(std::shared_ptr<ResourceNode> resourceNode);
+    void InitResourceNodeInfo();
     void DoFreqActionPack(std::shared_ptr<ResActionItem> head);
     void UpdatePowerLimitBoostFreq(bool powerLimitBoost);
     void UpdateThermalLimitBoostFreq(bool thermalLimitBoost);
@@ -87,7 +87,8 @@ private:
     bool thermalLimitBoost_ = false;
 
 private:
-    void SendResStatusToPerfSo();
+    void InitResStatus();
+    void SendResStatus();
     void ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& endTime);
     void ReportToRssExe(std::vector<int32_t>& qosId, std::vector<int64_t>& value, std::vector<int64_t>& endTime);
     bool GetResValueByLevel(int32_t resId, int32_t level, int64_t& resValue);
