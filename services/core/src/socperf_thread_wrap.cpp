@@ -558,7 +558,11 @@ bool SocPerfThreadWrap::ArbitratePairResInPerfLvl(int32_t resId)
     }
     // if this resource has PerfRequestLvl value, the final arbitrate value change to PerfRequestLvl value
     if (resStatus->candidatesValue[ACTION_TYPE_PERFLVL] != INVALID_VALUE) {
-        resStatus->candidate = resStatus->candidatesValue[ACTION_TYPE_PERFLVL];
+        if (thermalLvl_ == 0 && resStatus->candidate != INVALID_VALUE) {
+            resStatus->candidate = Min(resStatus->candidate, resStatus->candidatesValue[ACTION_TYPE_PERFLVL]);
+        } else {
+            resStatus->candidate = resStatus->candidatesValue[ACTION_TYPE_PERFLVL];
+        }
     }
     // only limit max when PerfRequestLvl has max value
     bool limit = false;
@@ -583,7 +587,8 @@ void SocPerfThreadWrap::ArbitratePairRes(int32_t resId, bool perfRequestLimit)
         return;
     }
 
-    if (resStatusInfo_[pairResId]->candidate == NODE_DEFAULT_VALUE) {
+    if (resStatusInfo_[pairResId]->candidate == NODE_DEFAULT_VALUE ||
+        resStatusInfo_[resId]->candidate == NODE_DEFAULT_VALUE) {
         UpdateCurrentValue(resId, resStatusInfo_[resId]->candidate);
         return;
     }

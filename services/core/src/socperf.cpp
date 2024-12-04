@@ -301,12 +301,17 @@ void SocPerf::ClearAllAliveRequest()
 
 void SocPerf::SetThermalLevel(int32_t level)
 {
+    if (!enabled_) {
+        SOC_PERF_LOGE("SocPerf disabled!");
+        return;
+    }
     std::string trace_str(__func__);
     trace_str.append(",level[").append(std::to_string(level)).append("]");
     SOCPERF_TRACE_BEGIN(trace_str);
     SOC_PERF_LOGI("ThermalLevel:%{public}d", level);
     SOCPERF_TRACE_END();
     thermalLvl_ = level;
+    socperfThreadWrap_->thermalLvl_ = level;
 }
 
 bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> action, int32_t onOff)
