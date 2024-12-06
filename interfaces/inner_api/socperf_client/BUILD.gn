@@ -32,12 +32,11 @@ ohos_shared_library("socperf_client") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 
-  public_external_deps = [ "ipc:ipc_core" ]
+  public_external_deps = [ "ipc:ipc_single" ]
 
   innerapi_tags = [
     "platformsdk",
