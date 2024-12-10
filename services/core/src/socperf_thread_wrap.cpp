@@ -225,7 +225,6 @@ void SocPerfThreadWrap::InitResStatus()
     std::vector<int64_t> endTimeToRssEx;
     for (auto iter = resStatusInfo_.begin(); iter != resStatusInfo_.end(); ++iter) {
         int32_t resId = iter->first;
-        std::shared_ptr <ResStatus> resStatus = iter->second;
         if (socPerfConfig_.resourceNodeInfo_.find(resId) != socPerfConfig_.resourceNodeInfo_.end()) {
             if (socPerfConfig_.resourceNodeInfo_[resId]->persistMode == REPORT_TO_PERFSO) {
                 qosId.push_back(resId);
