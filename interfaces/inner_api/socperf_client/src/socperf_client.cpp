@@ -30,7 +30,7 @@ SocPerfClient::SocPerfClient()
 SocPerfClient::~SocPerfClient()
 {
     SOC_PERF_LOGI("SocPerfClient:~SocPerfClien");
-    socPerfClient_.ResetClient();
+    ResetClient();
 }
 
 SocPerfClient& SocPerfClient::GetInstance()
