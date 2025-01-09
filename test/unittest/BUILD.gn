@@ -38,7 +38,10 @@ ohos_unittest("SocPerfServerTest") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [ "${socperf_services}:socperf_server_static" ]
+  deps = [
+    "${socperf_services}:socperf_server_static",
+    "${socperf_interfaces}/inner_api/socperf_client:socperf_stub"
+  ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",

@@ -21,7 +21,6 @@
 #include "socperf_config.h"
 #include "i_soc_perf.h"
 #include "socperf_server.h"
-#include "soc_perf_stub.h"
 #include "socperf.h"
 
 using namespace testing::ext;
@@ -452,18 +451,42 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfThreadWrapp_001, Function |
 class SocperfStubTest : public SocPerfStub {
 public:
     SocperfStubTest() {}
-    void PerfRequest(int32_t cmdId, const std::string& msg) override {}
-    void PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg) override {}
-    void PowerLimitBoost(bool onOffTag, const std::string& msg) override {}
-    void ThermalLimitBoost(bool onOffTag, const std::string& msg) override {}
-    void LimitRequest(int32_t clientId,
-        const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg) override {}
-    void SetRequestStatus(bool status, const std::string& msg) override {};
-    void SetThermalLevel(int32_t level) override {};
-    void RequestDeviceMode(const std::string& mode, bool status) override {};
-    std::string RequestCmdIdCount(const std::string& msg) override
+    ErrCode PerfRequest(int32_t cmdId, const std::string& msg) override
     {
-        return "";
+        return ERR_OK;
+    }
+    ErrCode PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode PowerLimitBoost(bool onOffTag, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode ThermalLimitBoost(bool onOffTag, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode LimitRequest(int32_t clientId,
+        const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode SetRequestStatus(bool status, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode SetThermalLevel(int32_t level) override
+    {
+        return ERR_OK;
+    }
+    ErrCode RequestDeviceMode(const std::string& mode, bool status) override
+    {
+        return ERR_OK;
+    }
+    ErrCode RequestCmdIdCount(const std::string& msg, const std::string& funcResult) override
+    {
+        return ERR_OK;
     }
 };
 
