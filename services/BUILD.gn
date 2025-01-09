@@ -31,8 +31,9 @@ ohos_shared_library("socperf_server") {
     "core/src/socperf_config.cpp",
     "core/src/socperf_thread_wrap.cpp",
     "server/src/socperf_server.cpp",
-    "server/src/socperf_stub.cpp",
   ]
+
+  deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_stub" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
@@ -90,6 +91,8 @@ ohos_static_library("socperf_server_static") {
     "server/src/socperf_server.cpp",
     "server/src/socperf_stub.cpp",
   ]
+
+  deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_stub" ]
 
   external_deps = [
     "access_token:libaccesstoken_sdk",

@@ -89,49 +89,106 @@ int32_t SocPerfServer::Dump(int32_t fd, const std::vector<std::u16string>& args)
     return ERR_OK;
 }
 
-void SocPerfServer::PerfRequest(int32_t cmdId, const std::string& msg)
+ErrCode SocPerfServer::PerfRequest(int32_t cmdId, const std::string& msg)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.PerfRequest(cmdId, msg);
+    return ERR_OK;
 }
 
-void SocPerfServer::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
+ErrCode SocPerfServer::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.PerfRequestEx(cmdId, onOffTag, msg);
+    return ERR_OK;
 }
 
-void SocPerfServer::PowerLimitBoost(bool onOffTag, const std::string& msg)
+ErrCode SocPerfServer::PowerLimitBoost(bool onOffTag, const std::string& msg)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.PowerLimitBoost(onOffTag, msg);
+    return ERR_OK;
 }
 
-void SocPerfServer::ThermalLimitBoost(bool onOffTag, const std::string& msg)
+ErrCode SocPerfServer::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.ThermalLimitBoost(onOffTag, msg);
+    return ERR_OK;
 }
 
-void SocPerfServer::LimitRequest(int32_t clientId,
+ErrCode SocPerfServer::LimitRequest(int32_t clientId,
     const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.LimitRequest(clientId, tags, configs, msg);
+    return ERR_OK;
 }
 
-void SocPerfServer::SetRequestStatus(bool status, const std::string &msg)
+ErrCode SocPerfServer::SetRequestStatus(bool status, const std::string &msg)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.SetRequestStatus(status, msg);
+    return ERR_OK;
 }
 
-void SocPerfServer::SetThermalLevel(int32_t level)
+ErrCode SocPerfServer::SetThermalLevel(int32_t level)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.SetThermalLevel(level);
+    return ERR_OK;
 }
-void SocPerfServer::RequestDeviceMode(const std::string& mode, bool status)
+ErrCode SocPerfServer::RequestDeviceMode(const std::string& mode, bool status)
 {
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
     socPerf.RequestDeviceMode(mode, status);
+    return ERR_OK;
 }
 
-std::string SocPerfServer::RequestCmdIdCount(const std::string& msg)
+ErrCode SocPerfServer::RequestCmdIdCount(const std::string& msg, const std::string& funcResult)
 {
-    return socPerf.RequestCmdIdCount(msg);
+    if (!HasPerfPermission()) {
+        return ERR_PERMISSION_DENIED;
+    }
+    funcResult = socPerf.RequestCmdIdCount(msg);
+    return ERR_OK;
+}
+
+const std::string NEEDED_PERMISSION = "ohos.permission.REPORT_RESOURCE_SCHEDULE_EVENT";
+
+bool SocPerfServer::HasPerfPermission()
+{
+    uint32_t accessToken = IPCSkeleton::GetCallingTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(accessToken);
+    if (int(tokenType) == OHOS::Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
+        uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+        if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
+            SOC_PERF_LOGE("Invalid Permission to SocPerf");
+            return false;
+        }
+    }
+    int32_t hasPermission = Security::AccessToken::AccessTokenKit::VerifyAccessToken(accessToken, NEEDED_PERMISSION);
+    if (hasPermission != 0) {
+        SOC_PERF_LOGE("SocPerf: not have Permission");
+        return false;
+    }
+    return true;
 }
 } // namespace SOCPERF
 } // namespace OHOS

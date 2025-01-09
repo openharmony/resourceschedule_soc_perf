@@ -16,7 +16,7 @@
 #ifndef SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_SOCPERF_CLIENT_H
 #define SOC_PERF_INTERFACES_INNER_API_SOCPERF_CLIENT_INCLUDE_SOCPERF_CLIENT_H
 
-#include "i_socperf_service.h"  // for ISocPerfService
+#include "isoc_perf.h"  // for ISocPerf
 
 namespace OHOS {
 namespace SOCPERF {
@@ -132,7 +132,7 @@ private:
 
 private:
     std::mutex mutex_;
-    sptr<ISocPerfService> client;
+    sptr<ISocPerf> client;
     sptr<SocPerfDeathRecipient> recipient_;
 };
 } // namespace SOCPERF
