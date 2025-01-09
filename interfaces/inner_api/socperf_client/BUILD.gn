@@ -35,7 +35,7 @@ ohos_shared_library("socperf_client") {
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
 
   public_configs = [ ":socperf_client_public_config" ]
-  deps = [":socperf_client_interface"]
+  deps = [ ":socperf_client_interface" ]
 
   external_deps = [
     "c_utils:utils",
@@ -67,15 +67,9 @@ ohos_shared_library("socperf_client") {
 }
 
 ohos_source_set("socperf_stub") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
   public_configs = [ ":socperf_client_public_config" ]
   output_values = get_target_outputs(":socperf_client_interface")
-  sources = filter_inclue(output_values, [ "*_stub.cpp" ])
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
   deps = [ ":socperf_client_interface" ]
 
   external_deps = [
@@ -87,4 +81,11 @@ ohos_source_set("socperf_stub") {
   public_external_deps = [ "ipc:ipc_single" ]
   subsystem_name = "resourceschedule"
   part_name = "soc_perf"
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 }

@@ -14,13 +14,13 @@
  */
 
  interface OHOS.SOCPERF.ISocPerf {
-    void PerfRequest([in] int cmdId, [in] String msg);
-    void PerfRequestEx([in] int cmdId, [in] boolean onOffTag, [in] String msg);
-    void SetRequestStatus([in] boolean status, [in] String msg);
-    void SetThermalLevel([in] int level);
-    void PowerLimitBoost([in] boolean onOffTag, [in] String msg);
-    void RequestDeviceMode([in] String mode, [in] boolean status);
-    String RequestCmdIdCount([in] String msg);
-    void ThermalLimitBoost([in] boolean onOffTag, [in] String msg);
-    void LimitRequest([in] int clientId, [in] int[] tags, [in] long[] configs, [in] String msg);
+   [oneway] void PerfRequest([in] int cmdId, [in] String msg);
+   [oneway] void PerfRequestEx([in] int cmdId, [in] boolean onOffTag, [in] String msg);
+   [oneway] void SetRequestStatus([in] boolean status, [in] String msg);
+   [oneway] void SetThermalLevel([in] int level);
+   [oneway] void PowerLimitBoost([in] boolean onOffTag, [in] String msg);
+   [oneway] void RequestDeviceMode([in] String mode, [in] boolean status);
+   void RequestCmdIdCount([in] String msg, [out] String result);
+   [oneway] void ThermalLimitBoost([in] boolean onOffTag, [in] String msg);
+   [oneway] void LimitRequest([in] int clientId, [in] int[] tags, [in] long[] configs, [in] String msg);
  }
