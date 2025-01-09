@@ -15,7 +15,7 @@
 
 #include "thermallimitboost_fuzzer.h"
 #include "socperf_fuzz_mock.h"
-#include "socperf_ipc_interface_code.h"
+#include "i_soc_perf.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -27,7 +27,7 @@ namespace SOCPERF {
         request.WriteBuffer(data, size);
         MessageParcel reply;
         MessageOption option;
-        uint32_t requestIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_THERMAL_LIMIT_BOOST_FREQ);
+        uint32_t requestIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_THERMAL_LIMIT_BOOST);
         socPerfStub.OnRemoteRequest(requestIpcId, request, reply, option);
         return true;
     }

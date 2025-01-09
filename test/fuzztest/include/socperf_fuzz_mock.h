@@ -18,7 +18,7 @@
 
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
-#include "socperf_stub.h"
+#include "soc_perf_stub.h"
 #include "token_setproc.h"
 
 namespace OHOS {

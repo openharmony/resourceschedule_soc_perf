@@ -18,7 +18,7 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
-#include "i_socperf_service.h"
+#include "i_soc_perf.h"
 #include "socperf_fuzz_mock.h"
 #include "socperf_log.h"
 
@@ -62,7 +62,7 @@ namespace SOCPERF {
         }
 
         MessageParcel dataMessageParcel;
-        if (!dataMessageParcel.WriteInterfaceToken(IRemoteStub<ISocPerfService>::GetDescriptor())) {
+        if (!dataMessageParcel.WriteInterfaceToken(IRemoteStub<ISocPerf>::GetDescriptor())) {
             return false;
         }
 
