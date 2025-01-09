@@ -15,7 +15,7 @@
 
 #include "thermallimitboost_fuzzer.h"
 #include "socperf_fuzz_mock.h"
-#include "i_soc_perf.h"
+#include "isoc_perf.h"
 
 namespace OHOS {
 namespace SOCPERF {

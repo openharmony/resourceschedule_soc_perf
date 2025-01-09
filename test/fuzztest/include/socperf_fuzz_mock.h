@@ -59,7 +59,7 @@ public:
     {
         return ERR_OK;
     }
-    ErrCode RequestCmdIdCount(const std::string& msg, const std::string& funcResult) override
+    ErrCode RequestCmdIdCount(const std::string& msg, std::string& funcResult) override
     {
         return ERR_OK;
     }

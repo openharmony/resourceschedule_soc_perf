@@ -24,7 +24,7 @@ idl_gen_interface("socperf_client_interface") {
 config("socperf_client_public_config") {
   include_dirs = [
     "include",
-    "{target_gen_dir}",
+    "${target_gen_dir}",
     "${socperf_common}/include",
   ]
 }

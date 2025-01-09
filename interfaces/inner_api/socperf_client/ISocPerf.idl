@@ -16,11 +16,11 @@
  interface OHOS.SOCPERF.ISocPerf {
     void PerfRequest([in] int cmdId, [in] String msg);
     void PerfRequestEx([in] int cmdId, [in] boolean onOffTag, [in] String msg);
-    void SetRequestStatus([in] boolean status, [in] String msg)
-    void SetThermalLevel([in] int level)
+    void SetRequestStatus([in] boolean status, [in] String msg);
+    void SetThermalLevel([in] int level);
     void PowerLimitBoost([in] boolean onOffTag, [in] String msg);
     void RequestDeviceMode([in] String mode, [in] boolean status);
-    string RequestCmdIdCount([in] String msg);
+    String RequestCmdIdCount([in] String msg);
     void ThermalLimitBoost([in] boolean onOffTag, [in] String msg);
     void LimitRequest([in] int clientId, [in] int[] tags, [in] long[] configs, [in] String msg);
  }

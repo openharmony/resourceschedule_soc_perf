@@ -18,7 +18,7 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
-#include "i_soc_perf.h"
+#include "isoc_perf.h"
 #include "socperf_fuzz_mock.h"
 #include "socperf_log.h"
 

@@ -89,7 +89,6 @@ ohos_static_library("socperf_server_static") {
     "core/src/socperf_config.cpp",
     "core/src/socperf_thread_wrap.cpp",
     "server/src/socperf_server.cpp",
-    "server/src/socperf_stub.cpp",
   ]
 
   deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_stub" ]

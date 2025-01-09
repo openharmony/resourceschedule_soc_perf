@@ -102,7 +102,7 @@ public:
      * @param msg the reason
      * @param funcResult return cmdId count, as 10000:xx,10001:xx
      */
-    virtual ErrCode RequestCmdIdCount(const std::string& msg, const std::string& funcResult) override;
+    virtual ErrCode RequestCmdIdCount(const std::string& msg, std::string& funcResult) override;
     int32_t Dump(int32_t fd, const std::vector<std::u16string>& args) override;
 
 public:

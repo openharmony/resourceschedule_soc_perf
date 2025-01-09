@@ -162,7 +162,7 @@ ErrCode SocPerfServer::RequestDeviceMode(const std::string& mode, bool status)
     return ERR_OK;
 }
 
-ErrCode SocPerfServer::RequestCmdIdCount(const std::string& msg, const std::string& funcResult)
+ErrCode SocPerfServer::RequestCmdIdCount(const std::string& msg, std::string& funcResult)
 {
     if (!HasPerfPermission()) {
         return ERR_PERMISSION_DENIED;
