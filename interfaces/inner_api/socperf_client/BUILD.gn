@@ -88,14 +88,3 @@ ohos_source_set("socperf_stub") {
   subsystem_name = "resourceschedule"
   part_name = "soc_perf"
 }
-	enum class ISocPerfIpcCode {
-    COMMAND_PERF_REQUEST = MIN_TRANSACTION_ID,
-    COMMAND_PERF_REQUEST_EX,
-    COMMAND_SET_REQUEST_STATUS,
-    COMMAND_SET_THERMAL_LEVEL,
-    COMMAND_POWER_LIMIT_BOOST,
-    COMMAND_REQUEST_DEVICE_MODE,
-    COMMAND_REQUEST_CMD_ID_COUNT,
-    COMMAND_THERMAL_LIMIT_BOOST,
-    COMMAND_LIMIT_REQUEST,
-};
