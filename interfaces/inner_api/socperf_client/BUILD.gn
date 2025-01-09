@@ -32,7 +32,7 @@ config("socperf_client_public_config") {
 ohos_shared_library("socperf_client") {
   output_values = get_target_outputs(":socperf_client_interface")
   sources = [ "src/socperf_client.cpp" ]
-  sources += filter_inclue(output_values, [ "*_proxy.cpp" ])
+  sources += filter_include(output_values, [ "*_proxy.cpp" ])
 
   public_configs = [ ":socperf_client_public_config" ]
   deps = [":socperf_client_interface"]
@@ -76,7 +76,7 @@ ohos_source_set("socperf_stub") {
   public_configs = [ ":socperf_client_public_config" ]
   output_values = get_target_outputs(":socperf_client_interface")
   sources = filter_inclue(output_values, [ "*_stub.cpp" ])
-  deps = [":socperf_client_interface"]
+  deps = [ ":socperf_client_interface" ]
 
   external_deps = [
     "c_utils:utils",
