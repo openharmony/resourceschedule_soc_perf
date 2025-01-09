@@ -35,7 +35,7 @@ ohos_shared_library("socperf_client") {
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
 
   public_configs = [ ":socperf_client_public_config" ]
-  deps = [":socperf_client_interface"]
+  deps = [ ":socperf_client_interface" ]
 
   external_deps = [
     "c_utils:utils",
