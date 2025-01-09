@@ -40,7 +40,7 @@ ohos_unittest("SocPerfServerTest") {
 
   deps = [
     "${socperf_interfaces}/inner_api/socperf_client:socperf_stub",
-    "${socperf_services}:socperf_server_static"
+    "${socperf_services}:socperf_server_static",
   ]
 
   external_deps = [
