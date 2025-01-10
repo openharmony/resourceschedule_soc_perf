@@ -20,7 +20,7 @@
    [oneway] void SetThermalLevel([in] int level);
    [oneway] void PowerLimitBoost([in] boolean onOffTag, [in] String msg);
    [oneway] void RequestDeviceMode([in] String mode, [in] boolean status);
-   void RequestCmdIdCount([in] String msg, [out] String result);
+   void RequestCmdIdCount([in] String msg, [out] String funcResult);
    [oneway] void ThermalLimitBoost([in] boolean onOffTag, [in] String msg);
    [oneway] void LimitRequest([in] int clientId, [in] int[] tags, [in] long[] configs, [in] String msg);
  }
