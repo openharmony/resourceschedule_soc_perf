@@ -19,9 +19,8 @@
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
 #include "socperf_config.h"
-#include "socperf_ipc_interface_code.h"
+#include "isoc_perf.h"
 #include "socperf_server.h"
-#include "socperf_stub.h"
 #include "socperf.h"
 
 using namespace testing::ext;
@@ -452,18 +451,42 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfThreadWrapp_001, Function |
 class SocperfStubTest : public SocPerfStub {
 public:
     SocperfStubTest() {}
-    void PerfRequest(int32_t cmdId, const std::string& msg) override {}
-    void PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg) override {}
-    void PowerLimitBoost(bool onOffTag, const std::string& msg) override {}
-    void ThermalLimitBoost(bool onOffTag, const std::string& msg) override {}
-    void LimitRequest(int32_t clientId,
-        const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg) override {}
-    void SetRequestStatus(bool status, const std::string& msg) override {};
-    void SetThermalLevel(int32_t level) override {};
-    void RequestDeviceMode(const std::string& mode, bool status) override {};
-    std::string RequestCmdIdCount(const std::string& msg) override
+    ErrCode PerfRequest(int32_t cmdId, const std::string& msg) override
     {
-        return "";
+        return ERR_OK;
+    }
+    ErrCode PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode PowerLimitBoost(bool onOffTag, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode ThermalLimitBoost(bool onOffTag, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode LimitRequest(int32_t clientId,
+        const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode SetRequestStatus(bool status, const std::string& msg) override
+    {
+        return ERR_OK;
+    }
+    ErrCode SetThermalLevel(int32_t level) override
+    {
+        return ERR_OK;
+    }
+    ErrCode RequestDeviceMode(const std::string& mode, bool status) override
+    {
+        return ERR_OK;
+    }
+    ErrCode RequestCmdIdCount(const std::string& msg, std::string& funcResult) override
+    {
+        return ERR_OK;
     }
 };
 
@@ -482,7 +505,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_001, Function | Med
     data.WriteString("");
     MessageParcel reply;
     MessageOption option;
-    uint32_t requestIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_PERF_REQUEST);
+    uint32_t requestIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_PERF_REQUEST);
     int32_t ret = socPerfStub.OnRemoteRequest(requestIpcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -503,7 +526,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_002, Function | Med
     data.WriteString("");
     MessageParcel reply;
     MessageOption option;
-    uint32_t requestExIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_PERF_REQUEST_EX);
+    uint32_t requestExIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_PERF_REQUEST_EX);
     int32_t ret = socPerfStub.OnRemoteRequest(requestExIpcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -527,7 +550,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_003, Function | Med
     data.WriteString("");
     MessageParcel reply;
     MessageOption option;
-    uint32_t powerLimitId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_LIMIT_REQUEST);
+    uint32_t powerLimitId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_LIMIT_REQUEST);
     int32_t ret = socPerfStub.OnRemoteRequest(powerLimitId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -547,7 +570,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_004, Function | Med
     data.WriteString("");
     MessageParcel reply;
     MessageOption option;
-    uint32_t powerLimitIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_POWER_LIMIT_BOOST_FREQ);
+    uint32_t powerLimitIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_POWER_LIMIT_BOOST);
     int32_t ret = socPerfStub.OnRemoteRequest(powerLimitIpcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -567,7 +590,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_005, Function | Med
     data.WriteString("");
     MessageParcel reply;
     MessageOption option;
-    uint32_t thermalLimitIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_THERMAL_LIMIT_BOOST_FREQ);
+    uint32_t thermalLimitIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_THERMAL_LIMIT_BOOST);
     int32_t ret = socPerfStub.OnRemoteRequest(thermalLimitIpcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -606,7 +629,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_007, Function | Med
     data.WriteString("");
     MessageParcel reply;
     MessageOption option;
-    uint32_t ipcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_STATUS);
+    uint32_t ipcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_SET_REQUEST_STATUS);
     int32_t ret = socPerfStub.OnRemoteRequest(ipcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 
@@ -616,7 +639,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_007, Function | Med
     dataPerf.WriteString("");
     MessageParcel replyPerf;
     MessageOption optionPerf;
-    uint32_t requestPerfIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_PERF_REQUEST);
+    uint32_t requestPerfIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_PERF_REQUEST);
     ret = socPerfStub.OnRemoteRequest(requestPerfIpcId, dataPerf, replyPerf, optionPerf);
     EXPECT_EQ(ret, ERR_OK);
 
@@ -630,7 +653,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_007, Function | Med
     dataLimit.WriteString("");
     MessageParcel replyLimit;
     MessageOption optionLimit;
-    uint32_t powerLimitId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_LIMIT_REQUEST);
+    uint32_t powerLimitId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_LIMIT_REQUEST);
     ret = socPerfStub.OnRemoteRequest(powerLimitId, dataLimit, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -651,7 +674,7 @@ HWTEST_F(SocPerfServerTest, SocPerfStubTest_SocPerfServerAPI_008, Function | Med
     data.WriteBool(true);
     MessageParcel reply;
     MessageOption option;
-    uint32_t ipcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_DEVICE_MODE);
+    uint32_t ipcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_REQUEST_DEVICE_MODE);
     int32_t ret = socPerfStub.OnRemoteRequest(ipcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }
@@ -670,7 +693,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_001, Functi
     data.WriteInt32(3);
     MessageParcel reply;
     MessageOption option;
-    uint32_t ipcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_THERMAL_LEVEL);
+    uint32_t ipcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_SET_THERMAL_LEVEL);
     int32_t ret = socPerfStub.OnRemoteRequest(ipcId, data, reply, option);
     EXPECT_EQ(ret, ERR_OK);
 }

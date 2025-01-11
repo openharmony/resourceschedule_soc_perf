@@ -57,7 +57,7 @@ bool SocPerfClient::CheckClientValid()
         return false;
     }
 
-    client = iface_cast<ISocPerfService>(object);
+    client = iface_cast<ISocPerf>(object);
     if (!client || !client->AsObject()) {
         SOC_PERF_LOGE("Failed to get SocPerfClient.");
         return false;
@@ -190,7 +190,9 @@ std::string SocPerfClient::RequestCmdIdCount(const std::string& msg)
     if (!CheckClientValid()) {
         return "";
     }
-    return client->RequestCmdIdCount(msg);
+    std::string funcResult;
+    client->RequestCmdIdCount(msg, funcResult);
+    return funcResult;
 }
 } // namespace SOCPERF
 } // namespace OHOS

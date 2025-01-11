@@ -15,7 +15,7 @@
 
 #include "limitrequest_fuzzer.h"
 #include "socperf_fuzz_mock.h"
-#include "socperf_ipc_interface_code.h"
+#include "isoc_perf.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -27,7 +27,7 @@ namespace SOCPERF {
         request.WriteBuffer(data, size);
         MessageParcel reply;
         MessageOption option;
-        uint32_t requestIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_LIMIT_REQUEST);
+        uint32_t requestIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_LIMIT_REQUEST);
         socPerfStub.OnRemoteRequest(requestIpcId, request, reply, option);
         return true;
     }

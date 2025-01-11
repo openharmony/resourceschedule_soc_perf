@@ -11,23 +11,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/components/idl_tool/idl.gni")
 import("//build/ohos.gni")
 import("../../../soc_perf.gni")
+
+idl_gen_interface("socperf_client_interface") {
+  src_idl = rebase_path("ISocPerf.idl")
+  log_domainid = "0xD001703"
+  log_tag = "SOCPERF"
+}
 
 config("socperf_client_public_config") {
   include_dirs = [
     "include",
+    "${target_gen_dir}",
     "${socperf_common}/include",
   ]
 }
 
 ohos_shared_library("socperf_client") {
-  sources = [
-    "src/socperf_client.cpp",
-    "src/socperf_proxy.cpp",
-  ]
+  output_values = get_target_outputs(":socperf_client_interface")
+  sources = [ "src/socperf_client.cpp" ]
+  sources += filter_include(output_values, [ "*_proxy.cpp" ])
 
   public_configs = [ ":socperf_client_public_config" ]
+  deps = [ ":socperf_client_interface" ]
 
   external_deps = [
     "c_utils:utils",
@@ -56,4 +64,28 @@ ohos_shared_library("socperf_client") {
   asmflags = [ "-Wl,-z,relro,-z,now" ]
 
   cflags_cc = [ "-fstack-protector-strong" ]
+}
+
+ohos_source_set("socperf_stub") {
+  public_configs = [ ":socperf_client_public_config" ]
+  output_values = get_target_outputs(":socperf_client_interface")
+  sources = filter_include(output_values, [ "*_stub.cpp" ])
+  deps = [ ":socperf_client_interface" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+  ]
+
+  public_external_deps = [ "ipc:ipc_single" ]
+  subsystem_name = "resourceschedule"
+  part_name = "soc_perf"
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 }

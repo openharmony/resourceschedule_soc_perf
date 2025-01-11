@@ -15,7 +15,7 @@
 
 #include "setstatus_fuzzer.h"
 #include "socperf_fuzz_mock.h"
-#include "socperf_ipc_interface_code.h"
+#include "isoc_perf.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -27,7 +27,7 @@ namespace SOCPERF {
         request.WriteBuffer(data, size);
         MessageParcel reply;
         MessageOption option;
-        uint32_t requestIpcId = static_cast<uint32_t>(SocPerfInterfaceCode::TRANS_IPC_ID_SET_STATUS);
+        uint32_t requestIpcId = static_cast<uint32_t>(ISocPerfIpcCode::COMMAND_SET_REQUEST_STATUS);
         socPerfStub.OnRemoteRequest(requestIpcId, request, reply, option);
         return true;
     }
