@@ -246,14 +246,15 @@ void SocPerfThreadWrap::InitResStatus()
 }
 
 #ifdef SOCPERF_ADAPTOR_FFRT
-void SocPerfThreadWrap::WeakInteraction() {
+void SocPerfThreadWrap::WeakInteraction()
+{
     for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
         std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
         if (boostResCnt == 0 && interAction->status == BOOST_STATUS) {
             interAction->status = BOOST_END_STATUS;
             std::function<void()>&& updateLimitStatusFunc = [this, i]() {
                 socPerfConfig_.interAction_[i]->status = WEAK_INTERACTION_STATUS;
-                DoWeakInteraction(socPerfConfig_.perfActionsInfo_[socPerfConfig_.interAction_[i]->cmdId], 
+                DoWeakInteraction(socPerfConfig_.perfActionsInfo_[socPerfConfig_.interAction_[i]->cmdId],
                     EVENT_ON, socPerfConfig_.interAction_[i]->actionType);
             };
             ffrt::task_attr taskAttr;
@@ -507,9 +508,7 @@ void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t t
                 if (resAction->PartSame(*iter) && (*iter)->onOff == EVENT_ON) {
                     resStatus->resActionList[type].erase(iter);
                     UpdateCandidatesValue(resId, type);
-                    if (resAction->interaction) {
-                        boostResCnt--;
-                    }
+                    boostResCnt = boostResCnt - resAction->interaction ? 1 : 0;
                     break;
                 }
             }

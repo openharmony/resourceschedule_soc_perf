@@ -452,7 +452,8 @@ void SocPerfConfig::LoadInterAction(xmlNode* child, const std::string& configFil
         char* delayTime = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("delay")));
         char* actionTyoe = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("type")));
 
-        std::shared_ptr<InterAction> interAction = std::make_shared<InterAction>(atoi(cmdId), atoi(delayTime), atoll(delayTime));
+        std::shared_ptr<InterAction> interAction = std::make_shared<InterAction>(
+            atoi(cmdId), atoi(delayTime), atoll(delayTime));
         interAction_.push_back(interAction);
 
         xmlFree(actionTyoe);
