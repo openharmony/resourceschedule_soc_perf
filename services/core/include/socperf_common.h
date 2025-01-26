@@ -24,7 +24,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#ifdef SOCPERF_ADAPTOR_FFRT
 #include "ffrt.h"
+#endif
+
 #include "socperf_log.h"
 #include "socperf_action_type.h"
 
@@ -271,7 +274,9 @@ public:
     int32_t actionType;
     int64_t delayTime;
     int32_t status;
+#ifdef SOCPERF_ADAPTOR_FFRT
     ffrt::task_handle timerTask;
+#endif
 
 public:
     InterAction(int32_t cmdid, int32_t actiontype, int64_t delaytime)
@@ -280,7 +285,9 @@ public:
         actionType = actiontype;
         delayTime = delaytime;
         status = 0;
+#ifdef SOCPERF_ADAPTOR_FFRT
         timerTask = nullptr;
+#endif
     }
     ~InterAction() {}
 };

@@ -113,8 +113,10 @@ private:
     void DoFreqActionLevel(int32_t resId, std::shared_ptr<ResAction> resAction);
     void HandleResAction(int32_t resId, int32_t type,
         std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus);
+#ifdef SOCPERF_ADAPTOR_FFRT
     void DoWeakInteraction(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
     void WeakInteraction();
+#endif
 };
 } // namespace SOCPERF
 } // namespace OHOS

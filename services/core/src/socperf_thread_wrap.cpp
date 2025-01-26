@@ -240,10 +240,12 @@ void SocPerfThreadWrap::InitResStatus()
     }
     ReportToPerfSo(qosId, value, endTime);
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
-
-    WeakInterAction();
+#ifdef SOCPERF_ADAPTOR_FFRT
+    WeakInteraction();
+#endif
 }
 
+#ifdef SOCPERF_ADAPTOR_FFRT
 void SocPerfThreadWrap::WeakInteraction() {
     for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
         std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
@@ -296,6 +298,7 @@ void SocPerfThreadWrap::DoWeakInteraction(std::shared_ptr<Actions> actions, int3
     }
     DoFreqActionPack(header);
 }
+#endif
 
 void SocPerfThreadWrap::SendResStatus()
 {
@@ -464,6 +467,9 @@ void SocPerfThreadWrap::UpdateResActionListByDelayedMsg(int32_t resId, int32_t t
         if (resAction == *iter) {
             resStatus->resActionList[type].erase(iter);
             UpdateCandidatesValue(resId, type);
+            if (resAction->interaction) {
+                boostResCnt--;
+            }
             break;
         }
     }
@@ -476,11 +482,17 @@ void SocPerfThreadWrap::HandleResAction(int32_t resId, int32_t type,
          iter != resStatus->resActionList[type].end(); ++iter) {
         if (resAction->TotalSame(*iter)) {
             resStatus->resActionList[type].erase(iter);
+            if (resAction->interaction) {
+                boostResCnt--;
+            }
             break;
         }
     }
     resStatus->resActionList[type].push_back(resAction);
     UpdateCandidatesValue(resId, type);
+    if (resAction->interaction) {
+        boostResCnt++;
+    }
 }
 
 void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t type,
@@ -498,6 +510,9 @@ void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t t
                 if (resAction->PartSame(*iter) && (*iter)->onOff == EVENT_ON) {
                     resStatus->resActionList[type].erase(iter);
                     UpdateCandidatesValue(resId, type);
+                    if (resAction->interaction) {
+                        boostResCnt--;
+                    }
                     break;
                 }
             }

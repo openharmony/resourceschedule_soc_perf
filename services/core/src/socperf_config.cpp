@@ -603,7 +603,7 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
     return true;
 }
 
-bool SocPerfConfig::LoadCmdInfo(const xmlNode* rootNode, const std::string& configFile)
+bool SocPerfConfig::LoadCmdInfo(const xmlNode* child, const std::string& configFile)
 {
     char* id = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("id")));
     char* name = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("name")));
