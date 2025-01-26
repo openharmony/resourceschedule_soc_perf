@@ -249,24 +249,22 @@ void SocPerfThreadWrap::InitResStatus()
 void SocPerfThreadWrap::WeakInteraction() {
     for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
         std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
-        if (boostResCnt == 0 && interAction->status == 0) {
-            interAction->status = 1;
-            SOC_PERF_LOGI("weakInteractionBoost_ == 1");
+        if (boostResCnt == 0 && interAction->status == BOOST_STATUS) {
+            interAction->status = BOOST_END_STATUS;
             std::function<void()>&& updateLimitStatusFunc = [this, i]() {
-                SOC_PERF_LOGI("weakInteractionBoost_ == 2");
-                socPerfConfig_.interAction_[i]->status = 2;
+                socPerfConfig_.interAction_[i]->status = WEAK_INTERACTION_STATUS;
                 DoWeakInteraction(socPerfConfig_.perfActionsInfo_[socPerfConfig_.interAction_[i]->cmdId], 
                     EVENT_ON, socPerfConfig_.interAction_[i]->actionType);
             };
             ffrt::task_attr taskAttr;
             taskAttr.delay(interAction->delayTime * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
             interAction->timerTask = socperfQueue_.submit_h(updateLimitStatusFunc, taskAttr);
-        } else if (boostResCnt != 0 && interAction->status == 2) {
-            interAction->status = 0;
+        } else if (boostResCnt != 0 && interAction->status == WEAK_INTERACTION_STATUS) {
+            interAction->status = BOOST_STATUS;
             SOC_PERF_LOGI("weakInteractionBoost_ == 0");
             DoWeakInteraction(socPerfConfig_.perfActionsInfo_[interAction->cmdId], EVENT_OFF, interAction->actionType);
-        } else if (boostResCnt != 0 && interAction->status == 1) {
-            interAction->status = 0;
+        } else if (boostResCnt != 0 && interAction->status == BOOST_END_STATUS) {
+            interAction->status = BOOST_STATUS;
             if (interAction->timerTask != nullptr) {
                 socperfQueue_.cancel(interAction->timerTask);
                 interAction->timerTask = nullptr;
