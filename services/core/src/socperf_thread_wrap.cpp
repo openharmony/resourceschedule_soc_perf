@@ -244,16 +244,57 @@ void SocPerfThreadWrap::InitResStatus()
     WeakInterAction();
 }
 
-void SocPerfThreadWrap::WeakInterAction()
-{
+void SocPerfThreadWrap::WeakInteraction() {
     for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
         std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
-        if (boostResCnt == 0 && interAction.status == 0) {
-            interAction.status = 1;
-            SOC_PERF_LOGI("interAction.status = 1");
-            std::function<void()>&& updateWeakInterAction = 
+        if (boostResCnt == 0 && interAction->status == 0) {
+            interAction->status = 1;
+            SOC_PERF_LOGI("weakInteractionBoost_ == 1");
+            std::function<void()>&& updateLimitStatusFunc = [this, i]() {
+                SOC_PERF_LOGI("weakInteractionBoost_ == 2");
+                socPerfConfig_.interAction_[i]->status = 2;
+                DoWeakInteraction(socPerfConfig_.perfActionsInfo_[socPerfConfig_.interAction_[i]->cmdId], 
+                    EVENT_ON, socPerfConfig_.interAction_[i]->actionType);
+            };
+            ffrt::task_attr taskAttr;
+            taskAttr.delay(interAction->delayTime * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
+            interAction->timerTask = socperfQueue_.submit_h(updateLimitStatusFunc, taskAttr);
+        } else if (boostResCnt != 0 && interAction->status == 2) {
+            interAction->status = 0;
+            SOC_PERF_LOGI("weakInteractionBoost_ == 0");
+            DoWeakInteraction(socPerfConfig_.perfActionsInfo_[interAction->cmdId], EVENT_OFF, interAction->actionType);
+        } else if (boostResCnt != 0 && interAction->status == 1) {
+            interAction->status = 0;
+            if (interAction->timerTask != nullptr) {
+                socperfQueue_.cancel(interAction->timerTask);
+                interAction->timerTask = nullptr;
+            }
         }
     }
+}
+
+void SocPerfThreadWrap::DoWeakInteraction(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType)
+{
+    std::shared_ptr<ResActionItem> header = nullptr;
+    std::shared_ptr<ResActionItem> curItem = nullptr;
+    for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
+        std::shared_ptr<Action> action = *iter;
+        for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
+            if (!socPerfConfig_.IsValidResId(action->variable[i])) {
+                continue;
+            }
+            auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
+            resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], 0,
+                actionType, onOff, actions->id, MAX_INT_VALUE);
+            if (curItem) {
+                curItem->next = resActionItem;
+            } else {
+                header = resActionItem;
+            }
+            curItem = resActionItem;
+        }
+    }
+    DoFreqActionPack(header);
 }
 
 void SocPerfThreadWrap::SendResStatus()
