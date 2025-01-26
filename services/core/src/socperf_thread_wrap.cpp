@@ -508,7 +508,7 @@ void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t t
                 if (resAction->PartSame(*iter) && (*iter)->onOff == EVENT_ON) {
                     resStatus->resActionList[type].erase(iter);
                     UpdateCandidatesValue(resId, type);
-                    boostResCnt = boostResCnt - resAction->interaction ? 1 : 0;
+                    boostResCnt = boostResCnt - (resAction->interaction ? 1 : 0);
                     break;
                 }
             }
