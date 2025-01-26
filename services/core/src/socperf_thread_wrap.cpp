@@ -261,7 +261,6 @@ void SocPerfThreadWrap::WeakInteraction() {
             interAction->timerTask = socperfQueue_.submit_h(updateLimitStatusFunc, taskAttr);
         } else if (boostResCnt != 0 && interAction->status == WEAK_INTERACTION_STATUS) {
             interAction->status = BOOST_STATUS;
-            SOC_PERF_LOGI("weakInteractionBoost_ == 0");
             DoWeakInteraction(socPerfConfig_.perfActionsInfo_[interAction->cmdId], EVENT_OFF, interAction->actionType);
         } else if (boostResCnt != 0 && interAction->status == BOOST_END_STATUS) {
             interAction->status = BOOST_STATUS;

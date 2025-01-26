@@ -39,6 +39,12 @@ enum EventType {
     EVENT_ON
 };
 
+enum InterActionStatus {
+    BOOST_STATUS = 0,
+    BOOST_END_STATUS,
+    WEAK_INTERACTION_STATUS
+};
+
 const std::string SOCPERF_RESOURCE_CONFIG_XML = "etc/soc_perf/socperf_resource_config.xml";
 const std::string SOCPERF_BOOST_CONFIG_XML    = "etc/soc_perf/socperf_boost_config.xml";
 const std::string SOCPERF_BOOST_CONFIG_XML_EXT    = "etc/soc_perf/socperf_boost_config_ext.xml";
