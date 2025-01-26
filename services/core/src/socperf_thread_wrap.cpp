@@ -20,6 +20,7 @@
 
 #include "res_exe_type.h"
 #include "res_sched_exe_client.h"
+#include "socperf.h"
 #include "socperf_trace.h"
 
 namespace OHOS {
@@ -239,6 +240,20 @@ void SocPerfThreadWrap::InitResStatus()
     }
     ReportToPerfSo(qosId, value, endTime);
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
+
+    WeakInterAction();
+}
+
+void SocPerfThreadWrap::WeakInterAction()
+{
+    for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
+        std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
+        if (boostResCnt == 0 && interAction.status == 0) {
+            interAction.status = 1;
+            SOC_PERF_LOGI("interAction.status = 1");
+            std::function<void()>&& updateWeakInterAction = 
+        }
+    }
 }
 
 void SocPerfThreadWrap::SendResStatus()

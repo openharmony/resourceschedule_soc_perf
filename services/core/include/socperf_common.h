@@ -23,6 +23,8 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "ffrt.h"
 #include "socperf_log.h"
 #include "socperf_action_type.h"
 
@@ -154,6 +156,7 @@ public:
     std::list<std::shared_ptr<Action>> actionList;
     std::vector<std::shared_ptr<ModeMap>> modeMap;
     bool isLongTimePerf = false;
+    bool interaction = true;
 
 public:
     Actions(int32_t cmdId, const std::string& cmdName)
@@ -172,6 +175,7 @@ public:
     int32_t onOff;
     int32_t cmdId;
     int64_t endTime;
+    bool interaction = true;
 
 public:
     ResAction(int64_t resActionValue, int32_t resActionDuration, int32_t resActionType,
@@ -183,6 +187,9 @@ public:
         onOff = resActionOnOff;
         cmdId = resActionCmdId;
         endTime = resActionEndTime;
+        if (type != ACTION_TYPE_PERF) {
+            interaction = false;
+        }
     }
     ~ResAction() {}
 
@@ -256,6 +263,26 @@ public:
         previousEndTime = MAX_INT_VALUE;
     }
     ~ResStatus() {}
+};
+
+class InterAction {
+public:
+    int32_t cmdId;
+    int32_t actionType;
+    int64_t delayTime;
+    int32_t status;
+    ffrt::task_handle timerTask;
+
+public:
+    InterAction(int32_t cmdid, int32_t actiontype, int64_t delaytime)
+    {
+        cmdId = cmdid;
+        actionType = actiontype;
+        delayTime = delaytime;
+        status = 0;
+        timerTask = nullptr;
+    }
+    ~InterAction() {}
 };
 
 static inline int64_t Max(int64_t num1, int64_t num2)

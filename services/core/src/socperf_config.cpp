@@ -441,6 +441,26 @@ void SocPerfConfig::LoadInfo(xmlNode* child, const std::string& configFile)
     xmlFree(perfScenarioFunc);
 }
 
+void SocPerfConfig::LoadInterAction(xmlNode* child, const std::string& configFile)
+{
+    xmlNode* grandson = child->children;
+    for (; grandson; grandson = grandson->next) {
+        if (xmlStrcmp(grandson->name, reinterpret_cast<const xmlChar*>("weak"))) {
+            continue;
+        }
+        char* cmdId = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
+        char* delayTime = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("delay")));
+        char* actionTyoe = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("type")));
+
+        std::shared_ptr<InterAction> interAction = std::make_shared<InterAction>(atoi(cmdId), atoi(delayTime), atoll(delayTime));
+        interAction_.push_back(interAction);
+
+        xmlFree(actionTyoe);
+        xmlFree(delayTime);
+        xmlFree(cmdId);
+    }
+}
+
 bool SocPerfConfig::LoadSceneResource(xmlNode* child, const std::string& configFile)
 {
     xmlNode* grandson = child->children;
@@ -567,47 +587,65 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
 {
     xmlNode* child = rootNode->children;
     for (; child; child = child->next) { // Iterate all cmdID
-        if (xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("cmd"))) {
-            continue;
+        if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("cmd"))) {
+            if (!LoadCmdInfo(child, configFile)) {
+                return false;
+            }
+        } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("interaction"))) {
+            LoadInterAction(child, configFile);
         }
-        char* id = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("id")));
-        char* name = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("name")));
-        if (!CheckCmdTag(id, name, configFile)) {
-            xmlFree(id);
-            xmlFree(name);
-            return false;
-        }
-
-        auto it = perfActionsInfo_.find(atoi(id));
-        if (it != perfActionsInfo_.end()) {
-            xmlFree(id);
-            xmlFree(name);
-            continue;
-        }
-        
-        xmlNode* grandson = child->children;
-        std::shared_ptr<Actions> actions = std::make_shared<Actions>(atoi(id), name);
-        xmlFree(id);
-        xmlFree(name);
-
-        char* mode = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("mode")));
-        if (mode) {
-            ParseModeCmd(mode, configFile, actions);
-            xmlFree(mode);
-        }
-
-        if (!TraversalBoostResource(grandson, configFile, actions)) {
-            return false;
-        }
-        std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
-        perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
-        lockPerfActions.unlock();
     }
 
     if (!CheckActionResIdAndValueValid(configFile)) {
         return false;
     }
 
+    return true;
+}
+
+bool SocPerfConfig::LoadCmdInfo(const xmlNode* rootNode, const std::string& configFile)
+{
+    char* id = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("id")));
+    char* name = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("name")));
+    if (!CheckCmdTag(id, name, configFile)) {
+        xmlFree(id);
+        xmlFree(name);
+        return false;
+    }
+
+    auto it = perfActionsInfo_.find(atoi(id));
+    if (it != perfActionsInfo_.end()) {
+        xmlFree(id);
+        xmlFree(name);
+        return true;
+    }
+        
+    xmlNode* grandson = child->children;
+    std::shared_ptr<Actions> actions = std::make_shared<Actions>(atoi(id), name);
+    xmlFree(id);
+    xmlFree(name);
+
+    char* interaction = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("interaction")));
+    if (interaction) {
+        if (atoi(interaction) == 0) {
+            actions->interaction = false;
+        }
+        xmlFree(interaction);
+    }
+
+    char* mode = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("mode")));
+    if (mode) {
+        ParseModeCmd(mode, configFile, actions);
+        xmlFree(mode);
+    }
+
+    if (!TraversalBoostResource(grandson, configFile, actions)) {
+        return false;
+    }
+
+    std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
+    perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
+    lockPerfActions.unlock();
     return true;
 }
 

@@ -87,6 +87,7 @@ private:
 #endif
     bool powerLimitBoost_ = false;
     bool thermalLimitBoost_ = false;
+    int boostResCnt = 0;
 
 private:
     void InitResStatus();
@@ -112,6 +113,8 @@ private:
     void DoFreqActionLevel(int32_t resId, std::shared_ptr<ResAction> resAction);
     void HandleResAction(int32_t resId, int32_t type,
         std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus);
+    void DoWeakInteraction(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
+    void WeakInteraction();
 };
 } // namespace SOCPERF
 } // namespace OHOS
