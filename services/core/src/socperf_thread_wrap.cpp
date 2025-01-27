@@ -240,9 +240,6 @@ void SocPerfThreadWrap::InitResStatus()
     }
     ReportToPerfSo(qosId, value, endTime);
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
-#ifdef SOCPERF_ADAPTOR_FFRT
-    WeakInteraction();
-#endif
 }
 
 #ifdef SOCPERF_ADAPTOR_FFRT
@@ -331,6 +328,10 @@ void SocPerfThreadWrap::SendResStatus()
     }
     ReportToPerfSo(qosId, value, endTime);
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
+
+#ifdef SOCPERF_ADAPTOR_FFRT
+    WeakInteraction();
+#endif
 }
 
 void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
