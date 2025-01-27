@@ -283,6 +283,7 @@ void SocPerfThreadWrap::DoWeakInteraction(std::shared_ptr<Actions> actions, int3
             auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
             resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], 0,
                 actionType, onOff, actions->id, MAX_INT_VALUE);
+            resActionItem->resAction->interaction = false;
             if (curItem) {
                 curItem->next = resActionItem;
             } else {
