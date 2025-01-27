@@ -450,13 +450,13 @@ void SocPerfConfig::LoadInterAction(xmlNode* child, const std::string& configFil
         }
         char* cmdId = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
         char* delayTime = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("delay")));
-        char* actionTyoe = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("type")));
+        char* actionType = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("type")));
 
         std::shared_ptr<InterAction> interAction = std::make_shared<InterAction>(
-            atoi(cmdId), atoi(delayTime), atoll(delayTime));
+            atoi(cmdId), atoi(actionType), atoll(delayTime));
         interAction_.push_back(interAction);
 
-        xmlFree(actionTyoe);
+        xmlFree(actionType);
         xmlFree(delayTime);
         xmlFree(cmdId);
     }
