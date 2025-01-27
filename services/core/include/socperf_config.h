@@ -43,6 +43,7 @@ public:
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
     bool isTraceDug = false;
+    std::vector<std::shared_ptr<InterAction>> interAction_;
 
 private:
     SocPerfConfig();
@@ -88,6 +89,8 @@ private:
     bool TraversalSceneResource(xmlNode* greatGrandson, const std::string& configFile,
         std::shared_ptr<SceneResNode> sceneResNode);
     bool CheckSceneResourceTag(const char* name, const char* persistMode, const std::string& configFile) const;
+    void LoadInterAction(xmlNode* child, const std::string& configFile);
+    bool LoadCmdInfo(const xmlNode* rootNode, const std::string& configFile);
 };
 } // namespace SOCPERF
 } // namespace OHOS

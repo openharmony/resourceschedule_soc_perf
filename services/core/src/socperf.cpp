@@ -379,6 +379,9 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
             resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], action->duration,
                 actionType, onOff, actions->id, endTime);
+            if (actions->interaction == false) {
+                resActionItem->resAction->interaction = false;
+            }
             if (curItem) {
                 curItem->next = resActionItem;
             } else {

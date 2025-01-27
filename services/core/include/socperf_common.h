@@ -23,6 +23,11 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+
+#ifdef SOCPERF_ADAPTOR_FFRT
+#include "ffrt.h"
+#endif
+
 #include "socperf_log.h"
 #include "socperf_action_type.h"
 
@@ -32,6 +37,12 @@ enum EventType {
     EVENT_INVALID = -1,
     EVENT_OFF,
     EVENT_ON
+};
+
+enum InterActionStatus {
+    BOOST_STATUS = 0,
+    BOOST_END_STATUS,
+    WEAK_INTERACTION_STATUS
 };
 
 const std::string SOCPERF_RESOURCE_CONFIG_XML = "etc/soc_perf/socperf_resource_config.xml";
@@ -154,6 +165,7 @@ public:
     std::list<std::shared_ptr<Action>> actionList;
     std::vector<std::shared_ptr<ModeMap>> modeMap;
     bool isLongTimePerf = false;
+    bool interaction = true;
 
 public:
     Actions(int32_t cmdId, const std::string& cmdName)
@@ -172,6 +184,7 @@ public:
     int32_t onOff;
     int32_t cmdId;
     int64_t endTime;
+    bool interaction = true;
 
 public:
     ResAction(int64_t resActionValue, int32_t resActionDuration, int32_t resActionType,
@@ -183,6 +196,9 @@ public:
         onOff = resActionOnOff;
         cmdId = resActionCmdId;
         endTime = resActionEndTime;
+        if (type != ACTION_TYPE_PERF) {
+            interaction = false;
+        }
     }
     ~ResAction() {}
 
@@ -256,6 +272,30 @@ public:
         previousEndTime = MAX_INT_VALUE;
     }
     ~ResStatus() {}
+};
+
+class InterAction {
+public:
+    int32_t cmdId;
+    int32_t actionType;
+    int64_t delayTime;
+    int32_t status;
+#ifdef SOCPERF_ADAPTOR_FFRT
+    ffrt::task_handle timerTask;
+#endif
+
+public:
+    InterAction(int32_t cmdid, int32_t actiontype, int64_t delaytime)
+    {
+        cmdId = cmdid;
+        actionType = actiontype;
+        delayTime = delaytime;
+        status = 0;
+#ifdef SOCPERF_ADAPTOR_FFRT
+        timerTask = nullptr;
+#endif
+    }
+    ~InterAction() {}
 };
 
 static inline int64_t Max(int64_t num1, int64_t num2)

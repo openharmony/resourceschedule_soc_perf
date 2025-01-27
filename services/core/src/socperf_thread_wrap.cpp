@@ -20,6 +20,7 @@
 
 #include "res_exe_type.h"
 #include "res_sched_exe_client.h"
+#include "socperf.h"
 #include "socperf_trace.h"
 
 namespace OHOS {
@@ -241,6 +242,60 @@ void SocPerfThreadWrap::InitResStatus()
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
 }
 
+#ifdef SOCPERF_ADAPTOR_FFRT
+void SocPerfThreadWrap::WeakInteraction()
+{
+    for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
+        std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
+        if (boostResCnt == 0 && interAction->status == BOOST_STATUS) {
+            interAction->status = BOOST_END_STATUS;
+            std::function<void()>&& updateLimitStatusFunc = [this, i]() {
+                socPerfConfig_.interAction_[i]->status = WEAK_INTERACTION_STATUS;
+                DoWeakInteraction(socPerfConfig_.perfActionsInfo_[socPerfConfig_.interAction_[i]->cmdId],
+                    EVENT_ON, socPerfConfig_.interAction_[i]->actionType);
+            };
+            ffrt::task_attr taskAttr;
+            taskAttr.delay(interAction->delayTime * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
+            interAction->timerTask = socperfQueue_.submit_h(updateLimitStatusFunc, taskAttr);
+        } else if (boostResCnt != 0 && interAction->status == WEAK_INTERACTION_STATUS) {
+            interAction->status = BOOST_STATUS;
+            DoWeakInteraction(socPerfConfig_.perfActionsInfo_[interAction->cmdId], EVENT_OFF, interAction->actionType);
+        } else if (boostResCnt != 0 && interAction->status == BOOST_END_STATUS) {
+            interAction->status = BOOST_STATUS;
+            if (interAction->timerTask != nullptr) {
+                socperfQueue_.cancel(interAction->timerTask);
+                interAction->timerTask = nullptr;
+            }
+        }
+    }
+}
+
+void SocPerfThreadWrap::DoWeakInteraction(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType)
+{
+    std::shared_ptr<ResActionItem> header = nullptr;
+    std::shared_ptr<ResActionItem> curItem = nullptr;
+    for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
+        std::shared_ptr<Action> action = *iter;
+        for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
+            if (!socPerfConfig_.IsValidResId(action->variable[i])) {
+                continue;
+            }
+            auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
+            resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], 0,
+                actionType, onOff, actions->id, MAX_INT_VALUE);
+            resActionItem->resAction->interaction = false;
+            if (curItem) {
+                curItem->next = resActionItem;
+            } else {
+                header = resActionItem;
+            }
+            curItem = resActionItem;
+        }
+    }
+    DoFreqActionPack(header);
+}
+#endif
+
 void SocPerfThreadWrap::SendResStatus()
 {
     std::vector<int32_t> qosId;
@@ -274,6 +329,10 @@ void SocPerfThreadWrap::SendResStatus()
     }
     ReportToPerfSo(qosId, value, endTime);
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
+
+#ifdef SOCPERF_ADAPTOR_FFRT
+    WeakInteraction();
+#endif
 }
 
 void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
@@ -408,6 +467,9 @@ void SocPerfThreadWrap::UpdateResActionListByDelayedMsg(int32_t resId, int32_t t
         if (resAction == *iter) {
             resStatus->resActionList[type].erase(iter);
             UpdateCandidatesValue(resId, type);
+            if (resAction->interaction) {
+                boostResCnt--;
+            }
             break;
         }
     }
@@ -420,11 +482,17 @@ void SocPerfThreadWrap::HandleResAction(int32_t resId, int32_t type,
          iter != resStatus->resActionList[type].end(); ++iter) {
         if (resAction->TotalSame(*iter)) {
             resStatus->resActionList[type].erase(iter);
+            if (resAction->interaction) {
+                boostResCnt--;
+            }
             break;
         }
     }
     resStatus->resActionList[type].push_back(resAction);
     UpdateCandidatesValue(resId, type);
+    if (resAction->interaction) {
+        boostResCnt++;
+    }
 }
 
 void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t type,
@@ -442,6 +510,7 @@ void SocPerfThreadWrap::UpdateResActionListByInstantMsg(int32_t resId, int32_t t
                 if (resAction->PartSame(*iter) && (*iter)->onOff == EVENT_ON) {
                     resStatus->resActionList[type].erase(iter);
                     UpdateCandidatesValue(resId, type);
+                    boostResCnt = boostResCnt - (resAction->interaction ? 1 : 0);
                     break;
                 }
             }
