@@ -42,7 +42,6 @@ public:
     std::unordered_map<std::string, std::shared_ptr<SceneResNode>> sceneResourceInfo_;
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
-    bool isTraceDug = false;
     std::vector<std::shared_ptr<InterAction>> interAction_;
 
 private:
@@ -84,7 +83,6 @@ private:
     bool CheckActionResIdAndValueValid(const std::string& configFile);
     bool TraversalActions(std::shared_ptr<Action> action, int32_t actionId);
     bool CheckTrace(const char* trace);
-    void IsTeaceDug();
     bool LoadSceneResource(xmlNode* rootNode, const std::string& configFile);
     bool TraversalSceneResource(xmlNode* greatGrandson, const std::string& configFile,
         std::shared_ptr<SceneResNode> sceneResNode);
