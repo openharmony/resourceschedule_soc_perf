@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace SOCPERF {
+constexpr int32_t HIVIEW_UID = 1201;
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<SocPerfServer>::GetInstance().get());
 const int32_t ENG_MODE = OHOS::system::GetIntParameter("const.debuggable", 0);
@@ -164,6 +165,10 @@ ErrCode SocPerfServer::RequestDeviceMode(const std::string& mode, bool status)
 
 ErrCode SocPerfServer::RequestCmdIdCount(const std::string& msg, std::string& funcResult)
 {
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (ENG_MODE == 0 && callingUid != HIVIEW_UID) {
+        SOC_PERF_LOGE("not have right to do RequestCmdIdCount");
+    }
     if (!HasPerfPermission()) {
         return ERR_PERMISSION_DENIED;
     }
