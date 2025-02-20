@@ -19,6 +19,10 @@
 #include "socperf_log.h"
 #include "system_ability_definition.h"
 
+namespace {
+    OHOS::sptr<OHOS::SOCPERF::ISocPerf> client = nullptr;
+}
+
 namespace OHOS {
 namespace SOCPERF {
 const int32_t MAX_MODE_LEN = 64;

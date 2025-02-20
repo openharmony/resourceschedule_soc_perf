@@ -337,7 +337,7 @@ bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> act
         }
     }
     if (thermalLvl_ < actionConfig->thermalLvl_) {
-        SOC_PERF_LOGE("thermal level is too low to trigger perf request level");
+        SOC_PERF_LOGD("thermal level is too low to trigger perf request level");
         return false;
     }
 
