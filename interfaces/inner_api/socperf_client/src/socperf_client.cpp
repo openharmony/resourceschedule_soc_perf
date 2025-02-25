@@ -16,6 +16,7 @@
 #include "socperf_client.h"
 #include <unistd.h>              // for getpid, gettid
 #include "iservice_registry.h"
+#include "isoc_perf.h"  // for ISocPerf
 #include "socperf_log.h"
 #include "system_ability_definition.h"
 

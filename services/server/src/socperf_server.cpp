@@ -166,8 +166,9 @@ ErrCode SocPerfServer::RequestDeviceMode(const std::string& mode, bool status)
 ErrCode SocPerfServer::RequestCmdIdCount(const std::string& msg, std::string& funcResult)
 {
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    if (ENG_MODE == 0 && callingUid != HIVIEW_UID) {
+    if ((ENG_MODE == 0 && callingUid != HIVIEW_UID)) {
         SOC_PERF_LOGE("not have right to do RequestCmdIdCount");
+        return ERR_PERMISSION_DENIED;
     }
     if (!HasPerfPermission()) {
         return ERR_PERMISSION_DENIED;
