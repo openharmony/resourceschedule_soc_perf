@@ -46,6 +46,7 @@ ohos_fuzztest("LoadConfigXmlFileFuzzTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "eventhandler:libeventhandler",
   ]
 }
 
