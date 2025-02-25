@@ -79,6 +79,8 @@ ohos_shared_library("socperf_server") {
   asmflags = [ "-Wl,-z,relro,-z,now" ]
 
   cflags_cc = [ "-fstack-protector-strong" ]
+
+  versionscript = "libsocperf_server.versionscript"
 }
 
 ohos_static_library("socperf_server_static") {
