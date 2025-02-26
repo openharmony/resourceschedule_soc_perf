@@ -44,9 +44,9 @@ ohos_fuzztest("LoadConfigXmlFileFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "eventhandler:libeventhandler",
   ]
 }
 
