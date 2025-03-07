@@ -198,8 +198,10 @@ bool SocPerfServer::HasPerfPermission()
         SOC_PERF_LOGE("SocPerf: not have Permission");
         return false;
     }
+#ifdef RES_SCHED_SA_INIT
     int32_t clientPId = IPCSkeleton::GetCallingPid();
     ResourceSchedule::ResSchedIpcThread::GetInstance().SetQos(clientPId);
+#endif
     return true;
 }
 } // namespace SOCPERF
