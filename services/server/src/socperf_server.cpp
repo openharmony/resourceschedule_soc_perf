@@ -21,6 +21,9 @@
 #include "parameters.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
+#ifdef RES_SCHED_SA_INIT
+#include "res_sa_init.h"
+#endif
 
 namespace OHOS {
 namespace SOCPERF {
@@ -195,6 +198,8 @@ bool SocPerfServer::HasPerfPermission()
         SOC_PERF_LOGE("SocPerf: not have Permission");
         return false;
     }
+    int32_t clientPId = IPCSkeleton::GetCallingPid();
+    ResourceSchedule::ResSchedIpcThread::GetInstance().SetQos(clientPId);
     return true;
 }
 } // namespace SOCPERF
