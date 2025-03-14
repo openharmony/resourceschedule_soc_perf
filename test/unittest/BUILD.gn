@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("../../soc_perf.gni")
 
-module_output_path = "soc_perf/socperftest"
+module_output_path = "soc_perf/soc_perf"
 
 config("module_private_config") {
   visibility = [ ":*" ]
