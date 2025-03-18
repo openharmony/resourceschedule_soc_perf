@@ -96,6 +96,7 @@ bool SocPerf::CompleteEvent()
         socPerfConfig_.perfActionsInfo_.end() &&
         socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP) ==
         socPerfConfig_.perfActionsInfo_.end()) {
+        SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP);
         socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP] =
             socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN];
     }
@@ -104,6 +105,7 @@ bool SocPerf::CompleteEvent()
         socPerfConfig_.perfActionsInfo_.end() &&
         socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL) ==
         socPerfConfig_.perfActionsInfo_.end()) {
+        SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL);
         socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL] =
             socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_SLIDE];
     }
