@@ -69,6 +69,7 @@ private:
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
+    bool completeEvent();
     std::string MatchDeviceMode(const std::string& mode, bool status,
         const std::vector<std::shared_ptr<SceneItem>>& items);
 };
