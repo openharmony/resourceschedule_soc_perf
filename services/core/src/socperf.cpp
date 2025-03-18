@@ -28,6 +28,11 @@ namespace {
     const int32_t DEVICEMODE_PARAM_NUMBER = 2;
     const int32_t MODE_TYPE_INDEX = 0;
     const int32_t MODE_NAME_INDEX = 1;
+    const int32_t PERF_REQUEST_CMD_ID_EVENT_SLIDE           = 10008;
+    const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN      = 10010;
+    const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP        = 10040;
+    const int32_t PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL    = 10092;
+
 }
 SocPerf::SocPerf()
 {
@@ -51,6 +56,7 @@ bool SocPerf::Init()
     }
     InitThreadWraps();
     enabled_ = true;
+    CompleteEvent();
     return true;
 }
 
@@ -82,6 +88,26 @@ void SocPerf::InitThreadWraps()
     auto event = AppExecFwk::InnerEvent::Get(INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO);
     socperfThreadWrap_->SendEvent(event);
 #endif
+}
+
+bool SocPerf::CompleteEvent()
+{
+    if (socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN) !=
+        socPerfConfig_.perfActionsInfo_.end() &&
+        socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP) ==
+        socPerfConfig_.perfActionsInfo_.end()) {
+        socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP] =
+            socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN];
+    }
+
+    if (socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_SLIDE) !=
+        socPerfConfig_.perfActionsInfo_.end() &&
+        socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL) ==
+        socPerfConfig_.perfActionsInfo_.end()) {
+        socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL] =
+            socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_SLIDE];
+    }
+    return true;
 }
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
