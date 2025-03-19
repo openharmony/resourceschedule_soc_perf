@@ -28,10 +28,10 @@ namespace {
     const int32_t DEVICEMODE_PARAM_NUMBER = 2;
     const int32_t MODE_TYPE_INDEX = 0;
     const int32_t MODE_NAME_INDEX = 1;
-    const int32_t PERF_REQUEST_CMD_ID_EVENT_SLIDE           = 10008;
+    const int32_t PERF_REQUEST_CMD_ID_EVENT_FLING           = 10008;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN      = 10010;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP        = 10040;
-    const int32_t PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL    = 10092;
+    const int32_t PERF_REQUEST_CMD_ID_EVENT_DRAG            = 10092;
 
 }
 SocPerf::SocPerf()
@@ -101,13 +101,13 @@ bool SocPerf::CompleteEvent()
             socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN];
     }
 
-    if (socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_SLIDE) !=
+    if (socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_FLING) !=
         socPerfConfig_.perfActionsInfo_.end() &&
-        socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL) ==
+        socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_DRAG) ==
         socPerfConfig_.perfActionsInfo_.end()) {
-        SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL);
-        socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_SLIDE_NORMAL] =
-            socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_SLIDE];
+        SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_DRAG);
+        socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_DRAG] =
+            socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_FLING];
     }
     return true;
 }
