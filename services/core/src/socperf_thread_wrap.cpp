@@ -251,6 +251,7 @@ void SocPerfThreadWrap::SetWeakInteractionStatus(bool enable)
         SOCPERF_TRACE_BEGIN(trace_str);
         weakInteractionStatus_ = enable;
         WeakInteraction();
+        SOC_PERF_LOGI("SetWeakInteractionStatus is %{public}d.", enable);
         SOCPERF_TRACE_END();
     };
     socperfQueue_.submit(weakInteractionFunc);
