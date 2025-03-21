@@ -97,8 +97,7 @@ bool SocPerf::CompleteEvent()
         socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP) ==
         socPerfConfig_.perfActionsInfo_.end()) {
         SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP);
-        socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP] =
-            socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN];
+        CopyEvent(PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN, PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP);
     }
 
     if (socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_FLING) !=
@@ -106,10 +105,22 @@ bool SocPerf::CompleteEvent()
         socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_DRAG) ==
         socPerfConfig_.perfActionsInfo_.end()) {
         SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_DRAG);
-        socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_DRAG] =
-            socPerfConfig_.perfActionsInfo_[PERF_REQUEST_CMD_ID_EVENT_FLING];
+        CopyEvent(PERF_REQUEST_CMD_ID_EVENT_FLING, PERF_REQUEST_CMD_ID_EVENT_DRAG);
     }
     return true;
+}
+
+void SocPerf::CopyEvent(const int32_t oldCmdId, const int32_t newCmdId)
+{
+    std::shared_ptr<Actions> oldActions = socPerfConfig_.perfActionsInfo_[oldCmdId];
+    std::shared_ptr<Actions> newActions;
+    newActions->id = newCmdId;
+    newActions->name = oldActions->name;
+    newActions->actionList = oldActions->actionList;
+    newActions->modeMap = oldActions->modeMap;
+    newActions->isLongTimePerf = oldActions->isLongTimePerf;
+    newActions->interaction = oldActions->interaction;
+    socPerfConfig_.perfActionsInfo_[newCmdId] = newActions;
 }
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)

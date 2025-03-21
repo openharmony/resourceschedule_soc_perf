@@ -68,6 +68,7 @@ private:
         int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
+    void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
     bool CompleteEvent();
     std::string MatchDeviceMode(const std::string& mode, bool status,
