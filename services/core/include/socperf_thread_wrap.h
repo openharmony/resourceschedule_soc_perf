@@ -71,6 +71,7 @@ public:
     void UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId);
 #ifdef SOCPERF_ADAPTOR_FFRT
     void PostDelayTask(std::shared_ptr<ResActionItem> queueHead);
+    void SetWeakInteractionStatus(bool enable);
 #else
     void PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction);
 #endif
@@ -87,6 +88,7 @@ private:
 #endif
     bool powerLimitBoost_ = false;
     bool thermalLimitBoost_ = false;
+    bool weakInteractionStatus_ = true;
     int boostResCnt = 0;
 
 private:

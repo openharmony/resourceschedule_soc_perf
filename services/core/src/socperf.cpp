@@ -25,6 +25,8 @@ namespace {
     const int32_t CANCEL_CMDID_PREFIX = 100000;
     const std::string DEFAULT_MODE = "default";
     const std::string SPLIT_COLON = ":";
+    const std::string ACTION_MODE_STRING = "actionmode";
+    const std::string WEAK_ACTION_STRING = "weakaction";
     const int32_t DEVICEMODE_PARAM_NUMBER = 2;
     const int32_t MODE_TYPE_INDEX = 0;
     const int32_t MODE_NAME_INDEX = 1;
@@ -450,7 +452,12 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
 
     const std::string modeType = modeParamList[MODE_TYPE_INDEX];
     const std::string modeName = modeParamList[MODE_NAME_INDEX];
-
+#ifdef SOCPERF_ADAPTOR_FFRT
+    if (modeType == ACTION_MODE_STRING && modeName == WEAK_ACTION_STRING) {
+        socperfThreadWrap_->SetWeakInteractionStatus(status);
+        return;
+    }
+#endif
     auto iter = socPerfConfig_.sceneResourceInfo_.find(modeType);
     if (iter == socPerfConfig_.sceneResourceInfo_.end()) {
         SOC_PERF_LOGD("No matching device mode found.");
