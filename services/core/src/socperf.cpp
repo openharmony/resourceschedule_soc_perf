@@ -113,7 +113,7 @@ bool SocPerf::CompleteEvent()
 void SocPerf::CopyEvent(const int32_t oldCmdId, const int32_t newCmdId)
 {
     std::shared_ptr<Actions> oldActions = socPerfConfig_.perfActionsInfo_[oldCmdId];
-    std::shared_ptr<Actions> newActions;
+    std::shared_ptr<Actions> newActions = std::make_shared<Actions>(newCmdId, oldActions->name);
     newActions->id = newCmdId;
     newActions->name = oldActions->name;
     newActions->actionList = oldActions->actionList;
