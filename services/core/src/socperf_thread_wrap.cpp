@@ -243,24 +243,47 @@ void SocPerfThreadWrap::InitResStatus()
 }
 
 #ifdef SOCPERF_ADAPTOR_FFRT
+void SocPerfThreadWrap::SetWeakInteractionStatus(bool enable)
+{
+    std::function<void()>&& weakInteractionFunc = [this, enable]() {
+        std::string trace_str("SetWeakInteractionStatus");
+        trace_str.append("[").append(enable ? "true" : "false").append("]");
+        SOCPERF_TRACE_BEGIN(trace_str);
+        weakInteractionStatus_ = enable;
+        WeakInteraction();
+        SOCPERF_TRACE_END();
+    };
+    socperfQueue_.submit(weakInteractionFunc);
+}
+
 void SocPerfThreadWrap::WeakInteraction()
 {
     for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
         std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
-        if (boostResCnt == 0 && interAction->status == BOOST_STATUS) {
+        if (weakInteractionStatus_ && boostResCnt == 0 && interAction->status == BOOST_STATUS) {
             interAction->status = BOOST_END_STATUS;
             std::function<void()>&& updateLimitStatusFunc = [this, i]() {
                 socPerfConfig_.interAction_[i]->status = WEAK_INTERACTION_STATUS;
                 DoWeakInteraction(socPerfConfig_.perfActionsInfo_[socPerfConfig_.interAction_[i]->cmdId],
                     EVENT_ON, socPerfConfig_.interAction_[i]->actionType);
+                std::string trace_str("WeakInteraction");
+                trace_str.append(",cmdId[").append(std::to_string(socPerfConfig_.interAction_[i]->cmdId)).append("]");
+                trace_str.append(",onOff[").append(std::to_string(EVENT_ON)).append("]");
+                SOCPERF_TRACE_BEGIN(trace_str);
+                SOCPERF_TRACE_END();
             };
             ffrt::task_attr taskAttr;
             taskAttr.delay(interAction->delayTime * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
             interAction->timerTask = socperfQueue_.submit_h(updateLimitStatusFunc, taskAttr);
-        } else if (boostResCnt != 0 && interAction->status == WEAK_INTERACTION_STATUS) {
+        } else if ((!weakInteractionStatus_ || boostResCnt != 0) && interAction->status == WEAK_INTERACTION_STATUS) {
             interAction->status = BOOST_STATUS;
             DoWeakInteraction(socPerfConfig_.perfActionsInfo_[interAction->cmdId], EVENT_OFF, interAction->actionType);
-        } else if (boostResCnt != 0 && interAction->status == BOOST_END_STATUS) {
+            std::string trace_str("WeakInteraction");
+            trace_str.append(",cmdId[").append(std::to_string(interAction->cmdId)).append("]");
+            trace_str.append(",onOff[").append(std::to_string(EVENT_OFF)).append("]");
+            SOCPERF_TRACE_BEGIN(trace_str);
+            SOCPERF_TRACE_END();
+        } else if ((!weakInteractionStatus_ || boostResCnt != 0) && interAction->status == BOOST_END_STATUS) {
             interAction->status = BOOST_STATUS;
             if (interAction->timerTask != nullptr) {
                 socperfQueue_.cancel(interAction->timerTask);
