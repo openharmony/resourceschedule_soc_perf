@@ -314,44 +314,45 @@ void SocPerf::SetThermalLevel(int32_t level)
     socperfThreadWrap_->thermalLvl_ = level;
 }
 
-bool SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> action, int32_t onOff)
+std::shared_ptr<ResActionItem> SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> originAction,
+    int32_t onOff, std::shared_ptr<ResActionItem> curItem, int64_t endTime)
 {
+    if (curItem == nullptr) {
+        return curItem;
+    }
+
     if (socPerfConfig_.perfActionsInfo_[action->thermalCmdId_] == nullptr) {
         SOC_PERF_LOGE("cmd %{public}d is not exist", action->thermalCmdId_);
-        return false;
+        return curItem;
     }
-    // init DoFreqActions param
-    std::string thermalLvlTag = std::string("ThremalLvl_").append(std::to_string(action->thermalCmdId_))
-        .append("_").append(std::to_string(thermalLvl_));
-    std::shared_ptr<Actions> perfLvlActionCmd = std::make_shared<Actions>(cmdId, thermalLvlTag);
-    std::shared_ptr<Action> perfLvlAction = std::make_shared<Action>();
-    // perfrequest thermal level action's duration is same as trigger
-    perfLvlAction->duration = action->duration;
+
     std::shared_ptr<Actions> cmdConfig = socPerfConfig_.perfActionsInfo_[action->thermalCmdId_];
 
     // select the Nearest thermallevel action
-    std::shared_ptr<Action> actionConfig = *(cmdConfig->actionList.begin());
+    std::shared_ptr<Action> action = nullptr;
     for (auto iter = cmdConfig->actionList.begin(); iter != cmdConfig->actionList.end(); iter++) {
-        if (perfLvlAction->thermalLvl_ <= (*iter)->thermalLvl_ && (*iter)->thermalLvl_ <= thermalLvl_) {
-            actionConfig = *iter;
+        if ((*iter)->thermalLvl_ <= thermalLvl_) {
+            if (action == nullptr || action->thermalLvl_ <= (*iter)->thermalLvl_) {
+                action = *iter;
+            }
         }
     }
-    if (thermalLvl_ < actionConfig->thermalLvl_) {
-        SOC_PERF_LOGD("thermal level is too low to trigger perf request level");
-        return false;
+    if (action == nullptr) {
+        return curItem;
     }
 
-    // fill in the item of perfLvlAction
-    perfLvlAction->thermalLvl_ = actionConfig->thermalLvl_;
-    perfLvlAction->thermalCmdId_ = INVALID_THERMAL_CMD_ID;
-    for (uint32_t i = 0; i < actionConfig->variable.size(); i++) {
-        perfLvlAction->variable.push_back(actionConfig->variable[i]);
-    }
-    perfLvlActionCmd->actionList.push_back(perfLvlAction);
+    for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
+        if (!socPerfConfig_.IsValidResId(action->variable[i])) {
+            continue;
+        }
 
-    // send cmd to socperf server wrapper
-    DoFreqActions(perfLvlActionCmd, onOff, ACTION_TYPE_PERFLVL);
-    return true;
+        auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
+        resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], originAction->duration,
+            ACTION_TYPE_PERFLVL, onOff, cmdId, endTime);
+        curItem->next = resActionItem;
+        curItem = curItem->next;
+    }
+    return curItem;
 }
 
 void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType)
@@ -362,21 +363,16 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
     int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
         std::shared_ptr<Action> action = *iter;
-        // process thermal level
-        if (action->thermalCmdId_ != INVALID_THERMAL_CMD_ID && thermalLvl_ > MIN_THERMAL_LVL) {
-            DoPerfRequestThremalLvl(actions->id, action, onOff);
+        if (onOff == EVENT_INVALID && action->duration == 0) {
+            continue;
         }
+        int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
         for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
             if (!socPerfConfig_.IsValidResId(action->variable[i])) {
                 continue;
             }
 
-            if (onOff == EVENT_INVALID && action->duration == 0) {
-                continue;
-            }
-
             auto resActionItem = std::make_shared<ResActionItem>(action->variable[i]);
-            int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
             resActionItem->resAction = std::make_shared<ResAction>(action->variable[i + 1], action->duration,
                 actionType, onOff, actions->id, endTime);
             if (actions->interaction == false) {
@@ -388,6 +384,9 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
                 header = resActionItem;
             }
             curItem = resActionItem;
+        }
+        if (action->thermalCmdId_ != INVALID_THERMAL_CMD_ID && thermalLvl_ > MIN_THERMAL_LVL) {
+            curItem = DoPerfRequestThremalLvl(actions->id, action, onOff, curItem, endTime);
         }
     }
 #ifdef SOCPERF_ADAPTOR_FFRT
