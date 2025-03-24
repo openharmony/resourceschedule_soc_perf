@@ -43,6 +43,7 @@ public:
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
     std::vector<std::shared_ptr<InterAction>> interAction_;
+    int32_t minThermalLvl_ = INVALID_THERMAL_LVL;
 
 private:
     SocPerfConfig();
