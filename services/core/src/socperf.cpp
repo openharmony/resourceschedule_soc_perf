@@ -426,7 +426,7 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             }
             curItem = resActionItem;
         }
-        if (action->thermalCmdId_ != INVALID_THERMAL_CMD_ID && thermalLvl_ >= minThermalLvl_) {
+        if (action->thermalCmdId_ != INVALID_THERMAL_CMD_ID && thermalLvl_ >= socPerfConfig_.minThermalLvl_) {
             curItem = DoPerfRequestThremalLvl(actions->id, action, onOff, curItem, endTime);
         }
     }
