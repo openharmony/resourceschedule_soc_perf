@@ -716,9 +716,9 @@ bool SocPerfConfig::ParseResValue(xmlNode* greatGrandson, const std::string& con
     return true;
 }
 
-int32_t SocPerfConfig::GetXmlIntProp(const xmlNode* xmlNode, const char* propName) const
+int32_t SocPerfConfig::GetXmlIntProp(const xmlNode* xmlNode, const char* propName, int32_t def) const
 {
-    int ret = -1;
+    int ret = def;
     char* propValue = reinterpret_cast<char*>(xmlGetProp(xmlNode, reinterpret_cast<const xmlChar*>(propName)));
     if (propValue != nullptr && IsNumber(propValue)) {
         ret = atoi(propValue);
@@ -734,8 +734,13 @@ bool SocPerfConfig::TraversalBoostResource(xmlNode* grandson,
 {
     for (; grandson; grandson = grandson->next) { // Iterate all Action
         std::shared_ptr<Action> action = std::make_shared<Action>();
-        action->thermalLvl_ = GetXmlIntProp(grandson, "thermalLvl");
-        action->thermalCmdId_ = GetXmlIntProp(grandson, "thermalCmdId");
+        action->thermalLvl_ = GetXmlIntProp(grandson, "thermalLvl", INVALID_THERMAL_LVL);
+        if (action->thermalLvl_ != INVALID_THERMAL_LVL) {
+            if (minThermalLvl_ == INVALID_THERMAL_LVL || minThermalLvl_ < action->thermalLvl_) {
+                minThermalLvl_ = action->thermalLvl_;
+            }
+        }
+        action->thermalCmdId_ = GetXmlIntProp(grandson, "thermalCmdId", INVALID_THERMAL_CMD_ID);
         xmlNode* greatGrandson = grandson->children;
         for (; greatGrandson; greatGrandson = greatGrandson->next) { // Iterate duration and all res
             bool ret = ParseDuration(greatGrandson, configFile, action);

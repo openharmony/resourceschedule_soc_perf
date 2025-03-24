@@ -363,7 +363,7 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
     int64_t curMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
     for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
         std::shared_ptr<Action> action = *iter;
-        if (onOff == EVENT_INVALID && action->duration == 0) {
+        if (action->duration == 0 && onOff == EVENT_INVALID) {
             continue;
         }
         int64_t endTime = action->duration == 0 ? MAX_INT_VALUE : curMs + action->duration;
@@ -385,7 +385,7 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             }
             curItem = resActionItem;
         }
-        if (action->thermalCmdId_ != INVALID_THERMAL_CMD_ID && thermalLvl_ > MIN_THERMAL_LVL) {
+        if (action->thermalCmdId_ != INVALID_THERMAL_CMD_ID && thermalLvl_ >= minThermalLvl_) {
             curItem = DoPerfRequestThremalLvl(actions->id, action, onOff, curItem, endTime);
         }
     }
