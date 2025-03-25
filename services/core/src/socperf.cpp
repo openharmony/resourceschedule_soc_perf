@@ -321,12 +321,12 @@ std::shared_ptr<ResActionItem> SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, s
         return curItem;
     }
 
-    if (socPerfConfig_.perfActionsInfo_[action->thermalCmdId_] == nullptr) {
-        SOC_PERF_LOGE("cmd %{public}d is not exist", action->thermalCmdId_);
+    if (socPerfConfig_.perfActionsInfo_[originAction->thermalCmdId_] == nullptr) {
+        SOC_PERF_LOGE("cmd %{public}d is not exist", originAction->thermalCmdId_);
         return curItem;
     }
 
-    std::shared_ptr<Actions> cmdConfig = socPerfConfig_.perfActionsInfo_[action->thermalCmdId_];
+    std::shared_ptr<Actions> cmdConfig = socPerfConfig_.perfActionsInfo_[originAction->thermalCmdId_];
 
     // select the Nearest thermallevel action
     std::shared_ptr<Action> action = nullptr;

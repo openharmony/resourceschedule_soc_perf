@@ -76,7 +76,7 @@ public:
 #endif
     void ClearAllAliveRequest();
 public:
-    int32_t thermalLvl_ = INVALID_THERMAL_LVL;
+    int32_t thermalLvl_ = DEFAULT_THERMAL_LVL;
 
 private:
     static const int32_t SCALES_OF_MILLISECONDS_TO_MICROSECONDS = 1000;
