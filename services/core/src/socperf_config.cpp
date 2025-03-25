@@ -736,7 +736,7 @@ bool SocPerfConfig::TraversalBoostResource(xmlNode* grandson,
         std::shared_ptr<Action> action = std::make_shared<Action>();
         action->thermalLvl_ = GetXmlIntProp(grandson, "thermalLvl", INVALID_THERMAL_LVL);
         if (action->thermalLvl_ != INVALID_THERMAL_LVL) {
-            if (minThermalLvl_ == INVALID_THERMAL_LVL || minThermalLvl_ < action->thermalLvl_) {
+            if (minThermalLvl_ == INVALID_THERMAL_LVL || minThermalLvl_ > action->thermalLvl_) {
                 minThermalLvl_ = action->thermalLvl_;
             }
         }
