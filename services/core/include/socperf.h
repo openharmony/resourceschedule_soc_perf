@@ -47,7 +47,7 @@ private:
     std::vector<std::unordered_map<int32_t, int32_t>> limitRequest_ =
         std::vector<std::unordered_map<int32_t, int32_t>>(ACTION_TYPE_MAX);
     volatile bool perfRequestEnable_ = true;
-    int32_t thermalLvl_ = MIN_THERMAL_LVL;
+    int32_t thermalLvl_ = DEFAULT_THERMAL_LVL;
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
     std::unordered_map<int32_t, uint32_t> boostCmdCount_;
     std::unordered_map<int32_t, uint64_t> boostTime_;
@@ -59,7 +59,8 @@ private:
     bool CreateThreadWraps();
     void InitThreadWraps();
     void DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
-    bool DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> action, int32_t onOff);
+    std::shared_ptr<ResActionItem> DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> originAction,
+        int32_t onOff, std::shared_ptr<ResActionItem> curItem, int64_t endTime);
     void SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t resValue);
     int32_t MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff);
     void SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
