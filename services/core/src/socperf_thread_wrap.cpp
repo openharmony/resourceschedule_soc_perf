@@ -25,12 +25,8 @@
 
 namespace OHOS {
 namespace SOCPERF {
-#ifdef SOCPERF_ADAPTOR_FFRT
+
 SocPerfThreadWrap::SocPerfThreadWrap() : socperfQueue_("socperf", ffrt::queue_attr().qos(ffrt::qos_user_interactive))
-#else
-SocPerfThreadWrap::SocPerfThreadWrap(
-    const std::shared_ptr<AppExecFwk::EventRunner>& runner) : AppExecFwk::EventHandler(runner)
-#endif
 {
 }
 
@@ -38,53 +34,9 @@ SocPerfThreadWrap::~SocPerfThreadWrap()
 {
 }
 
-#ifndef SOCPERF_ADAPTOR_FFRT
-void SocPerfThreadWrap::ProcessEvent(const AppExecFwk::InnerEvent::Pointer &event)
-{
-    if (event == nullptr) {
-        return;
-    }
-    switch (event->GetInnerEventId()) {
-        case INNER_EVENT_ID_INIT_RESOURCE_NODE_INFO: {
-            InitResourceNodeInfo();
-            break;
-        }
-        case INNER_EVENT_ID_DO_FREQ_ACTION_PACK: {
-            DoFreqActionPack(event->GetSharedObject<ResActionItem>());
-            break;
-        }
-        case INNER_EVENT_ID_DO_FREQ_ACTION_DELAYED: {
-            PostDelayTask(event->GetParam(), event->GetSharedObject<ResAction>());
-            break;
-        }
-        case INNER_EVENT_ID_DO_FREQ_ACTION:
-        case INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL: {
-            UpdateLimitStatus(event->GetInnerEventId(), event->GetSharedObject<ResAction>(), event->GetParam());
-            break;
-        }
-        case INNER_EVENT_ID_POWER_LIMIT_BOOST_FREQ: {
-            UpdatePowerLimitBoostFreq(event->GetParam());
-            break;
-        }
-        case INNER_EVENT_ID_THERMAL_LIMIT_BOOST_FREQ: {
-            UpdateThermalLimitBoostFreq(event->GetParam());
-            break;
-        }
-        case INNER_EVENT_ID_CLEAR_ALL_ALIVE_REQUEST: {
-            ClearAllAliveRequest();
-            break;
-        }
-        default:
-            break;
-    }
-}
-#endif
-
 void SocPerfThreadWrap::InitResourceNodeInfo()
 {
-#ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& initResourceNodeInfoFunc = [this]() {
-#endif
         for (auto iter = socPerfConfig_.resourceNodeInfo_.begin();
             iter != socPerfConfig_.resourceNodeInfo_.end(); ++iter) {
             std::shared_ptr<ResourceNode> resourceNode = iter->second;
@@ -95,10 +47,8 @@ void SocPerfThreadWrap::InitResourceNodeInfo()
             resStatusInfo_.insert(std::pair<int32_t, std::shared_ptr<ResStatus>>(resourceNode->id, resStatus));
         }
         InitResStatus();
-#ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(initResourceNodeInfoFunc);
-#endif
 }
 
 void SocPerfThreadWrap::DoFreqActionPack(std::shared_ptr<ResActionItem> head)
@@ -106,9 +56,7 @@ void SocPerfThreadWrap::DoFreqActionPack(std::shared_ptr<ResActionItem> head)
     if (head == nullptr) {
         return;
     }
-#ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& doFreqActionPackFunc = [this, head]() {
-#endif
         std::shared_ptr<ResActionItem> queueHead = head;
         while (queueHead) {
             if (socPerfConfig_.IsValidResId(queueHead->resId)) {
@@ -117,17 +65,13 @@ void SocPerfThreadWrap::DoFreqActionPack(std::shared_ptr<ResActionItem> head)
             queueHead = queueHead->next;
         }
         SendResStatus();
-#ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(doFreqActionPackFunc);
-#endif
 }
 
 void SocPerfThreadWrap::UpdatePowerLimitBoostFreq(bool powerLimitBoost)
 {
-#ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& updatePowerLimitBoostFreqFunc = [this, powerLimitBoost]() {
-#endif
         this->powerLimitBoost_ = powerLimitBoost;
         for (auto iter = resStatusInfo_.begin(); iter != resStatusInfo_.end(); ++iter) {
             if (resStatusInfo_[iter->first] == nullptr) {
@@ -136,17 +80,13 @@ void SocPerfThreadWrap::UpdatePowerLimitBoostFreq(bool powerLimitBoost)
             ArbitrateCandidate(iter->first);
         }
         SendResStatus();
-#ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(updatePowerLimitBoostFreqFunc);
-#endif
 }
 
 void SocPerfThreadWrap::UpdateThermalLimitBoostFreq(bool thermalLimitBoost)
 {
-#ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& updateThermalLimitBoostFreqFunc = [this, thermalLimitBoost]() {
-#endif
         this->thermalLimitBoost_ = thermalLimitBoost;
         for (auto iter = resStatusInfo_.begin(); iter != resStatusInfo_.end(); ++iter) {
             if (resStatusInfo_[iter->first] == nullptr) {
@@ -155,10 +95,8 @@ void SocPerfThreadWrap::UpdateThermalLimitBoostFreq(bool thermalLimitBoost)
             ArbitrateCandidate(iter->first);
         }
         SendResStatus();
-#ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(updateThermalLimitBoostFreqFunc);
-#endif
 }
 
 void SocPerfThreadWrap::UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId)
@@ -166,9 +104,7 @@ void SocPerfThreadWrap::UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAc
     if (resAction == nullptr) {
         return;
     }
-#ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& updateLimitStatusFunc = [this, eventId, resId, resAction]() {
-#endif
         if (eventId == INNER_EVENT_ID_DO_FREQ_ACTION) {
             DoFreqAction(resId, resAction);
         } else if (eventId == INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL) {
@@ -182,30 +118,24 @@ void SocPerfThreadWrap::UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAc
                             "RES_ID", resId,
                             "CONFIG", resStatusInfo_[resId]->candidate);
         }
-#ifdef SOCPERF_ADAPTOR_FFRT
     };
     socperfQueue_.submit(updateLimitStatusFunc);
-#endif
 }
 
 void SocPerfThreadWrap::ClearAllAliveRequest()
 {
-#ifdef SOCPERF_ADAPTOR_FFRT
     std::function<void()>&& updateLimitStatusFunc = [this]() {
-#endif
-    for (const auto& item : this->resStatusInfo_) {
-        if (item.second == nullptr) {
-            continue;
+        for (const auto& item : this->resStatusInfo_) {
+            if (item.second == nullptr) {
+                continue;
+            }
+            std::list<std::shared_ptr<ResAction>>& resActionList = item.second->resActionList[ACTION_TYPE_PERF];
+            resActionList.clear();
+            UpdateCandidatesValue(item.first, ACTION_TYPE_PERF);
         }
-        std::list<std::shared_ptr<ResAction>>& resActionList = item.second->resActionList[ACTION_TYPE_PERF];
-        resActionList.clear();
-        UpdateCandidatesValue(item.first, ACTION_TYPE_PERF);
-    }
-    SendResStatus();
-#ifdef SOCPERF_ADAPTOR_FFRT
+        SendResStatus();
     };
     socperfQueue_.submit(updateLimitStatusFunc);
-#endif
 }
 
 void SocPerfThreadWrap::DoFreqAction(int32_t resId, std::shared_ptr<ResAction> resAction)
@@ -242,7 +172,6 @@ void SocPerfThreadWrap::InitResStatus()
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
 }
 
-#ifdef SOCPERF_ADAPTOR_FFRT
 void SocPerfThreadWrap::SetWeakInteractionStatus(bool enable)
 {
     std::function<void()>&& weakInteractionFunc = [this, enable]() {
@@ -318,7 +247,6 @@ void SocPerfThreadWrap::DoWeakInteraction(std::shared_ptr<Actions> actions, int3
     }
     DoFreqActionPack(header);
 }
-#endif
 
 void SocPerfThreadWrap::SendResStatus()
 {
@@ -354,9 +282,7 @@ void SocPerfThreadWrap::SendResStatus()
     ReportToPerfSo(qosId, value, endTime);
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
 
-#ifdef SOCPERF_ADAPTOR_FFRT
     WeakInteraction();
-#endif
 }
 
 void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
@@ -409,7 +335,6 @@ void SocPerfThreadWrap::DoFreqActionLevel(int32_t resId, std::shared_ptr<ResActi
     UpdateResActionList(realResId, resAction, false);
 }
 
-#ifdef SOCPERF_ADAPTOR_FFRT
 void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
 {
     if (queueHead == nullptr) {
@@ -437,16 +362,6 @@ void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
         socperfQueue_.submit(postDelayTaskFunc, taskAttr);
     }
 }
-#else
-void SocPerfThreadWrap::PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction)
-{
-    if (!socPerfConfig_.IsValidResId(resId) || resAction == nullptr) {
-        return;
-    }
-    UpdateResActionList(resId, resAction, true);
-    SendResStatus();
-}
-#endif
 
 bool SocPerfThreadWrap::GetResValueByLevel(int32_t resId, int32_t level, int64_t& resValue)
 {

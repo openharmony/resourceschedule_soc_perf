@@ -183,12 +183,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_001, Function | M
     socPerfServer_->SetRequestStatus(false, msg);
     socPerfServer_->socPerf.ClearAllAliveRequest();
     EXPECT_FALSE(socPerfServer_->socPerf.perfRequestEnable_);
-#ifdef SOCPERF_ADAPTOR_FFRT
     auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>();
-#else
-    auto runner = AppExecFwk::EventRunner::Create("socperf#");
-    auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>(runner);
-#endif
     socPerfThreadWrap->ClearAllAliveRequest();
     for (const std::pair<int32_t, std::shared_ptr<ResStatus>>& item : socPerfThreadWrap->resStatusInfo_) {
         if (item.second == nullptr) {
@@ -419,13 +414,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfParseModeCmd_001, Function 
 HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfThreadWrapp_001, Function | MediumTest | Level0)
 {
     std::string msg = "";
-#ifdef SOCPERF_ADAPTOR_FFRT
     auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>();
-#else
-    auto runner = AppExecFwk::EventRunner::Create("socperf#");
-    auto socPerfThreadWrap = std::make_shared<SocPerfThreadWrap>(runner);
-#endif
-    socPerfThreadWrap->PostDelayTask(1000, nullptr);
     socPerfThreadWrap->InitResourceNodeInfo();
     socPerfThreadWrap->socPerfConfig_.InitPerfFunc(nullptr, nullptr, nullptr);
     socPerfThreadWrap->socPerfConfig_.InitPerfFunc(nullptr, msg.c_str(), msg.c_str());

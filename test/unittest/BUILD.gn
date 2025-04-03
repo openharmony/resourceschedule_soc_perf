@@ -47,7 +47,6 @@ ohos_unittest("SocPerfServerTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -75,7 +74,6 @@ ohos_unittest("SocPerfSubTest") {
 
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
@@ -99,7 +97,6 @@ ohos_unittest("SocPerfSubMockTest") {
 
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
