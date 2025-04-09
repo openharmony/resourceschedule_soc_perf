@@ -16,12 +16,8 @@
 #ifndef SOC_PERF_SERVICES_CORE_INCLUDE_SOCPERF_THREAD_WRAP_H
 #define SOC_PERF_SERVICES_CORE_INCLUDE_SOCPERF_THREAD_WRAP_H
 
-#ifdef SOCPERF_ADAPTOR_FFRT
 #include "ffrt.h"
 #include "ffrt_inner.h"
-#else
-#include "event_handler.h"
-#endif
 #include "socperf_common.h"
 #include "socperf_config.h"
 namespace OHOS { namespace SOCPERF { class GovResNode; } }
@@ -52,29 +48,17 @@ namespace {
     const std::string VALUE_STRING = "value";
 }
 
-#ifdef SOCPERF_ADAPTOR_FFRT
 class SocPerfThreadWrap {
 public:
     explicit SocPerfThreadWrap();
     ~SocPerfThreadWrap();
-#else
-class SocPerfThreadWrap : public AppExecFwk::EventHandler {
-public:
-    explicit SocPerfThreadWrap(const std::shared_ptr<AppExecFwk::EventRunner>& runner);
-    ~SocPerfThreadWrap() override;
-    void ProcessEvent(const AppExecFwk::InnerEvent::Pointer& event) override;
-#endif
     void InitResourceNodeInfo();
     void DoFreqActionPack(std::shared_ptr<ResActionItem> head);
     void UpdatePowerLimitBoostFreq(bool powerLimitBoost);
     void UpdateThermalLimitBoostFreq(bool thermalLimitBoost);
     void UpdateLimitStatus(int32_t eventId, std::shared_ptr<ResAction> resAction, int32_t resId);
-#ifdef SOCPERF_ADAPTOR_FFRT
     void PostDelayTask(std::shared_ptr<ResActionItem> queueHead);
     void SetWeakInteractionStatus(bool enable);
-#else
-    void PostDelayTask(int32_t resId, std::shared_ptr<ResAction> resAction);
-#endif
     void ClearAllAliveRequest();
 public:
     int32_t thermalLvl_ = DEFAULT_THERMAL_LVL;
@@ -83,9 +67,7 @@ private:
     static const int32_t SCALES_OF_MILLISECONDS_TO_MICROSECONDS = 1000;
     std::unordered_map<int32_t, std::shared_ptr<ResStatus>> resStatusInfo_;
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
-#ifdef SOCPERF_ADAPTOR_FFRT
     ffrt::queue socperfQueue_;
-#endif
     bool powerLimitBoost_ = false;
     bool thermalLimitBoost_ = false;
     bool weakInteractionStatus_ = true;
@@ -115,10 +97,8 @@ private:
     void DoFreqActionLevel(int32_t resId, std::shared_ptr<ResAction> resAction);
     void HandleResAction(int32_t resId, int32_t type,
         std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus);
-#ifdef SOCPERF_ADAPTOR_FFRT
     void DoWeakInteraction(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
     void WeakInteraction();
-#endif
 };
 } // namespace SOCPERF
 } // namespace OHOS
