@@ -216,7 +216,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
     SOCPERF_TRACE_END();
 }
 
-std::string GetMsgInfo(const std::string& msg, const std::string& msgKey)
+std::string SocPerf::GetMsgInfo(const std::string& msg, const std::string& msgKey)
 {
     std::vector<std::string> msgList = Split(msg, SPLIT_OR);
     for (auto pairStr : msgList) {
