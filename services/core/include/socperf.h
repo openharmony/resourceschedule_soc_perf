@@ -48,6 +48,8 @@ private:
         std::vector<std::unordered_map<int32_t, int32_t>>(ACTION_TYPE_MAX);
     volatile bool perfRequestEnable_ = true;
     int32_t thermalLvl_ = MIN_THERMAL_LVL;
+    bool batteryLimitStatus_ = false;
+    bool powerLimitStatus_ = false;
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
     std::unordered_map<int32_t, uint32_t> boostCmdCount_;
     std::unordered_map<int32_t, uint64_t> boostTime_;
@@ -71,6 +73,7 @@ private:
     void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
     bool CompleteEvent();
+    std::string GetMsgInfo(const std::string& msg, const std::string& msgKey);
     std::string MatchDeviceMode(const std::string& mode, bool status,
         const std::vector<std::shared_ptr<SceneItem>>& items);
 };

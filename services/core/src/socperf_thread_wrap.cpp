@@ -372,6 +372,7 @@ void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<
             log.append(",[id:").append(std::to_string(qosId[i]));
             log.append(", value:").append(std::to_string(value[i])).append("]");
         }
+        SOC_PERF_LOGD("ReportToPerfSo is %{public}s.", log.c_str());
         SOCPERF_TRACE_BEGIN(log.c_str());
         SOCPERF_TRACE_END();
     }

@@ -25,11 +25,14 @@ namespace {
     const int32_t CANCEL_CMDID_PREFIX = 100000;
     const std::string DEFAULT_MODE = "default";
     const std::string SPLIT_COLON = ":";
+    const std::string SPLIT_OR = "|";
+    const std::string SPLIT_EQUAL = "=";
     const std::string ACTION_MODE_STRING = "actionmode";
     const std::string WEAK_ACTION_STRING = "weakaction";
     const int32_t DEVICEMODE_PARAM_NUMBER = 2;
     const int32_t MODE_TYPE_INDEX = 0;
     const int32_t MODE_NAME_INDEX = 1;
+    const int32_t BATTERY_LIMIT_CMD_ID = -2;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_FLING           = 10008;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN      = 10010;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP        = 10040;
@@ -188,8 +191,14 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
-    SOC_PERF_LOGI("onOffTag[%{public}d]msg[%{public}s]", onOffTag, msg.c_str());
+    if (GetMsgInfo(msg, "type") == "Low_battery_limit") {
+        batteryLimitStatus_ = onOffTag;
+    } else {
+        powerLimitStatus_ = onOffTag;
+    }
+    onOffTag = batteryLimitStatus_ || powerLimitStatus_;
 
+    SOC_PERF_LOGI("onOffTag[%{public}d]msg[%{public}s]", onOffTag, msg.c_str());
     std::string trace_str(__func__);
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
@@ -205,6 +214,21 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
                     "CLIENT_ID", ACTION_TYPE_POWER,
                     "ON_OFF_TAG", onOffTag);
     SOCPERF_TRACE_END();
+}
+
+std::string SocPerf::GetMsgInfo(const std::string& msg, const std::string& msgKey)
+{
+    std::vector<std::string> msgList = Split(msg, SPLIT_OR);
+    for (auto pairStr : msgList) {
+        std::vector<std::string> subMsg = Split(pairStr, SPLIT_EQUAL);
+        if (subMsg.size() != DEVICEMODE_PARAM_NUMBER) {
+            continue;
+        }
+        if (subMsg[MODE_TYPE_INDEX] == msgKey) {
+            return subMsg[MODE_NAME_INDEX];
+        }
+    }
+    return "";
 }
 
 void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
@@ -234,11 +258,17 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 void SocPerf::SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
     int32_t clientId, int32_t resId, int32_t eventId)
 {
+    int32_t cmdId = -1;
+    int32_t newClientId = clientId;
+    if (newClientId == (int32_t)ACTION_TYPE_BATTERY) {
+        cmdId = BATTERY_LIMIT_CMD_ID;
+        newClientId = (int32_t)ACTION_TYPE_POWER;
+    }
     auto iter = limitRequest_[clientId].find(resId);
     if (iter != limitRequest_[clientId].end()
         && limitRequest_[clientId][resId] != INVALID_VALUE) {
         auto resAction = std::make_shared<ResAction>(
-            limitRequest_[clientId][resId], 0, clientId, EVENT_OFF, -1, MAX_INT_VALUE);
+            limitRequest_[clientId][resId], 0, newClientId, EVENT_OFF, cmdId, MAX_INT_VALUE);
 #ifdef SOCPERF_ADAPTOR_FFRT
         threadWrap->UpdateLimitStatus(eventId, resAction, resId);
 #else
@@ -253,7 +283,13 @@ void SocPerf::SendLimitRequestEventOn(std::shared_ptr<SocPerfThreadWrap> threadW
     int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId)
 {
     if (resValue != INVALID_VALUE && resValue != RESET_VALUE) {
-        auto resAction = std::make_shared<ResAction>(resValue, 0, clientId, EVENT_ON, -1, MAX_INT_VALUE);
+        int32_t cmdId = -1;
+        int32_t newClientId = clientId;
+        if (newClientId == (int32_t)ACTION_TYPE_BATTERY) {
+            cmdId = BATTERY_LIMIT_CMD_ID;
+            newClientId = (int32_t)ACTION_TYPE_POWER;
+        }
+        auto resAction = std::make_shared<ResAction>(resValue, 0, newClientId, EVENT_ON, cmdId, MAX_INT_VALUE);
 #ifdef SOCPERF_ADAPTOR_FFRT
         threadWrap->UpdateLimitStatus(eventId, resAction, resId);
 #else
