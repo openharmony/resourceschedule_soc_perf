@@ -220,7 +220,7 @@ std::string SocPerf::GetMsgInfo(const std::string& msg, const std::string& msgKe
 {
     std::vector<std::string> msgList = Split(msg, SPLIT_OR);
     for (auto pairStr : msgList) {
-        std::vector<std::string> subMsg = Split(pairStr, SPLIT_OR);
+        std::vector<std::string> subMsg = Split(pairStr, SPLIT_EQUAL);
         if (subMsg.size() != DEVICEMODE_PARAM_NUMBER) {
             continue;
         }
