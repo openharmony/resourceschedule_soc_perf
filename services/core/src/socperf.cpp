@@ -25,6 +25,8 @@ namespace {
     const int32_t CANCEL_CMDID_PREFIX = 100000;
     const std::string DEFAULT_MODE = "default";
     const std::string SPLIT_COLON = ":";
+    const std::string SPLIT_OR = "|";
+    const std::string SPLIT_EQUAL = "=";
     const std::string ACTION_MODE_STRING = "actionmode";
     const std::string WEAK_ACTION_STRING = "weakaction";
     const int32_t DEVICEMODE_PARAM_NUMBER = 2;
@@ -189,7 +191,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
-    if (msg == "Low_battery_limit") {
+    if (GetMsgInfo(msg, "type") == "Low_battery_limit") {
         batteryLimitStatus_ = onOffTag;
     } else {
         powerLimitStatus_ = onOffTag;
@@ -212,6 +214,21 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
                     "CLIENT_ID", ACTION_TYPE_POWER,
                     "ON_OFF_TAG", onOffTag);
     SOCPERF_TRACE_END();
+}
+
+std::string GetMsgInfo(const std::string& msg, const std::string& msgKey)
+{
+    std::vector<std::string> msgList = Split(msg, SPLIT_OR);
+    for (auto pairStr : msgList) {
+        std::vector<std::string> subMsg = Split(pairStr, SPLIT_OR);
+        if (subMsg.size() != DEVICEMODE_PARAM_NUMBER) {
+            continue;
+        }
+        if (subMsg[MODE_TYPE_INDEX] == msgKey) {
+            return subMsg[MODE_NAME_INDEX];
+        }
+    }
+    return "";
 }
 
 void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)

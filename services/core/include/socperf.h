@@ -73,6 +73,7 @@ private:
     void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
     bool CompleteEvent();
+    std::string GetMsgInfo(const std::string& msg, const std::string& msgKey);
     std::string MatchDeviceMode(const std::string& mode, bool status,
         const std::vector<std::shared_ptr<SceneItem>>& items);
 };
