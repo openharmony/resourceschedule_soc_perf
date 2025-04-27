@@ -48,6 +48,8 @@ private:
         std::vector<std::unordered_map<int32_t, int32_t>>(ACTION_TYPE_MAX);
     volatile bool perfRequestEnable_ = true;
     int32_t thermalLvl_ = MIN_THERMAL_LVL;
+    bool batteryLimitStatus_ = false;
+    bool powerLimitStatus_ = false;
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
     std::unordered_map<int32_t, uint32_t> boostCmdCount_;
     std::unordered_map<int32_t, uint64_t> boostTime_;
