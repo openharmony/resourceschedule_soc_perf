@@ -65,7 +65,8 @@ const int32_t REPORT_TO_PERFSO                    = 1;
 const int32_t PERF_OPEN_TRACE                     = 1;
 const int32_t INVALID_THERMAL_CMD_ID              = -1;
 const int32_t INVALID_DURATION                    = -1;
-const int32_t MIN_THERMAL_LVL                     = -1;
+const int32_t INVALID_THERMAL_LVL                 = -1;
+const int32_t DEFAULT_THERMAL_LVL                 = 0;
 const int32_t RES_MODE_AND_ID_PAIR                = 2;
 const int32_t MAX_RES_MODE_LEN                    = 64;
 const int32_t MAX_FREQUE_NODE                     = 1;
@@ -149,7 +150,7 @@ public:
 class Action {
 public:
     int32_t thermalCmdId_ = INVALID_THERMAL_CMD_ID;
-    int32_t thermalLvl_ = MIN_THERMAL_LVL;
+    int32_t thermalLvl_ = INVALID_THERMAL_LVL;
     int32_t duration = INVALID_DURATION;
     std::vector<int64_t> variable;
 

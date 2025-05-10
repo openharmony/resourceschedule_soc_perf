@@ -388,6 +388,9 @@ void SocPerfThreadWrap::DoFreqActionLevel(int32_t resId, std::shared_ptr<ResActi
 #ifdef SOCPERF_ADAPTOR_FFRT
 void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
 {
+    if (queueHead == nullptr) {
+        return;
+    }
     std::unordered_map<int32_t, std::vector<std::shared_ptr<ResActionItem>>> resActionMap;
     std::shared_ptr<ResActionItem> head = queueHead;
     while (head) {

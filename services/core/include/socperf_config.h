@@ -43,6 +43,7 @@ public:
     std::mutex perfActionsMutex_;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
     std::vector<std::shared_ptr<InterAction>> interAction_;
+    int32_t minThermalLvl_ = INVALID_THERMAL_LVL;
 
 private:
     SocPerfConfig();
@@ -59,7 +60,7 @@ private:
     bool TraversalFreqResource(xmlNode* grandson, const std::string& configFile);
     bool LoadFreqResourceContent(int32_t persistMode, xmlNode* greatGrandson, const std::string& configFile,
         std::shared_ptr<ResNode> resNode);
-    int32_t GetXmlIntProp(const xmlNode* xmlNode, const char* propName) const;
+    int32_t GetXmlIntProp(const xmlNode* xmlNode, const char* propName, int32_t def) const;
     bool LoadGovResource(xmlNode* rootNode, const std::string& configFile);
     bool TraversalGovResource(int32_t persistMode, xmlNode* greatGrandson, const std::string& configFile,
         std::shared_ptr<GovResNode> govResNode);
