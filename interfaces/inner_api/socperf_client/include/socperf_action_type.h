@@ -25,6 +25,7 @@ enum ActionType : uint32_t {
     ACTION_TYPE_POWER,
     ACTION_TYPE_THERMAL,
     ACTION_TYPE_PERFLVL,
+    ACTION_TYPE_BATTERY,
     ACTION_TYPE_MAX
 };
 } // namespace SOCPERF
