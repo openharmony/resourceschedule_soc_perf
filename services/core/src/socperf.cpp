@@ -416,6 +416,10 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
 
 void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
 {
+    if (!enabled_) {
+        SOC_PERF_LOGE("SocPerf disabled!");
+        return;
+    }
     SOC_PERF_LOGD("device mode %{public}s status changed to %{public}d", mode.c_str(), status);
 
     if (mode.empty() || mode.length() > MAX_RES_MODE_LEN) {
