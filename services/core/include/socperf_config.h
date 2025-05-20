@@ -41,7 +41,7 @@ public:
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
     std::unordered_map<std::string, std::shared_ptr<SceneResNode>> sceneResourceInfo_;
     std::mutex perfActionsMutex_;
-    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
+    std::unordered_map<std::string, std::unordered_map<int32_t, std::shared_ptr<Actions>>> configPerfActionsInfo_;
     std::vector<std::shared_ptr<InterAction>> interAction_;
     int32_t minThermalLvl_ = INVALID_THERMAL_LVL;
 
@@ -89,7 +89,10 @@ private:
         std::shared_ptr<SceneResNode> sceneResNode);
     bool CheckSceneResourceTag(const char* name, const char* persistMode, const std::string& configFile) const;
     void LoadInterAction(xmlNode* child, const std::string& configFile);
-    bool LoadCmdInfo(const xmlNode* rootNode, const std::string& configFile);
+    bool LoadCmdInfo(const xmlNode* rootNode, const std::string& configFile, const std::string& configMode);
+    bool IsConfigTag(const xmlNode* rootNode);
+    bool LoadConfigInfo(const xmlNode* configNode, const std::string& configFile, const std::string& configMode);
+    std::string GetConfigMode(const xmlNode* node);
 };
 } // namespace SOCPERF
 } // namespace OHOS

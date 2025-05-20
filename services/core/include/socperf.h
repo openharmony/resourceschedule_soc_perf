@@ -60,7 +60,7 @@ private:
     std::mutex mutexBoostTime_;
     bool CreateThreadWraps();
     void InitThreadWraps();
-    void DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
+    void DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType, const std::string& modeName);
     std::shared_ptr<ResActionItem> DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> originAction,
         int32_t onOff, std::shared_ptr<ResActionItem> curItem, int64_t endTime);
     void SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t resValue);
@@ -71,9 +71,11 @@ private:
         int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
-    void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId);
+    void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId,
+        std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
     bool CompleteEvent();
+    std::string GetDeviceMode();
     std::string MatchDeviceMode(const std::string& mode, bool status,
         const std::vector<std::shared_ptr<SceneItem>>& items);
 };
