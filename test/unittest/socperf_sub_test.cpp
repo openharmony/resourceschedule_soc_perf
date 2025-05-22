@@ -95,7 +95,7 @@ HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_003, Function | MediumTest | 
  */
 HWTEST_F(SocPerfSubTest, SocPerfSubTest_ActionType_004, Function | MediumTest | Level0)
 {
-    EXPECT_EQ(OHOS::SOCPERF::ActionType::ACTION_TYPE_MAX, 4);
+    EXPECT_EQ(OHOS::SOCPERF::ActionType::ACTION_TYPE_MAX, 5);
 }
 
 /*
