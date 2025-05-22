@@ -232,8 +232,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
 {
     std::string modeStr = "displayMain";
     int32_t cmdTest = 10000;
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
         EXPECT_EQ(modeStr, "displayMain");
         return;
     }
@@ -257,8 +257,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
 
     // case : match cmdid is not exist branch
     int32_t cmdInvaild = 60000;
-    auto iter_invaild = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdInvaild);
-    if (iter_invaild != socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+    auto iter_invaild = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdInvaild);
+    if (iter_invaild != socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
         EXPECT_EQ(cmdInvaild, 60000);
     } else {
         auto iter_mode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
@@ -294,8 +294,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_002, Function | Me
     int32_t cmdTest = 10000;
     int32_t cmdMatch = 10001;
 
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
     }
@@ -304,8 +304,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_002, Function | Me
     std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeStr, cmdMatch);
     actions->modeMap.push_back(newMode);
 
-    auto it_match = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdMatch);
-    if (it_match == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+    auto it_match = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdMatch);
+    if (it_match == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
     }
@@ -328,8 +328,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_003, Function | Me
     std::string modeStr = "displayMainTest";
     int32_t cmdTest = 10002;
 
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
     }
@@ -361,8 +361,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfParseModeCmd_001, Function 
     int32_t exceptSame = 23456;
     std::string deviceMode = "parseTest";
 
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_.end()) {
+    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
+    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
         EXPECT_EQ(cmdTest, 10002);
         return;
     }
@@ -723,6 +723,19 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Functi
     socPerfThreadWrap->resStatusInfo_[litCpuMaxFreq]->candidatesValue[ACTION_TYPE_PERFLVL] = INVALID_VALUE;
     ret = socPerfThreadWrap->ArbitratePairResInPerfLvl(litCpuMinFreq);
     EXPECT_FALSE(ret);
+}
+
+/*
+ * @tc.name: SocPerfServerTest_SetThermalLevel_Server_005
+ * @tc.desc: perf request lvl server API
+ * @tc.type FUNC
+ * @tc.require: issue#I95U8S
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Function | MediumTest | Level0)
+{
+    bool ret = socPerfServer_->socPerf.socPerfConfig_.Init();
+    sleep(1);
+    EXPECT_TRUE(ret);
 }
 
 /*

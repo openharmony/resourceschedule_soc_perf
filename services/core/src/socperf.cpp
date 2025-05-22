@@ -30,6 +30,8 @@ namespace {
     const int32_t DEVICEMODE_PARAM_NUMBER = 2;
     const int32_t MODE_TYPE_INDEX = 0;
     const int32_t MODE_NAME_INDEX = 1;
+    const int32_t CONFIG_MIN_SIZE = 1;
+    const int32_t INVALIDE_CMD_ID = -1;
     const int32_t BATTERY_LIMIT_CMD_ID = -2;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_FLING           = 10008;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN      = 10010;
@@ -81,27 +83,21 @@ void SocPerf::InitThreadWraps()
 
 bool SocPerf::CompleteEvent()
 {
-    if (socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN) !=
-        socPerfConfig_.perfActionsInfo_.end() &&
-        socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP) ==
-        socPerfConfig_.perfActionsInfo_.end()) {
-        SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP);
-        CopyEvent(PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN, PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP);
-    }
-
-    if (socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_FLING) !=
-        socPerfConfig_.perfActionsInfo_.end() &&
-        socPerfConfig_.perfActionsInfo_.find(PERF_REQUEST_CMD_ID_EVENT_DRAG) ==
-        socPerfConfig_.perfActionsInfo_.end()) {
-        SOC_PERF_LOGI("complete event %{public}d", PERF_REQUEST_CMD_ID_EVENT_DRAG);
-        CopyEvent(PERF_REQUEST_CMD_ID_EVENT_FLING, PERF_REQUEST_CMD_ID_EVENT_DRAG);
-    }
+    std::unordered_map<int32_t, std::shared_ptr<Actions>>& perfActionsInfo =
+        socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
+    CopyEvent(PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN, PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP, perfActionsInfo);
+    CopyEvent(PERF_REQUEST_CMD_ID_EVENT_FLING, PERF_REQUEST_CMD_ID_EVENT_DRAG, perfActionsInfo);
     return true;
 }
 
-void SocPerf::CopyEvent(const int32_t oldCmdId, const int32_t newCmdId)
+void SocPerf::CopyEvent(const int32_t oldCmdId, const int32_t newCmdId,
+    std::unordered_map<int32_t, std::shared_ptr<Actions>>& perfActionsInfo)
 {
-    std::shared_ptr<Actions> oldActions = socPerfConfig_.perfActionsInfo_[oldCmdId];
+    if (perfActionsInfo.find(oldCmdId) == perfActionsInfo.end() &&
+        perfActionsInfo.find(newCmdId) != perfActionsInfo.end()) {
+        SOC_PERF_LOGI("Already have event %{public}d", newCmdId);
+    }
+    std::shared_ptr<Actions> oldActions = perfActionsInfo[oldCmdId];
     std::shared_ptr<Actions> newActions = std::make_shared<Actions>(newCmdId, oldActions->name);
     newActions->id = newCmdId;
     newActions->name = oldActions->name;
@@ -109,7 +105,9 @@ void SocPerf::CopyEvent(const int32_t oldCmdId, const int32_t newCmdId)
     newActions->modeMap = oldActions->modeMap;
     newActions->isLongTimePerf = oldActions->isLongTimePerf;
     newActions->interaction = oldActions->interaction;
-    socPerfConfig_.perfActionsInfo_[newCmdId] = newActions;
+    perfActionsInfo[newCmdId] = newActions;
+    socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE] = perfActionsInfo;
+    SOC_PERF_LOGI("Complete event %{public}d", oldCmdId);
 }
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
@@ -122,19 +120,19 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
         SOC_PERF_LOGD("cmdId %{public}d can not trigger, because time interval", cmdId);
         return;
     }
-    if (socPerfConfig_.perfActionsInfo_.find(cmdId) == socPerfConfig_.perfActionsInfo_.end()) {
+
+    int32_t matchCmdId = GetMatchCmdId(cmdId, false);
+    if (matchCmdId == INVALIDE_CMD_ID) {
         SOC_PERF_LOGD("Invalid PerfRequest cmdId[%{public}d]", cmdId);
         return;
     }
-
-    int32_t matchCmdId = MatchDeviceModeCmd(cmdId, false);
     SOC_PERF_LOGD("cmdId[%{public}d]matchCmdId[%{public}d]msg[%{public}s]", cmdId, matchCmdId, msg.c_str());
 
     std::string trace_str(__func__);
     trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     SOCPERF_TRACE_BEGIN(trace_str);
-    DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], EVENT_INVALID, ACTION_TYPE_PERF);
+    DoFreqActions(GetActionsInfo(matchCmdId), EVENT_INVALID, ACTION_TYPE_PERF);
     SOCPERF_TRACE_END();
     UpdateCmdIdCount(cmdId);
 }
@@ -145,15 +143,15 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
     }
-    if (socPerfConfig_.perfActionsInfo_.find(cmdId) == socPerfConfig_.perfActionsInfo_.end()) {
-        SOC_PERF_LOGD("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
-        return;
-    }
     if (!CheckTimeInterval(onOffTag, cmdId)) {
         SOC_PERF_LOGD("cmdId %{public}d can not trigger, because time interval", cmdId);
         return;
     }
-    int32_t matchCmdId = MatchDeviceModeCmd(cmdId, true);
+    int32_t matchCmdId = GetMatchCmdId(cmdId, true);
+    if (matchCmdId == INVALIDE_CMD_ID) {
+        SOC_PERF_LOGD("Invalid PerfRequestEx cmdId[%{public}d]", cmdId);
+        return;
+    }
     SOC_PERF_LOGD("cmdId[%{public}d]matchCmdId[%{public}d]onOffTag[%{public}d]msg[%{public}s]",
         cmdId, matchCmdId, onOffTag, msg.c_str());
 
@@ -162,7 +160,7 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     SOCPERF_TRACE_BEGIN(trace_str);
-    DoFreqActions(socPerfConfig_.perfActionsInfo_[matchCmdId], onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
+    DoFreqActions(GetActionsInfo(matchCmdId), onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
     SOCPERF_TRACE_END();
     if (onOffTag) {
         UpdateCmdIdCount(cmdId);
@@ -341,13 +339,11 @@ std::shared_ptr<ResActionItem> SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, s
     if (curItem == nullptr) {
         return curItem;
     }
-
-    if (socPerfConfig_.perfActionsInfo_[originAction->thermalCmdId_] == nullptr) {
+    std::shared_ptr<Actions> cmdConfig = GetActionsInfo(originAction->thermalCmdId_);
+    if (cmdConfig == nullptr) {
         SOC_PERF_LOGE("cmd %{public}d is not exist", originAction->thermalCmdId_);
         return curItem;
     }
-
-    std::shared_ptr<Actions> cmdConfig = socPerfConfig_.perfActionsInfo_[originAction->thermalCmdId_];
 
     // select the Nearest thermallevel action
     std::shared_ptr<Action> action = nullptr;
@@ -478,7 +474,9 @@ std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
 
 int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
 {
-    std::shared_ptr<Actions> actions = socPerfConfig_.perfActionsInfo_[cmdId];
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
+        socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
+    std::shared_ptr<Actions> actions = perfActionsInfo[cmdId];
     if (actions->modeMap.empty() || (isTagOnOff && actions->isLongTimePerf)) {
         return cmdId;
     }
@@ -492,11 +490,11 @@ int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
         auto deviceMode = recordDeviceMode_.find(iter->mode);
         if (deviceMode != recordDeviceMode_.end()) {
             int32_t deviceCmdId = iter->cmdId;
-            if (socPerfConfig_.perfActionsInfo_.find(deviceCmdId) == socPerfConfig_.perfActionsInfo_.end()) {
+            if (perfActionsInfo.find(deviceCmdId) == perfActionsInfo.end()) {
                 SOC_PERF_LOGW("Invaild actions cmdid %{public}d", deviceCmdId);
                 return cmdId;
             }
-            if (isTagOnOff && socPerfConfig_.perfActionsInfo_[deviceCmdId]->isLongTimePerf) {
+            if (isTagOnOff && perfActionsInfo[deviceCmdId]->isLongTimePerf) {
                 SOC_PERF_LOGD("long time perf not match cmdId %{public}d", deviceCmdId);
                 return cmdId;
             }
@@ -526,6 +524,47 @@ std::string SocPerf::RequestCmdIdCount(const std::string &msg)
         ret << pair.first << ":" << pair.second;
     }
     return ret.str();
+}
+
+std::string Socperf::GetDeviceMode()
+{
+    if (recordDeviceMode_.empty()) {
+        return DEFAULT_CONFIG_MODE;
+    }
+    return *recordDeviceMode_.begin();
+}
+
+int32_t Socperf::GetMatchCmdId(int32_t cmdId, bool isTagOnOff)
+{
+    int32_t matchCmdId = INVALIDE_CMD_ID;
+    std::string matchMode = GetDeviceMode();
+    if ((socPerfConfig_.configPerfActionsInfo_.find(matchMode) ==
+        socPerfConfig_.configPerfActionsInfo_.end() ||
+        socPerfConfig_.configPerfActionsInfo_[matchMode].find(cmdId) ==
+        socPerfConfig_.configPerfActionsInfo_[matchMode].end()) &&
+        socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdID) ==
+        socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
+        return matchCmdId;
+    }
+    matchCmdId = cmdId;
+    if (socPerfConfig_.configPerfActionsInfo_.size() == CONFIG_MIN_SIZE &&
+        socPerfConfig_.configPerfActionsInfo_.find(DEFAULT_CONFIG_MODE) !=
+        socPerfConfig_.configPerfActionsInfo_.end()) {
+        matchCmdId = MatchDeviceModeCmd(cmdId, isTagOnOff);
+    }
+    return matchCmdId;
+}
+
+std::shared_ptr<Actions> Socperf::GetActionsInfo(int32_t cmdId)
+{
+    std::string matchMode = GetDeviceMode();
+    if (socPerfConfig_.configPerfActionsInfo_.find(matchMode) ==
+        socPerfConfig_.configPerfActionsInfo_.end() ||
+        socPerfConfig_.configPerfActionsInfo_[matchMode].find(cmdId) ==
+        socPerfConfig_.configPerfActionsInfo_[matchMode].end()) {
+        return socPerfConfig_.configPerfActionsInfo_[matchMode][cmdId];
+    }
+    return socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE][cmdId];
 }
 
 bool SocPerf::CheckTimeInterval(bool onOff, int32_t cmdId)

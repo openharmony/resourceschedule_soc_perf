@@ -65,7 +65,7 @@ private:
     bool TraversalGovResource(int32_t persistMode, xmlNode* greatGrandson, const std::string& configFile,
         std::shared_ptr<GovResNode> govResNode);
     void LoadInfo(xmlNode* child, const std::string& configFile);
-    bool LoadCmd(const xmlNode* rootNode, const std::string& configFile);
+    bool LoadConfig(const xmlNode* rootNode, const std::string& configFile);
     bool TraversalBoostResource(xmlNode* grandson, const std::string& configFile, std::shared_ptr<Actions> actions);
     bool ParseDuration(xmlNode* greatGrandson, const std::string& configFile, std::shared_ptr<Action> action) const;
     bool ParseResValue(xmlNode* greatGrandson, const std::string& configFile, std::shared_ptr<Action> action);
