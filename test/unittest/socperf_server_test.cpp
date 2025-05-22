@@ -76,7 +76,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_Init_Config_001, Function | Medium
 HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfAPI_001, Function | MediumTest | Level0)
 {
     std::string msg = "testBoost";
-    socPerfServer_->socPerf.PerfRequest(10000, msg);
+    socPerfServer_->socPerf.PerfRequest(10010, msg);
     socPerfServer_->socPerf.PerfRequestEx(10000, true, msg);
     socPerfServer_->socPerf.PerfRequestEx(10000, false, msg);
     socPerfServer_->socPerf.PerfRequestEx(10028, true, msg);
@@ -112,7 +112,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfAPI_001, Function | MediumT
 HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_000, Function | MediumTest | Level0)
 {
     std::string msg = "testBoost";
-    socPerfServer_->PerfRequest(10000, msg);
+    socPerfServer_->PerfRequest(10010, msg);
     socPerfServer_->PerfRequestEx(10000, true, msg);
     socPerfServer_->PerfRequestEx(10000, false, msg);
     socPerfServer_->LimitRequest(ActionType::ACTION_TYPE_POWER, {1001}, {1364000}, msg);
@@ -153,11 +153,11 @@ HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | Med
     }
     ssfirst >> key >> colon >> value;
     myMap[key] = value;
-    firstCheckColdStartNum = myMap[10000];
+    firstCheckColdStartNum = myMap[10010];
 
     sleep(1);
     std::string msg = "testBoost";
-    socPerfServer_->PerfRequest(10000, msg);
+    socPerfServer_->PerfRequest(10010, msg);
 
     ret = socPerfServer_->socPerf.RequestCmdIdCount("");
     std::stringstream sssecond(ret);
@@ -166,7 +166,7 @@ HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | Med
     }
     sssecond >> key >> colon >> value;
     myMap[key] = value;
-    secondCheckColdStartNum = myMap[10000];
+    secondCheckColdStartNum = myMap[10010];
 
     EXPECT_TRUE(secondCheckColdStartNum == firstCheckColdStartNum + 1);
 }
