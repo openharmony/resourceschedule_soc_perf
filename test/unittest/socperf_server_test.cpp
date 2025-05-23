@@ -297,7 +297,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_002, Function | Me
     int32_t cmdMatch = 10001;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
         socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
-    auto it_actions = sperfActionsInfo.find(cmdTest);
+    auto it_actions = perfActionsInfo.find(cmdTest);
     if (it_actions == perfActionsInfo.end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
@@ -332,8 +332,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_003, Function | Me
     int32_t cmdTest = 10002;
     std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
         socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
-    auto it_actions = perfActionsInfo[DEFAULT_CONFIG_MODE].find(cmdTest);
-    if (it_actions == perfActionsInfo[DEFAULT_CONFIG_MODE].end()) {
+    auto it_actions = perfActionsInfo.find(cmdTest);
+    if (it_actions == perfActionsInfo.end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
     }
@@ -732,12 +732,12 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Functi
 }
 
 /*
- * @tc.name: SocPerfServerTest_SetThermalLevel_Server_005
+ * @tc.name: SocPerfServerTest_SetThermalLevel_Server_006
  * @tc.desc: perf request lvl server API
  * @tc.type FUNC
  * @tc.require: issue#I95U8S
  */
-HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_005, Function | MediumTest | Level0)
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_006, Function | MediumTest | Level0)
 {
     bool ret = socPerfServer_->socPerf.socPerfConfig_.Init();
     sleep(1);
