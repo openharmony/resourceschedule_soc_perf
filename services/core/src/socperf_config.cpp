@@ -583,13 +583,13 @@ bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& confi
     bool configTag = IsConfigTag(rootNode);
     xmlNode* configNode = rootNode->children;
     if (configTag) {
-        for (; configNode; configNode = configNode->next) { // Iterate all cmdID
-            if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Config"))) {
+        for (; configNode; configNode = configNode->next) { // Iterate all Config
+            if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("Config"))) {
                 std::string configMode = GetConfigMode(configNode);
                 if (configMode.empty()) {
                     configMode = DEFAULT_CONFIG_MODE;
                 }
-                if (!LoadConfigInfo(child, configFile, configMode)) {
+                if (!LoadConfigInfo(configNode, configFile, configMode)) {
                     return false;
                 }
             }
@@ -597,15 +597,6 @@ bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& confi
     } else {
         if (!LoadConfigInfo(rootNode, configFile, DEFAULT_CONFIG_MODE)) {
             return false;
-        }
-    }
-    for (; child; child = child->next) { // Iterate all cmdID
-        if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("cmd"))) {
-            if (!LoadCmdInfo(child, configFile)) {
-                return false;
-            }
-        } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("interaction"))) {
-            LoadInterAction(child, configFile);
         }
     }
 
@@ -618,11 +609,11 @@ bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& confi
 
 std::string SocPerfConfig::GetConfigMode(const xmlNode* node)
 {
-    const xmlNode* configModeXml = xmlGetProp(node, reinterpret_cast<const xmlChar*>("mode"));
+    const xmlChar* configModeXml = xmlGetProp(node, reinterpret_cast<const xmlChar*>("mode"));
     if (configModeXml == nullptr) {
         return "";
     }
-    char* configMode =  reinterpret_cast<char*>(reinterpret_cast<const xmlChar*>(configModeXml));
+    char* configMode =  reinterpret_cast<char*>(const_cast<const xmlChar*>(configModeXml));
     std::string configModeStr(configMode);
     xmlFree(configMode);
     return configModeStr;
@@ -645,7 +636,7 @@ bool SocPerfConfig::LoadConfigInfo(const xmlNode* configNode, const std::string&
     xmlNode* child = configNode->children;
     for (; child; child = child->next) { // Iterate all cmdID
         if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("cmd"))) {
-            if (!LoadCmdInfo(child, configFile)) {
+            if (!LoadCmdInfo(child, configFile, configMode)) {
                 return false;
             }
         } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("interaction"))) {
