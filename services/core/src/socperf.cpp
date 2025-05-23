@@ -462,7 +462,7 @@ std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
     std::string itemName = DEFAULT_MODE;
     for (const auto& iter : items) {
         if (iter->name == mode) {
-            IsExistElem(iter->name, true);
+            IsExistElem(mode, true);
             recordDeviceMode_.push_back(mode);
             if (iter->req == REPORT_TO_PERFSO) {
                 itemName = mode;
@@ -535,10 +535,10 @@ std::string SocPerf::GetDeviceMode()
     return *(recordDeviceMode_.end() - 1);
 }
 
-bool SocPerf::IsExistElem(std::string elem, bool deleteTag)
+bool SocPerf::IsExistMode(std::string& mode, bool deleteTag)
 {
     for (auto it = recordDeviceMode_.begin(); it != recordDeviceMode_.end();) {
-        if (*it == elem) {
+        if (*it == mode) {
             if (deleteTag) {
                 it = recordDeviceMode_.erase(it);
             }
