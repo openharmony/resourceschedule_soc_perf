@@ -216,7 +216,7 @@ void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfReportF
 
 bool SocPerfConfig::ParseBoostXmlFile(const xmlNode* rootNode, const std::string& realConfigFile, xmlDoc* file)
 {
-    if (!LoadCmd(rootNode, realConfigFile)) {
+    if (!LoadConfig(rootNode, realConfigFile)) {
         return false;
     }
     return true;
@@ -578,16 +578,25 @@ bool SocPerfConfig::TraversalGovResource(int32_t persistMode, xmlNode* greatGran
     return true;
 }
 
-bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFile)
+bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& configFile)
 {
-    xmlNode* child = rootNode->children;
-    for (; child; child = child->next) { // Iterate all cmdID
-        if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("cmd"))) {
-            if (!LoadCmdInfo(child, configFile)) {
-                return false;
+    bool configTag = IsConfigTag(rootNode);
+    xmlNode* configNode = rootNode->children;
+    if (configTag) {
+        for (; configNode; configNode = configNode->next) { // Iterate all Config
+            if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("Config"))) {
+                std::string configMode = GetConfigMode(configNode);
+                if (configMode.empty()) {
+                    configMode = DEFAULT_CONFIG_MODE;
+                }
+                if (!LoadConfigInfo(configNode, configFile, configMode)) {
+                    return false;
+                }
             }
-        } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("interaction"))) {
-            LoadInterAction(child, configFile);
+        }
+    } else {
+        if (!LoadConfigInfo(rootNode, configFile, DEFAULT_CONFIG_MODE)) {
+            return false;
         }
     }
 
@@ -598,7 +607,46 @@ bool SocPerfConfig::LoadCmd(const xmlNode* rootNode, const std::string& configFi
     return true;
 }
 
-bool SocPerfConfig::LoadCmdInfo(const xmlNode* child, const std::string& configFile)
+std::string SocPerfConfig::GetConfigMode(const xmlNode* node)
+{
+    const xmlChar* configModeXml = xmlGetProp(node, reinterpret_cast<const xmlChar*>("mode"));
+    if (configModeXml == nullptr) {
+        return "";
+    }
+    char* configMode =  reinterpret_cast<char*>(const_cast<xmlChar*>(configModeXml));
+    std::string configModeStr(configMode);
+    xmlFree(configMode);
+    return configModeStr;
+}
+
+bool SocPerfConfig::IsConfigTag(const xmlNode* rootNode)
+{
+    xmlNode* child = rootNode->children;
+    for(; child; child = child->next) {
+        if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Config"))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool SocPerfConfig::LoadConfigInfo(const xmlNode* configNode, const std::string& configFile,
+    const std::string& configMode)
+{
+    xmlNode* child = configNode->children;
+    for (; child; child = child->next) { // Iterate all cmdID
+        if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("cmd"))) {
+            if (!LoadCmdInfo(child, configFile, configMode)) {
+                return false;
+            }
+        } else if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("interaction"))) {
+            LoadInterAction(child, configFile);
+        }
+    }
+    return true;
+}
+
+bool SocPerfConfig::LoadCmdInfo(const xmlNode* child, const std::string& configFile, const std::string& configMode)
 {
     char* id = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("id")));
     char* name = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("name")));
@@ -608,8 +656,14 @@ bool SocPerfConfig::LoadCmdInfo(const xmlNode* child, const std::string& configF
         return false;
     }
 
-    auto it = perfActionsInfo_.find(atoi(id));
-    if (it != perfActionsInfo_.end()) {
+    auto config = configPerfActionsInfo_.find(configMode);
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo = {};
+    if (config != configPerfActionsInfo_.end()) {
+        perfActionsInfo = config->second;
+    }
+
+    auto it = perfActionsInfo.find(atoi(id));
+    if (it != perfActionsInfo.end()) {
         xmlFree(id);
         xmlFree(name);
         return true;
@@ -629,7 +683,7 @@ bool SocPerfConfig::LoadCmdInfo(const xmlNode* child, const std::string& configF
     }
 
     char* mode = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("mode")));
-    if (mode) {
+    if (mode && configMode == DEFAULT_CONFIG_MODE) {
         ParseModeCmd(mode, configFile, actions);
         xmlFree(mode);
     }
@@ -639,7 +693,8 @@ bool SocPerfConfig::LoadCmdInfo(const xmlNode* child, const std::string& configF
     }
 
     std::unique_lock<std::mutex> lockPerfActions(perfActionsMutex_);
-    perfActionsInfo_.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
+    perfActionsInfo.insert(std::pair<int32_t, std::shared_ptr<Actions>>(actions->id, actions));
+    configPerfActionsInfo_[configMode] = perfActionsInfo;
     lockPerfActions.unlock();
     return true;
 }
@@ -920,14 +975,17 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
 
 bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
 {
-    std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo = perfActionsInfo_;
-    for (auto actionsIter = actionsInfo.begin(); actionsIter != actionsInfo.end(); ++actionsIter) {
-        int32_t actionId = actionsIter->first;
-        std::shared_ptr<Actions> actions = actionsIter->second;
-        for (auto actionIter = actions->actionList.begin(); actionIter != actions->actionList.end(); ++actionIter) {
-            bool ret = TraversalActions(*actionIter, actionId);
-            if (!ret) {
-                return false;
+    std::unordered_map<std::string, std::unordered_map<int32_t, std::shared_ptr<Actions>>> configs = configPerfActionsInfo_;
+    for (auto configsIter = configs.begin(); configsIter != configs.end(); ++configsIter) {
+        std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo = configsIter->second;
+        for (auto actionsIter = actionsInfo.begin(); actionsIter != actionsInfo.end(); ++actionsIter) {
+            int32_t actionId = actionsIter->first;
+            std::shared_ptr<Actions> actions = actionsIter->second;
+            for (auto actionIter = actions->actionList.begin(); actionIter != actions->actionList.end(); ++actionIter) {
+                bool ret = TraversalActions(*actionIter, actionId);
+                if (!ret) {
+                    return false;
+                }
             }
         }
     }

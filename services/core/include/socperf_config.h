@@ -41,7 +41,7 @@ public:
     std::unordered_map<int32_t, std::shared_ptr<ResourceNode>> resourceNodeInfo_;
     std::unordered_map<std::string, std::shared_ptr<SceneResNode>> sceneResourceInfo_;
     std::mutex perfActionsMutex_;
-    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo_;
+    std::unordered_map<std::string, std::unordered_map<int32_t, std::shared_ptr<Actions>>> configPerfActionsInfo_;
     std::vector<std::shared_ptr<InterAction>> interAction_;
     int32_t minThermalLvl_ = INVALID_THERMAL_LVL;
 
@@ -65,7 +65,7 @@ private:
     bool TraversalGovResource(int32_t persistMode, xmlNode* greatGrandson, const std::string& configFile,
         std::shared_ptr<GovResNode> govResNode);
     void LoadInfo(xmlNode* child, const std::string& configFile);
-    bool LoadCmd(const xmlNode* rootNode, const std::string& configFile);
+    bool LoadConfig(const xmlNode* rootNode, const std::string& configFile);
     bool TraversalBoostResource(xmlNode* grandson, const std::string& configFile, std::shared_ptr<Actions> actions);
     bool ParseDuration(xmlNode* greatGrandson, const std::string& configFile, std::shared_ptr<Action> action) const;
     bool ParseResValue(xmlNode* greatGrandson, const std::string& configFile, std::shared_ptr<Action> action);
@@ -89,7 +89,10 @@ private:
         std::shared_ptr<SceneResNode> sceneResNode);
     bool CheckSceneResourceTag(const char* name, const char* persistMode, const std::string& configFile) const;
     void LoadInterAction(xmlNode* child, const std::string& configFile);
-    bool LoadCmdInfo(const xmlNode* rootNode, const std::string& configFile);
+    bool LoadCmdInfo(const xmlNode* rootNode, const std::string& configFile, const std::string& configMode);
+    bool IsConfigTag(const xmlNode* rootNode);
+    bool LoadConfigInfo(const xmlNode* configNode, const std::string& configFile, const std::string& configMode);
+    std::string GetConfigMode(const xmlNode* node);
 };
 } // namespace SOCPERF
 } // namespace OHOS

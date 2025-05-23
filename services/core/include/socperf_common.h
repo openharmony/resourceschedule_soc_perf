@@ -69,6 +69,7 @@ const int32_t MAX_RES_MODE_LEN                    = 64;
 const int32_t MAX_FREQUE_NODE                     = 1;
 const int32_t NODE_DEFAULT_VALUE                  = -1;
 const int32_t TYPE_TRACE_DEBUG                    = 3;
+const std::string DEFAULT_CONFIG_MODE             = "default";
 
 class ResourceNode {
 public:

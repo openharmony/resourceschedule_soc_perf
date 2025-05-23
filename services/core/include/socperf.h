@@ -71,11 +71,15 @@ private:
         int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
-    void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId);
+    void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId,
+        std::unordered_map<int32_t, std::shared_ptr<Actions>>& perfActionsInfo);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
     bool CompleteEvent();
+    std::string GetDeviceMode();
+    int32_t GetMatchCmdId(int32_t cmdId, bool isTagOnOff);
     std::string MatchDeviceMode(const std::string& mode, bool status,
         const std::vector<std::shared_ptr<SceneItem>>& items);
+    std::shared_ptr<Actions> GetActionsInfo(int32_t cmdId);
 };
 } // namespace SOCPERF
 } // namespace OHOS
