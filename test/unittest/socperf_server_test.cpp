@@ -232,12 +232,14 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
 {
     std::string modeStr = "displayMain";
     int32_t cmdTest = 10000;
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
+        socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
+    auto it_actions = perfActionsInfo.find(cmdTest);
+    if (it_actions == perfActionsInfo.end()) {
         EXPECT_EQ(modeStr, "displayMain");
         return;
     }
-    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
+    std::shared_ptr<Actions> actions = perfActionsInfo[cmdTest];
     if (actions->modeMap.empty()) {
         std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeStr, cmdTest);
         actions->modeMap.push_back(newMode);
@@ -257,8 +259,8 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchDeviceCmd_001, Functio
 
     // case : match cmdid is not exist branch
     int32_t cmdInvaild = 60000;
-    auto iter_invaild = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdInvaild);
-    if (iter_invaild != socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
+    auto iter_invaild = perfActionsInfo.find(cmdInvaild);
+    if (iter_invaild != perfActionsInfo.end()) {
         EXPECT_EQ(cmdInvaild, 60000);
     } else {
         auto iter_mode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
@@ -293,25 +295,26 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_002, Function | Me
     std::string modeStr = "displayMainTest";
     int32_t cmdTest = 10000;
     int32_t cmdMatch = 10001;
-
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
+        socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
+    auto it_actions = sperfActionsInfo.find(cmdTest);
+    if (it_actions == perfActionsInfo.end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
     }
-    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
+    std::shared_ptr<Actions> actions = perfActionsInfo[cmdTest];
     actions->isLongTimePerf = false;
     std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeStr, cmdMatch);
     actions->modeMap.push_back(newMode);
 
-    auto it_match = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdMatch);
-    if (it_match == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
+    auto it_match = perfActionsInfo.find(cmdMatch);
+    if (it_match == perfActionsInfo.end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
     }
 
     // case : match cmdid is long time perf branch
-    std::shared_ptr<Actions> actionsMatch = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdMatch];
+    std::shared_ptr<Actions> actionsMatch = perfActionsInfo[cmdMatch];
     actionsMatch->isLongTimePerf = true;
     int32_t retInvaild = socPerfServer_->socPerf.MatchDeviceModeCmd(cmdTest, true);
     EXPECT_EQ(retInvaild, cmdTest);
@@ -327,14 +330,15 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfMatchCmd_003, Function | Me
 {
     std::string modeStr = "displayMainTest";
     int32_t cmdTest = 10002;
-
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
+        socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
+    auto it_actions = perfActionsInfo[DEFAULT_CONFIG_MODE].find(cmdTest);
+    if (it_actions == perfActionsInfo[DEFAULT_CONFIG_MODE].end()) {
         EXPECT_EQ(modeStr, "displayMainTest");
         return;
     }
 
-    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
+    std::shared_ptr<Actions> actions = perfActionsInfo[cmdTest];
     std::shared_ptr<ModeMap> newMode = std::make_shared<ModeMap>(modeStr, cmdTest);
     actions->modeMap.push_back(newMode);
     socPerfServer_->socPerf.recordDeviceMode_.clear();
@@ -361,13 +365,15 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocperfParseModeCmd_001, Function 
     int32_t exceptSame = 23456;
     std::string deviceMode = "parseTest";
 
-    auto it_actions = socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].find(cmdTest);
-    if (it_actions == socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE].end()) {
+    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
+        socPerfServer_->socPerf.socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
+    auto it_actions = perfActionsInfo.find(cmdTest);
+    if (it_actions == perfActionsInfo.end()) {
         EXPECT_EQ(cmdTest, 10002);
         return;
     }
 
-    std::shared_ptr<Actions> actions = socPerfServer_->socPerf.socPerfConfig_.perfActionsInfo_[cmdTest];
+    std::shared_ptr<Actions> actions = perfActionsInfo[cmdTest];
     socPerfServer_->socPerf.socPerfConfig_.ParseModeCmd(modePairInvaild, cfgFile, actions);
     auto iter_mode = std::find_if(actions->modeMap.begin(), actions->modeMap.end(),
         [&deviceMode](const std::shared_ptr<ModeMap>& modeItem) {

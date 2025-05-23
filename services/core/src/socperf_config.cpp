@@ -613,7 +613,7 @@ std::string SocPerfConfig::GetConfigMode(const xmlNode* node)
     if (configModeXml == nullptr) {
         return "";
     }
-    char* configMode =  reinterpret_cast<char*>(const_cast<const xmlChar*>(configModeXml));
+    char* configMode =  reinterpret_cast<char*>(const_cast<xmlChar*>(configModeXml));
     std::string configModeStr(configMode);
     xmlFree(configMode);
     return configModeStr;
