@@ -79,6 +79,7 @@ private:
     std::string MatchDeviceMode(const std::string& mode, bool status,
         const std::vector<std::shared_ptr<SceneItem>>& items);
     std::shared_ptr<Actions> GetActionsInfo(int32_t cmdId);
+    bool IsExistElem(std::string elem, bool deleteTag);
 };
 } // namespace SOCPERF
 } // namespace OHOS

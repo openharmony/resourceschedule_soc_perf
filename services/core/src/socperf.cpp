@@ -455,20 +455,20 @@ std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
     std::lock_guard<std::mutex> lock(mutexDeviceMode_);
 
     if (!status) {
-        recordDeviceMode_.erase(mode);
+        IsExistElem(mode, true);
         return DEFAULT_MODE;
     }
 
     std::string itemName = DEFAULT_MODE;
     for (const auto& iter : items) {
         if (iter->name == mode) {
-            recordDeviceMode_.erase(mode);
-            recordDeviceMode_.insert(mode);
+            IsExistElem(iter->name, true);
+            recordDeviceMode_.push_back(mode);
             if (iter->req == REPORT_TO_PERFSO) {
                 itemName = mode;
             }
         } else {
-            recordDeviceMode_.erase(iter->name);
+            IsExistElem(iter->name, true);
         }
     }
     return itemName;
@@ -489,8 +489,7 @@ int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
     }
 
     for (const auto& iter : actions->modeMap) {
-        auto deviceMode = recordDeviceMode_.find(iter->mode);
-        if (deviceMode != recordDeviceMode_.end()) {
+        if (IsExistElem(iter->mode, false)) {
             int32_t deviceCmdId = iter->cmdId;
             if (perfActionsInfo.find(deviceCmdId) == perfActionsInfo.end()) {
                 SOC_PERF_LOGW("Invaild actions cmdid %{public}d", deviceCmdId);
@@ -534,6 +533,21 @@ std::string SocPerf::GetDeviceMode()
         return DEFAULT_CONFIG_MODE;
     }
     return *(recordDeviceMode_.end() - 1);
+}
+
+bool SocPerf::IsExistElem(std::string elem, bool deleteTag)
+{
+    for (auto it = recordDeviceMode_.begin(); it != recordDeviceMode_.end();) {
+        if (*it == elem) {
+            if (deleteTag) {
+                it = recordDeviceMode_.erase(it);
+            }
+            return true;
+        } else {
+            ++it;
+        }
+    }
+    return false;
 }
 
 int32_t SocPerf::GetMatchCmdId(int32_t cmdId, bool isTagOnOff)
