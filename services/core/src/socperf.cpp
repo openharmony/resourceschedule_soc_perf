@@ -462,6 +462,7 @@ std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
     std::string itemName = DEFAULT_MODE;
     for (const auto& iter : items) {
         if (iter->name == mode) {
+            recordDeviceMode_.erase(mode);
             recordDeviceMode_.insert(mode);
             if (iter->req == REPORT_TO_PERFSO) {
                 itemName = mode;
@@ -532,7 +533,7 @@ std::string SocPerf::GetDeviceMode()
     if (recordDeviceMode_.empty()) {
         return DEFAULT_CONFIG_MODE;
     }
-    return *recordDeviceMode_.begin();
+    return *(recordDeviceMode_.end() - 1);
 }
 
 int32_t SocPerf::GetMatchCmdId(int32_t cmdId, bool isTagOnOff)
