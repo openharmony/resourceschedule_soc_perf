@@ -223,6 +223,46 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_002, Function | M
 }
 
 /*
+ * @tc.name: SocPerfServerTest_SocPerfServerAPI_003
+ * @tc.desc: test socperf server api
+ * @tc.type FUNC
+ * @tc.require: issueI78T3V
+ */
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_003, Function | MediumTest | Level0)
+{
+    std::string msg = "test";
+    int firstCheckColdStartNum = 0;
+    int secondCheckColdStartNum = 0;
+    map<int, int> myMap;
+    char colon, comma;
+    int key, value;
+
+    std::string ret = socPerfServer_->RequestCmdIdCount(msg, "");
+    std::stringstream ssfirst(ret);
+    while (ssfirst >> key >> colon >> value >> comma) {
+        myMap[key] = value;
+    }
+    ssfirst >> key >> colon >> value;
+    myMap[key] = value;
+    firstCheckColdStartNum = myMap[10010];
+
+    sleep(1);
+    msg = "testBoost";
+    socPerfServer_->PerfRequest(10010, msg);
+
+    ret = socPerfServer_->RequestCmdIdCount(msg, "");
+    std::stringstream sssecond(ret);
+    while (sssecond >> key >> colon >> value >> comma) {
+        myMap[key] = value;
+    }
+    sssecond >> key >> colon >> value;
+    myMap[key] = value;
+    secondCheckColdStartNum = myMap[10010];
+
+    EXPECT_TRUE(secondCheckColdStartNum == firstCheckColdStartNum + 1);
+}
+
+/*
  * @tc.name: SocPerfServerTest_SocperfMatchCmd_001
  * @tc.desc: test socperf MatchDeviceModeCmd func
  * @tc.type FUNC
