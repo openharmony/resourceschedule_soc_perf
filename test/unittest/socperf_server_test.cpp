@@ -160,6 +160,8 @@ HWTEST_F(SocPerfServerTest, SocPerfSubTest_RequestCmdIdCount_001, Function | Med
     socPerfServer_->PerfRequest(10010, msg);
 
     ret = socPerfServer_->socPerf.RequestCmdIdCount("");
+
+    socPerfServer_->RequestCmdIdCount(msg, msg);
     std::stringstream sssecond(ret);
     while (sssecond >> key >> colon >> value >> comma) {
         myMap[key] = value;
