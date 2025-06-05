@@ -683,8 +683,10 @@ bool SocPerfConfig::LoadCmdInfo(const xmlNode* child, const std::string& configF
     }
 
     char* mode = reinterpret_cast<char*>(xmlGetProp(child, reinterpret_cast<const xmlChar*>("mode")));
-    if (mode && configMode == DEFAULT_CONFIG_MODE) {
-        ParseModeCmd(mode, configFile, actions);
+    if (mode) {
+        if (configMode == DEFAULT_CONFIG_MODE) {
+            ParseModeCmd(mode, configFile, actions);
+        }
         xmlFree(mode);
     }
 
