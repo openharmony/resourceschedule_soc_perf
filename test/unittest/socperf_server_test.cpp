@@ -22,6 +22,7 @@
 #include "isoc_perf.h"
 #include "socperf_server.h"
 #include "socperf.h"
+#include "socperf_hitrace_chain.h"
 
 using namespace testing::ext;
 using namespace testing::mt;
