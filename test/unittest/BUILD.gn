@@ -23,6 +23,7 @@ config("module_private_config") {
     "${socperf_common}/include",
     "${socperf_interfaces}/inner_api/socperf_client/include",
     "${socperf_services}/core/include",
+    "${socperf_services}/dfx/include",
     "${socperf_services}/server/include",
   ]
 }
@@ -35,7 +36,7 @@ ohos_unittest("SocPerfHitraceChainTest") {
 
   configs = [ ":module_private_config" ]
 
-  deps = [ "${socperf_interfaces}/inner_api/socperf_client:socperf_client" ]
+  deps = [ "${socperf_services}:socperf_server_static" ]
 
   external_deps = [
     "googletest:gtest_main",
@@ -73,6 +74,7 @@ ohos_unittest("SocPerfServerTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_single",
     "libxml2:libxml2",
     "safwk:system_ability_fwk",

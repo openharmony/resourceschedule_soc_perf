@@ -20,7 +20,6 @@
 #include "socperf_hitrace_chain.h"
 
 using namespace testing::ext;
-using namespace testing::mt;
 
 namespace OHOS {
 namespace SOCPERF {

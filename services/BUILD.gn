@@ -17,6 +17,7 @@ import("../soc_perf.gni")
 config("socperf_server_config") {
   include_dirs = [
     "core/include",
+    "dfx/include",
     "server/include",
     "${socperf_common}/include",
     "${socperf_interfaces}/inner_api/socperf_client/include",
