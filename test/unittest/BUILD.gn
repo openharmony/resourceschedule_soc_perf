@@ -39,9 +39,8 @@ ohos_unittest("SocPerfHitraceChainTest") {
   deps = [ "${socperf_services}:socperf_server_static" ]
 
   external_deps = [
-    "googletest:gtest_main",
-    "hilog:libhilog",
     "hitrace:libhitracechain",
+    "ipc:ipc_single",
   ]
 
   sanitize = {
