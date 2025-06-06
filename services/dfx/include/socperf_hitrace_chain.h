@@ -16,7 +16,7 @@
 #ifndef SOCPERF_HITRACE_CHAIN_H
 #define SOCPERF_HITRACE_CHAIN_H
 
-#include "hitracechain.h"
+#include "hitracechainc.h"
 
 namespace OHOS {
 namespace SOCPERF {
