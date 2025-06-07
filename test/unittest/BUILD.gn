@@ -23,8 +23,32 @@ config("module_private_config") {
     "${socperf_common}/include",
     "${socperf_interfaces}/inner_api/socperf_client/include",
     "${socperf_services}/core/include",
+    "${socperf_services}/dfx/include",
     "${socperf_services}/server/include",
   ]
+}
+
+
+ohos_unittest("SocPerfHitraceChainTest") {
+  module_out_path = module_output_path
+
+  sources = [ "dfx/socperf_hitrace_chain_test.cpp" ]
+
+  configs = [ ":module_private_config" ]
+
+  deps = [ "${socperf_services}:socperf_server_static" ]
+
+  external_deps = [
+    "hitrace:libhitracechain",
+    "ipc:ipc_single",
+  ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
 }
 
 ohos_unittest("SocPerfServerTest") {
@@ -49,6 +73,7 @@ ohos_unittest("SocPerfServerTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "hitrace:libhitracechain",
     "ipc:ipc_single",
     "libxml2:libxml2",
     "safwk:system_ability_fwk",
@@ -109,6 +134,7 @@ ohos_unittest("SocPerfSubMockTest") {
 group("unittest") {
   testonly = true
   deps = [
+    ":SocPerfHitraceChainTest",
     ":SocPerfServerTest",
     ":SocPerfSubMockTest",
     ":SocPerfSubTest",

@@ -17,6 +17,7 @@
 
 #include "parameters.h"
 #include "socperf_trace.h"
+#include "socperf_hitrace_chain.h"
 
 namespace OHOS {
 namespace SOCPERF {
@@ -113,6 +114,7 @@ void SocPerf::CopyEvent(const int32_t oldCmdId, const int32_t newCmdId,
 
 void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 {
+    SocPerfHiTraceChain traceChain(__func__);
     if (!enabled_ || !perfRequestEnable_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
@@ -140,6 +142,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
 
 void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
 {
+    SocPerfHiTraceChain traceChain(__func__);
     if (!enabled_ || !perfRequestEnable_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
@@ -170,6 +173,7 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
 
 void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
 {
+    SocPerfHiTraceChain traceChain(__func__);
     if (!enabled_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
@@ -196,6 +200,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
 
 void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
 {
+    SocPerfHiTraceChain traceChain(__func__);
     if (!enabled_) {
         SOC_PERF_LOGD("SocPerf disabled!");
         return;
@@ -275,6 +280,7 @@ void SocPerf::SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t res
 void SocPerf::LimitRequest(int32_t clientId,
     const std::vector<int32_t>& tags, const std::vector<int64_t>& configs, const std::string& msg)
 {
+    SocPerfHiTraceChain traceChain(__func__);
     if (!enabled_) {
         SOC_PERF_LOGE("SocPerf disabled!");
         return;
@@ -321,6 +327,7 @@ void SocPerf::ClearAllAliveRequest()
 
 void SocPerf::SetThermalLevel(int32_t level)
 {
+    SocPerfHiTraceChain traceChain(__func__);
     if (!enabled_) {
         SOC_PERF_LOGE("SocPerf disabled!");
         return;

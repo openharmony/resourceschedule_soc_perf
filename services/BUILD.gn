@@ -17,6 +17,7 @@ import("../soc_perf.gni")
 config("socperf_server_config") {
   include_dirs = [
     "core/include",
+    "dfx/include",
     "server/include",
     "${socperf_common}/include",
     "${socperf_interfaces}/inner_api/socperf_client/include",
@@ -30,6 +31,7 @@ ohos_shared_library("socperf_server") {
     "core/src/socperf.cpp",
     "core/src/socperf_config.cpp",
     "core/src/socperf_thread_wrap.cpp",
+    "dfx/src/socperf_hitrace_chain.cpp",
     "server/src/socperf_server.cpp",
   ]
 
@@ -43,6 +45,7 @@ ohos_shared_library("socperf_server") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "hitrace:libhitracechain",
     "init:libbegetutil",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
@@ -87,6 +90,7 @@ ohos_static_library("socperf_server_static") {
     "core/src/socperf.cpp",
     "core/src/socperf_config.cpp",
     "core/src/socperf_thread_wrap.cpp",
+    "dfx/src/socperf_hitrace_chain.cpp",
     "server/src/socperf_server.cpp",
   ]
 
@@ -100,6 +104,7 @@ ohos_static_library("socperf_server_static") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "hitrace:libhitracechain",
     "init:libbegetutil",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
