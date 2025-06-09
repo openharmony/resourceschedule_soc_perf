@@ -116,7 +116,7 @@ static void SetThermalLevel(int32_t argc, char *argv[])
 
 static void RequestDeviceMode(int32_t argc, char *argv[])
 {
-    if (argc == PARAMETERS_NUM_WITHOUT_EX) {
+    if (argc == PARAMETERS_NUM_WITH_EX) {
         std::string mode = argv[2];
         char* status = argv[3];
         if (strcmp(status, "true") == 0) {
