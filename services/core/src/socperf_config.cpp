@@ -583,7 +583,7 @@ bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& confi
     bool configTag = IsConfigTag(rootNode);
     xmlNode* configNode = rootNode->children;
     if (configTag) {
-        if (!LoadConfigDetail(configNode, configFile)) {
+        if (!HandleConfigNode(configNode, configFile)) {
             return false;
         }
     } else {
@@ -599,7 +599,7 @@ bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& confi
     return true;
 }
 
-bool SocPerfConfig::LoadConfigDetail(const xmlNode* configNode, const std::string& configFile)
+bool SocPerfConfig::HandleConfigNode(const xmlNode* configNode, const std::string& configFile)
 {
     for (; configNode; configNode = configNode->next) { // Iterate all Config
         if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("Config"))) {
@@ -989,14 +989,14 @@ bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
         configPerfActionsInfo_;
     for (auto configsIter = configs.begin(); configsIter != configs.end(); ++configsIter) {
         std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo = configsIter->second;
-        if (!CheckSubValueValid(actionsInfo)) {
+        if (!CheckActionsValid(actionsInfo)) {
             return false;
         }
     }
     return true;
 }
 
-bool SocPerfConfig::CheckSubValueValid(std::unordered_map<int32_t, std::shared_ptr<Actions>>& actionsInfo)
+bool SocPerfConfig::CheckActionsValid(std::unordered_map<int32_t, std::shared_ptr<Actions>>& actionsInfo)
 {
     for (auto actionsIter = actionsInfo.begin(); actionsIter != actionsInfo.end(); ++actionsIter) {
         int32_t actionId = actionsIter->first;
