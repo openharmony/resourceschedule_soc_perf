@@ -583,16 +583,8 @@ bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& confi
     bool configTag = IsConfigTag(rootNode);
     xmlNode* configNode = rootNode->children;
     if (configTag) {
-        for (; configNode; configNode = configNode->next) { // Iterate all Config
-            if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("Config"))) {
-                std::string configMode = GetConfigMode(configNode);
-                if (configMode.empty()) {
-                    configMode = DEFAULT_CONFIG_MODE;
-                }
-                if (!LoadConfigInfo(configNode, configFile, configMode)) {
-                    return false;
-                }
-            }
+        if (!LoadConfigDetail(configNode, configFile)) {
+            return false;
         }
     } else {
         if (!LoadConfigInfo(rootNode, configFile, DEFAULT_CONFIG_MODE)) {
@@ -604,6 +596,22 @@ bool SocPerfConfig::LoadConfig(const xmlNode* rootNode, const std::string& confi
         return false;
     }
 
+    return true;
+}
+
+bool SocPerfConfig::LoadConfigDetail(const xmlNode* configNode, const std::string& configFile)
+{
+    for (; configNode; configNode = configNode->next) { // Iterate all Config
+        if (!xmlStrcmp(configNode->name, reinterpret_cast<const xmlChar*>("Config"))) {
+            std::string configMode = GetConfigMode(configNode);
+            if (configMode.empty()) {
+                configMode = DEFAULT_CONFIG_MODE;
+            }
+            if (!LoadConfigInfo(configNode, configFile, configMode)) {
+                return false;
+            }
+        }
+    }
     return true;
 }
 
@@ -622,7 +630,7 @@ std::string SocPerfConfig::GetConfigMode(const xmlNode* node)
 bool SocPerfConfig::IsConfigTag(const xmlNode* rootNode)
 {
     xmlNode* child = rootNode->children;
-    for(; child; child = child->next) {
+    for (; child; child = child->next) {
         if (!xmlStrcmp(child->name, reinterpret_cast<const xmlChar*>("Config"))) {
             return true;
         }
@@ -977,17 +985,26 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
 
 bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
 {
-    std::unordered_map<std::string, std::unordered_map<int32_t, std::shared_ptr<Actions>>> configs = configPerfActionsInfo_;
+    std::unordered_map<std::string, std::unordered_map<int32_t, std::shared_ptr<Actions>>> configs =
+        configPerfActionsInfo_;
     for (auto configsIter = configs.begin(); configsIter != configs.end(); ++configsIter) {
         std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo = configsIter->second;
-        for (auto actionsIter = actionsInfo.begin(); actionsIter != actionsInfo.end(); ++actionsIter) {
-            int32_t actionId = actionsIter->first;
-            std::shared_ptr<Actions> actions = actionsIter->second;
-            for (auto actionIter = actions->actionList.begin(); actionIter != actions->actionList.end(); ++actionIter) {
-                bool ret = TraversalActions(*actionIter, actionId);
-                if (!ret) {
-                    return false;
-                }
+        if (!CheckSubValueValid(actionsInfo)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SocPerfConfig::CheckSubValueValid(std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo)
+{
+    for (auto actionsIter = actionsInfo.begin(); actionsIter != actionsInfo.end(); ++actionsIter) {
+        int32_t actionId = actionsIter->first;
+        std::shared_ptr<Actions> actions = actionsIter->second;
+        for (auto actionIter = actions->actionList.begin(); actionIter != actions->actionList.end(); ++actionIter) {
+            bool ret = TraversalActions(*actionIter, actionId);
+            if (!ret) {
+                return false;
             }
         }
     }
