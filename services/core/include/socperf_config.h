@@ -93,7 +93,7 @@ private:
     bool IsConfigTag(const xmlNode* rootNode);
     bool LoadConfigInfo(const xmlNode* configNode, const std::string& configFile, const std::string& configMode);
     bool LoadConfigDetail(const xmlNode* configNode, const std::string& configFile);
-    bool CheckSubValueValid(std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo);
+    bool CheckSubValueValid(std::unordered_map<int32_t, std::shared_ptr<Actions>>& actionsInfo);
     std::string GetConfigMode(const xmlNode* node);
 };
 } // namespace SOCPERF
