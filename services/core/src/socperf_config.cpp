@@ -985,8 +985,8 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
 
 bool SocPerfConfig::CheckActionResIdAndValueValid(const std::string& configFile)
 {
-    std::unordered_map<std::string, std::unordered_map<int32_t, std::shared_ptr<Actions>>> configs =
-        configPerfActionsInfo_;
+    std::unordered_map<std::string,
+        std::unordered_map<int32_t, std::shared_ptr<Actions>>> configs = configPerfActionsInfo_;
     for (auto configsIter = configs.begin(); configsIter != configs.end(); ++configsIter) {
         std::unordered_map<int32_t, std::shared_ptr<Actions>> actionsInfo = configsIter->second;
         if (!CheckActionsValid(actionsInfo)) {
