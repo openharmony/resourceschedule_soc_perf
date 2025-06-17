@@ -134,9 +134,9 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
     std::string trace_str(__func__);
     trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    SOCPERF_TRACE_BEGIN(trace_str);
+    StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
     DoFreqActions(GetActionsInfo(matchCmdId), EVENT_INVALID, ACTION_TYPE_PERF);
-    SOCPERF_TRACE_END();
+    FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     UpdateCmdIdCount(cmdId);
 }
 
@@ -163,9 +163,9 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
     trace_str.append(",cmdId[").append(std::to_string(matchCmdId)).append("]");
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    SOCPERF_TRACE_BEGIN(trace_str);
+    StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
     DoFreqActions(GetActionsInfo(matchCmdId), onOffTag ? EVENT_ON : EVENT_OFF, ACTION_TYPE_PERF);
-    SOCPERF_TRACE_END();
+    FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     if (onOffTag) {
         UpdateCmdIdCount(cmdId);
     }
@@ -189,13 +189,13 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
     std::string trace_str(__func__);
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    SOCPERF_TRACE_BEGIN(trace_str);
+    StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
     socperfThreadWrap_->UpdatePowerLimitBoostFreq(onOffTag);
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_POWER,
                     "ON_OFF_TAG", onOffTag);
-    SOCPERF_TRACE_END();
+    FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
 }
 
 void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
@@ -209,13 +209,13 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
     std::string trace_str(__func__);
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
-    SOCPERF_TRACE_BEGIN(trace_str);
+    StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
     socperfThreadWrap_->UpdateThermalLimitBoostFreq(onOffTag);
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_THERMAL,
                     "ON_OFF_TAG", onOffTag);
-    SOCPERF_TRACE_END();
+    FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
 }
 
 void SocPerf::SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
@@ -301,9 +301,9 @@ void SocPerf::LimitRequest(int32_t clientId,
         trace_str.append(",configs[").append(std::to_string(configs[i])).append("]");
         SendLimitRequestEvent(clientId, tags[i], configs[i]);
     }
-    SOCPERF_TRACE_BEGIN(trace_str);
+    StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
     SOC_PERF_LOGI("socperf limit %{public}s", trace_str.c_str());
-    SOCPERF_TRACE_END();
+    FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
 }
 
 void SocPerf::SetRequestStatus(bool status, const std::string& msg)
@@ -334,9 +334,9 @@ void SocPerf::SetThermalLevel(int32_t level)
     }
     std::string trace_str(__func__);
     trace_str.append(",level[").append(std::to_string(level)).append("]");
-    SOCPERF_TRACE_BEGIN(trace_str);
+    StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
     SOC_PERF_LOGI("ThermalLevel:%{public}d", level);
-    SOCPERF_TRACE_END();
+    FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     thermalLvl_ = level;
     socperfThreadWrap_->thermalLvl_ = level;
 }
