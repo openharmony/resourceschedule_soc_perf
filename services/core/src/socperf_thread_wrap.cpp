@@ -177,11 +177,11 @@ void SocPerfThreadWrap::SetWeakInteractionStatus(bool enable)
     std::function<void()>&& weakInteractionFunc = [this, enable]() {
         std::string trace_str("SetWeakInteractionStatus");
         trace_str.append("[").append(enable ? "true" : "false").append("]");
-        SOCPERF_TRACE_BEGIN(trace_str);
+        StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
         weakInteractionStatus_ = enable;
         WeakInteraction();
         SOC_PERF_LOGI("SetWeakInteractionStatus is %{public}d.", enable);
-        SOCPERF_TRACE_END();
+        FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     };
     socperfQueue_.submit(weakInteractionFunc);
 }
@@ -200,8 +200,8 @@ void SocPerfThreadWrap::WeakInteraction()
                 std::string trace_str("WeakInteraction");
                 trace_str.append(",cmdId[").append(std::to_string(socPerfConfig_.interAction_[i]->cmdId)).append("]");
                 trace_str.append(",onOff[").append(std::to_string(EVENT_ON)).append("]");
-                SOCPERF_TRACE_BEGIN(trace_str);
-                SOCPERF_TRACE_END();
+                StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
+                FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
             };
             ffrt::task_attr taskAttr;
             taskAttr.delay(interAction->delayTime * SCALES_OF_MILLISECONDS_TO_MICROSECONDS);
@@ -214,8 +214,8 @@ void SocPerfThreadWrap::WeakInteraction()
             std::string trace_str("WeakInteraction");
             trace_str.append(",cmdId[").append(std::to_string(interAction->cmdId)).append("]");
             trace_str.append(",onOff[").append(std::to_string(EVENT_OFF)).append("]");
-            SOCPERF_TRACE_BEGIN(trace_str);
-            SOCPERF_TRACE_END();
+            StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
+            FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
         } else if ((!weakInteractionStatus_ || boostResCnt != 0) && interAction->status == BOOST_END_STATUS) {
             interAction->status = BOOST_STATUS;
             if (interAction->timerTask != nullptr) {
@@ -277,7 +277,8 @@ void SocPerfThreadWrap::SendResStatus()
             resStatus->previousValue = resStatus->currentValue;
             resStatus->previousEndTime = resStatus->currentEndTime;
             if (socPerfConfig_.resourceNodeInfo_[resId]->trace) {
-                SOCPERF_TRACE_COUNTTRACE(socPerfConfig_.resourceNodeInfo_[resId]->name,
+                CountTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF,
+                    socPerfConfig_.resourceNodeInfo_[resId]->name.c_str(),
                     resStatus->currentValue == MAX_INT32_VALUE ? NODE_DEFAULT_VALUE : resStatus->currentValue);
             }
         }
@@ -301,8 +302,8 @@ void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<
             log.append(",[id:").append(std::to_string(qosId[i]));
             log.append(", value:").append(std::to_string(value[i])).append("]");
         }
-        SOCPERF_TRACE_BEGIN(log.c_str());
-        SOCPERF_TRACE_END();
+        StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, log.c_str());
+        FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     }
 }
 
@@ -320,8 +321,8 @@ void SocPerfThreadWrap::ReportToRssExe(std::vector<int32_t>& qosId, std::vector<
             log.append(",[id:").append(std::to_string(qosId[i]));
             log.append(", value:").append(std::to_string(value[i])).append("]");
         }
-        SOCPERF_TRACE_BEGIN(log.c_str());
-        SOCPERF_TRACE_END();
+        StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, log.c_str());
+        FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     }
 }
 

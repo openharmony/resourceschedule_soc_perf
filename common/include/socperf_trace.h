@@ -21,11 +21,7 @@
 
 namespace OHOS {
 namespace SOCPERF {
-#define HITRACE_TAG_SOCPERF (HITRACE_TAG_OHOS | HITRACE_TAG_APP)
-
-#define SOCPERF_TRACE_BEGIN(info) StartTrace(HITRACE_TAG_SOCPERF, info)
-#define SOCPERF_TRACE_END() FinishTrace(HITRACE_TAG_SOCPERF)
-#define SOCPERF_TRACE_COUNTTRACE(name, value) CountTrace(HITRACE_TAG_SOCPERF, name, value)
+constexpr uint64_t HITRACE_TAG_SOCPERF = HITRACE_TAG_OHOS | HITRACE_TAG_APP;
 } // namespace SOCPERF
 } // namespace OHOS
 
