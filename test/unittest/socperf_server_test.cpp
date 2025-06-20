@@ -222,6 +222,16 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SocPerfServerAPI_002, Function | M
     socPerfServer_->RequestDeviceMode(msgMax, true);
     auto iter4 = socPerfServer_->socPerf.recordDeviceMode_.find(msgMax);
     EXPECT_TRUE(iter4 == socPerfServer_->socPerf.recordDeviceMode_.end());
+
+    std::string msgWeakInteractionStatus = "actionmode:weakaction";
+    socPerfServer_->RequestDeviceMode(msgWeakInteractionStatus, true);
+    auto iter5 = socPerfServer_->socPerf.recordDeviceMode_.find(msgWeakInteractionStatus);
+    EXPECT_TRUE(iter5 == socPerfServer_->socPerf.recordDeviceMode_.end());
+
+    std::string msgWeakInteractionError = "actionmode:error";
+    socPerfServer_->RequestDeviceMode(msgWeakInteractionError, true);
+    auto iter6 = socPerfServer_->socPerf.recordDeviceMode_.find(msgWeakInteractionError);
+    EXPECT_TRUE(iter6 == socPerfServer_->socPerf.recordDeviceMode_.end());
 }
 
 /*

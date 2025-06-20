@@ -22,7 +22,6 @@ namespace OHOS {
 namespace SOCPERF {
 class SocPerfHiTraceChain {
 public:
-    SocPerfHiTraceChain(const bool isClearId, const char *name);
     explicit SocPerfHiTraceChain(const char *name, const int32_t flags = -1);
     ~SocPerfHiTraceChain();
 

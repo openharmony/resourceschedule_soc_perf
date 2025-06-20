@@ -23,15 +23,6 @@ constexpr int32_t DEFAULT_FLAGS = HiTraceFlag::HITRACE_FLAG_INCLUDE_ASYNC |
                                   HiTraceFlag::HITRACE_FLAG_NO_BE_INFO;
 }
 
-SocPerfHiTraceChain::SocPerfHiTraceChain(const bool isClearId, const char *name)
-{
-    if (isClearId) {
-        HiTraceChainClearId();
-        isBegin_ = true;
-        traceId_ = HiTraceChainBegin(name, DEFAULT_FLAGS);
-    }
-}
-
 SocPerfHiTraceChain::SocPerfHiTraceChain(const char *name, const int32_t flags)
 {
     HiTraceIdStruct currentId = HiTraceChainGetId();
