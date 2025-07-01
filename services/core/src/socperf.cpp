@@ -262,6 +262,7 @@ void SocPerf::SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t res
         realResId = resId - RES_ID_ADDITION;
         levelResId = resId;
         eventId = INNER_EVENT_ID_DO_FREQ_ACTION_LEVEL;
+        SOC_PERF_LOGI("SocPerf DO_FREQ_ACTION_LEVEL");
     } else {
         realResId = resId;
         levelResId = resId + RES_ID_ADDITION;
