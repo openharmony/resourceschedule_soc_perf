@@ -486,10 +486,17 @@ std::string SocPerf::MatchDeviceMode(const std::string& mode, bool status,
 
 int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
 {
-    std::unordered_map<int32_t, std::shared_ptr<Actions>> perfActionsInfo =
-        socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE];
-    std::shared_ptr<Actions> actions = perfActionsInfo[cmdId];
-    if (actions->modeMap.empty() || (isTagOnOff && actions->isLongTimePerf)) {
+    auto itrPerfActionsInfo = socPerfConfig_.configPerfActionsInfo_.find(DEFAULT_CONFIG_MODE);
+    if (itrPerfActionsInfo == socPerfConfig_.configPerfActionsInfo_.end()) {
+        return cmdId;
+    }
+
+    auto itrActions = itrPerfActionsInfo->second.find(cmdId);
+    if (itrActions == itrPerfActionsInfo->second.end()) {
+        return cmdId;
+    }
+
+    if (itrActions->second->modeMap.empty() || (isTagOnOff && itrActions->second->isLongTimePerf)) {
         return cmdId;
     }
 
@@ -498,15 +505,15 @@ int32_t SocPerf::MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff)
         return cmdId;
     }
 
-    for (const auto& iter : actions->modeMap) {
-        auto deviceMode = recordDeviceMode_.find(iter->mode);
-        if (deviceMode != recordDeviceMode_.end()) {
+    for (const auto& iter : itrActions->second->modeMap) {
+        if (recordDeviceMode_.find(iter->mode) != recordDeviceMode_.end()) {
             int32_t deviceCmdId = iter->cmdId;
-            if (perfActionsInfo.find(deviceCmdId) == perfActionsInfo.end()) {
+            auto itrDeviceCmdId = itrPerfActionsInfo->second.find(deviceCmdId);
+            if (itrDeviceCmdId == itrPerfActionsInfo->second.end()) {
                 SOC_PERF_LOGW("Invaild actions cmdid %{public}d", deviceCmdId);
                 return cmdId;
             }
-            if (isTagOnOff && perfActionsInfo[deviceCmdId]->isLongTimePerf) {
+            if (isTagOnOff && itrDeviceCmdId->second->isLongTimePerf) {
                 SOC_PERF_LOGD("long time perf not match cmdId %{public}d", deviceCmdId);
                 return cmdId;
             }
