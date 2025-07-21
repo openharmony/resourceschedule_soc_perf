@@ -198,7 +198,7 @@ bool SocPerfServer::HasPerfPermission()
         return hasPermission == 0;
     }
     hasPermission = AccessToken::AccessTokenKit::VerifyAccessToken(accessToken, NEEDED_PERMISSION);
-    permissionCache_.put(tokenId, hasPermission);
+    permissionCache_.put(accessToken, hasPermission);
     if (hasPermission != 0) {
         SOC_PERF_LOGE("SocPerf: not have Permission");
         return false;

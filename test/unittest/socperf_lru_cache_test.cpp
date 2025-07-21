@@ -22,6 +22,8 @@
 #include "gtest/gtest.h"
 #include "socperf_lru_cache.h"
 
+using namespace testing::ext;
+
 namespace OHOS {
 namespace SOCPERF {
 class SocPerfLRUCacheTest : public testing::Test {
@@ -41,7 +43,7 @@ void SocPerfLRUCacheTest::TearDownTestCase() {}
 void SocPerfLRUCacheTest::SetUp()
 {
     static const int maxSize = 2;
-    cache = new ResschedLRUCache<int, std::string>(maxSize);
+    cache = new SocPerfLRUCache<int, std::string>(maxSize);
 }
 
 void SocPerfLRUCacheTest::TearDown()
