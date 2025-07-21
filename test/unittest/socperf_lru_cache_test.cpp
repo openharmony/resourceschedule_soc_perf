@@ -43,7 +43,11 @@ void SocPerfLRUCacheTest::TearDownTestCase() {}
 void SocPerfLRUCacheTest::SetUp()
 {
     static const int maxSize = 2;
+<<<<<<< HEAD
     cache = new SocPerfLRUCache<int, std::string>(maxSize);
+=======
+    cache = new ResschedLRUCache<int, std::string>(maxSize);
+>>>>>>> fa2ffcf9601171a47c0f9f7b4b9b0f49318d5bdb
 }
 
 void SocPerfLRUCacheTest::TearDown()
