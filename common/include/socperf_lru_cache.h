@@ -30,7 +30,7 @@ private:
     std::list<std::pair<K, V>> lruList;
     std::unordered_map<K, typename std::list<std::pair<K, V>>::iterator> relationMap;
 public:
-    SocPerfLRUCache(size_t capacity = 50) : capacity_(capacity) {}
+    SocPerfLRUCache(size_t capacity = 32) : capacity_(capacity) {}
     bool get(const K& key, V& value)
     {
         if (relationMap.find(key) == relationMap.end()) {

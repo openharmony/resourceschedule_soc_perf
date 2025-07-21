@@ -17,8 +17,6 @@
 #ifndef LRU_CACHE_TEST
 #define LRU_CACHE_TEST
 
-#define private public
-
 #include "gtest/gtest.h"
 #include "socperf_lru_cache.h"
 
@@ -49,6 +47,7 @@ void SocPerfLRUCacheTest::SetUp()
 void SocPerfLRUCacheTest::TearDown()
 {
     delete cache;
+    cache = nullptr;
 }
 
 /**
