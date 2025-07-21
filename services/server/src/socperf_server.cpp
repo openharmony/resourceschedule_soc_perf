@@ -16,11 +16,9 @@
 #include "socperf_server.h"
 #include <file_ex.h>
 #include <string_ex.h>
-#include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
 #include "system_ability_definition.h"
-#include "tokenid_kit.h"
 #ifdef RES_SCHED_SA_INIT
 #include "res_sa_init.h"
 #endif
@@ -194,7 +192,13 @@ bool SocPerfServer::HasPerfPermission()
             return false;
         }
     }
-    int32_t hasPermission = Security::AccessToken::AccessTokenKit::VerifyAccessToken(accessToken, NEEDED_PERMISSION);
+    int32_t hasPermission = -1;
+    std::lock_guard<std::mutex> lock(permissionCacheMutex_);
+    if (permissionCache_.get(accessToken, hasPermission)) {
+        return hasPermission == 0;
+    }
+    hasPermission = AccessToken::AccessTokenKit::VerifyAccessToken(accessToken, NEEDED_PERMISSION);
+    permissionCache_.put(tokenId, hasPermission);
     if (hasPermission != 0) {
         SOC_PERF_LOGE("SocPerf: not have Permission");
         return false;
