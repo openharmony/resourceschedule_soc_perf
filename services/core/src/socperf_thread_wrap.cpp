@@ -230,6 +230,9 @@ void SocPerfThreadWrap::DoWeakInteraction(std::shared_ptr<Actions> actions, int3
 {
     std::shared_ptr<ResActionItem> header = nullptr;
     std::shared_ptr<ResActionItem> curItem = nullptr;
+    if (actions == nullptr) {
+        return;
+    }
     for (auto iter = actions->actionList.begin(); iter != actions->actionList.end(); iter++) {
         std::shared_ptr<Action> action = *iter;
         for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
