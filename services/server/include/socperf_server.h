@@ -20,9 +20,13 @@
 #include "soc_perf_stub.h"
 #include "socperf.h"
 #include "system_ability.h"
+#include "socperf_lru_cache.h"
+#include "tokenid_kit.h"
+#include "accesstoken_kit.h"
 
 namespace OHOS {
 namespace SOCPERF {
+    using namespace OHOS::Security;
 class SocPerfServer : public SystemAbility, public SocPerfStub,
     public std::enable_shared_from_this<SocPerfServer> {
 DISALLOW_COPY_AND_MOVE(SocPerfServer);
@@ -114,8 +118,10 @@ protected:
 
 private:
     SocPerf socPerf;
+    std::mutex permissionCacheMutex_;
     bool AllowDump();
     bool HasPerfPermission();
+    SocPerfLRUCache<AccessToken::AccessTokenID, int32_t> permissionCache_;
 };
 } // namespace SOCPERF
 } // namespace OHOS

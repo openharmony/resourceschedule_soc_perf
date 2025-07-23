@@ -131,9 +131,32 @@ ohos_unittest("SocPerfSubMockTest") {
   ]
 }
 
+ohos_unittest("LRUCache_test") {
+  module_out_path = module_output_path
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  include_dirs = [ "${socperf_common}/include" ]
+
+  sources = [ "socperf_lru_cache_test.cpp" ]
+
+  deps = []
+
+  external_deps = []
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+}
+
 group("unittest") {
   testonly = true
   deps = [
+    ":LRUCache_test",
     ":SocPerfHitraceChainTest",
     ":SocPerfServerTest",
     ":SocPerfSubMockTest",
