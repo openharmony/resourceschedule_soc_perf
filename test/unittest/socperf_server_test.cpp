@@ -60,7 +60,7 @@ void SocPerfServerTest::TearDown(void)
  * @tc.type FUNC
  * @tc.require: issueI78T3V
  */
-HWTEST_F(SocPerfServerTest, SocPerfServerTest_Init_Config_001, Function | MediumTest | Level0)
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_Init_Config_001, TestSize.Level0)
 {
     socPerfServer_->OnStart();
     sleep(1);
@@ -762,7 +762,7 @@ HWTEST_F(SocPerfServerTest, SocPerfServerTest_SetThermalLevel_Server_006, Functi
  * @tc.type FUNC
  * @tc.require: issue#I95U8S
  */
-HWTEST_F(SocPerfServerTest, SocPerfServerTest_End_001, Function | MediumTest | Level0)
+HWTEST_F(SocPerfServerTest, SocPerfServerTest_End_001, TestSize.Level0)
 {
     sleep(5);
     EXPECT_TRUE(socPerfServer_->socPerf.enabled_);
