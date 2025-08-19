@@ -20,6 +20,7 @@
 #include "parameters.h"
 #include "system_ability_definition.h"
 #ifdef RES_SCHED_SA_INIT
+#include "res_ipc_init.h"
 #include "res_sa_init.h"
 #endif
 
