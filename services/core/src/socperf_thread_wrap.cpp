@@ -157,6 +157,9 @@ void SocPerfThreadWrap::InitResStatus()
     for (auto iter = resStatusInfo_.begin(); iter != resStatusInfo_.end(); ++iter) {
         int32_t resId = iter->first;
         if (socPerfConfig_.resourceNodeInfo_.find(resId) != socPerfConfig_.resourceNodeInfo_.end()) {
+            if (socPerfConfig_.resourceNodeInfo_[resId] == nullptr) {
+                continue;
+            }
             if (socPerfConfig_.resourceNodeInfo_[resId]->persistMode == REPORT_TO_PERFSO) {
                 qosId.push_back(resId);
                 value.push_back(NODE_DEFAULT_VALUE);
@@ -268,6 +271,9 @@ void SocPerfThreadWrap::SendResStatus()
         if (socPerfConfig_.resourceNodeInfo_.find(resId) != socPerfConfig_.resourceNodeInfo_.end() &&
             (resStatus->previousValue != resStatus->currentValue ||
             resStatus->previousEndTime != resStatus->currentEndTime)) {
+            if (socPerfConfig_.resourceNodeInfo_[resId] == nullptr) {
+                continue;
+            }
             if (socPerfConfig_.resourceNodeInfo_[resId]->persistMode == REPORT_TO_PERFSO) {
                 qosId.push_back(resId);
                 value.push_back(resStatus->currentValue);
@@ -373,6 +379,7 @@ void SocPerfThreadWrap::PostDelayTask(std::shared_ptr<ResActionItem> queueHead)
 bool SocPerfThreadWrap::GetResValueByLevel(int32_t resId, int32_t level, int64_t& resValue)
 {
     if (socPerfConfig_.resourceNodeInfo_.find(resId) == socPerfConfig_.resourceNodeInfo_.end()
+        || socPerfConfig_.resourceNodeInfo_[resId] == nullptr
         || socPerfConfig_.resourceNodeInfo_[resId]->available.empty()) {
         SOC_PERF_LOGE("resId[%{public}d] is not valid.", resId);
         return false;
@@ -568,7 +575,8 @@ bool SocPerfThreadWrap::ArbitratePairResInPerfLvl(int32_t resId)
     }
     // if resource self and resource's pair both not have perflvl value
     if (resStatus->candidatesValue[ACTION_TYPE_PERFLVL] == INVALID_VALUE && (pairResId != INVALID_VALUE &&
-        resStatusInfo_[pairResId]->candidatesValue[ACTION_TYPE_PERFLVL] == INVALID_VALUE)) {
+        (resStatusInfo_[pairResId] == nullptr ||
+        resStatusInfo_[pairResId]->candidatesValue[ACTION_TYPE_PERFLVL] == INVALID_VALUE))) {
         return false;
     }
     // if this resource has PerfRequestLvl value, the final arbitrate value change to PerfRequestLvl value
@@ -594,6 +602,9 @@ bool SocPerfThreadWrap::ArbitratePairResInPerfLvl(int32_t resId)
 void SocPerfThreadWrap::ArbitratePairRes(int32_t resId, bool perfRequestLimit)
 {
     bool limit = powerLimitBoost_ || thermalLimitBoost_ || perfRequestLimit;
+    if (resStatusInfo_[resId] == nullptr) {
+        return;
+    }
     if (socPerfConfig_.IsGovResId(resId)) {
         UpdateCurrentValue(resId, resStatusInfo_[resId]->candidate);
         return;
@@ -604,6 +615,9 @@ void SocPerfThreadWrap::ArbitratePairRes(int32_t resId, bool perfRequestLimit)
         return;
     }
 
+    if (resStatusInfo_[pairResId] == nullptr) {
+        return;
+    }
     if (resStatusInfo_[pairResId]->candidate == NODE_DEFAULT_VALUE ||
         resStatusInfo_[resId]->candidate == NODE_DEFAULT_VALUE) {
         UpdatePairResValue(resId, resStatusInfo_[resId]->candidate, pairResId, resStatusInfo_[pairResId]->candidate);
@@ -648,6 +662,9 @@ void SocPerfThreadWrap::UpdatePairResValue(int32_t minResId, int64_t minResValue
 
 void SocPerfThreadWrap::UpdateCurrentValue(int32_t resId, int64_t currValue)
 {
+    if (resStatusInfo_[resId] == nullptr) {
+        return;
+    }
     resStatusInfo_[resId]->currentValue = currValue;
 }
 

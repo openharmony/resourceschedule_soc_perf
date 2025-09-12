@@ -967,7 +967,7 @@ bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t act
     for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
         int32_t resId = action->variable[i];
         int64_t resValue = action->variable[i + 1];
-        if (resourceNodeInfo_.find(resId) != resourceNodeInfo_.end()) {
+        if (resourceNodeInfo_.find(resId) != resourceNodeInfo_.end() && resourceNodeInfo_[resId] != nullptr) {
             if (resourceNodeInfo_[resId]->persistMode != REPORT_TO_PERFSO &&
                 !resourceNodeInfo_[resId]->available.empty() &&
                 resourceNodeInfo_[resId]->available.find(resValue) == resourceNodeInfo_[resId]->available.end()) {
