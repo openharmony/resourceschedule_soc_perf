@@ -464,14 +464,17 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
     auto iter = socPerfConfig_.sceneResourceInfo_.find(modeType);
     if (iter == socPerfConfig_.sceneResourceInfo_.end()) {
         SOC_PERF_LOGD("No matching device mode found.");
+        lockSceneResource.unlock();
         return;
     }
+    lockSceneResource.unlock();
 
     const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
     const std::vector<std::shared_ptr<SceneItem>> items = sceneResNode->items;
     const int32_t persistMode = sceneResNode->persistMode;
 
     const std::string modeStr = MatchDeviceMode(modeName, status, items);
+    std::lock_guard<std::mutex> scenarioFuncLock(socPerfConfig_.scenarioFuncMutex_);
     if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
         const std::string msgStr = modeType + ":" + modeStr;
         SOC_PERF_LOGD("send deviceMode to PerfScenario : %{public}s", msgStr.c_str());
