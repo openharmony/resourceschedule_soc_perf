@@ -29,12 +29,14 @@ using PerfScenarioFunc = int (*)(const std::string& msgStr);
 class SocPerfConfig {
 public:
     bool Init();
-    bool IsGovResId(int32_t resId) const;
-    bool IsValidResId(int32_t resId) const;
+    bool IsGovResId(int32_t resId);
+    bool IsValidResId(int32_t resId);
     static SocPerfConfig& GetInstance();
 
 public:
+    std::mutex reportFuncMutex_;
     ReportDataFunc reportFunc_ = nullptr;
+    std::mutex scenarioFuncMutex_;
     PerfScenarioFunc scenarioFunc_ = nullptr;
     std::mutex resourceNodeMutex_;
     std::mutex sceneResourceMutex_;
@@ -42,6 +44,7 @@ public:
     std::unordered_map<std::string, std::shared_ptr<SceneResNode>> sceneResourceInfo_;
     std::mutex perfActionsMutex_;
     std::unordered_map<std::string, std::unordered_map<int32_t, std::shared_ptr<Actions>>> configPerfActionsInfo_;
+    std::mutex interActionMutex_;
     std::vector<std::shared_ptr<InterAction>> interAction_;
     int32_t minThermalLvl_ = INVALID_THERMAL_LVL;
 
@@ -74,8 +77,8 @@ private:
     bool CheckResourcePersistMode(const char* persistMode, const std::string& configFile) const;
     bool CheckResourceTag(int32_t persistMode, const char* def, const char* path, const std::string& configFile) const;
     bool LoadResourceAvailable(std::shared_ptr<ResNode> resNode, const char* node);
-    bool CheckPairResIdValid() const;
-    bool CheckDefValid() const;
+    bool CheckPairResIdValid();
+    bool CheckDefValid();
     bool CheckGovResourceTag(const char* id, const char* name, const char* persistMode,
         const std::string& configFile) const;
     void ParseModeCmd(const char* mode, const std::string& configFile, std::shared_ptr<Actions> actions);
