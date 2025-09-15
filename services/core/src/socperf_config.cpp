@@ -378,8 +378,7 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         }
         char* id = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
         char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
-        char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson,
-            reinterpret_cast<const xmlChar*>("switch")));
+        char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("switch")));
         char* trace = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("trace")));
         if (!CheckGovResourceTag(id, name, persistMode, configFile)) {
             xmlFree(id);
@@ -398,7 +397,7 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
             lockResourceNode.unlock();
             continue;
         }
-        lockResourceNode.unlock();
+
         xmlNode* greatGrandson = grandson->children;
         std::shared_ptr<GovResNode> govResNode = std::make_shared<GovResNode>(atoi(id),
             name, persistMode ? atoi(persistMode) : 0);
@@ -410,7 +409,6 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         lock.unlock();
 
-        lockResourceNode.lock();
         resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         lockResourceNode.unlock();
 
