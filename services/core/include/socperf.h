@@ -66,10 +66,8 @@ private:
         int32_t onOff, std::shared_ptr<ResActionItem> curItem, int64_t endTime);
     void SendLimitRequestEvent(int32_t clientId, int32_t resId, int64_t resValue);
     int32_t MatchDeviceModeCmd(int32_t cmdId, bool isTagOnOff);
-    void SendLimitRequestEventOff(std::shared_ptr<SocPerfThreadWrap> threadWrap,
-        int32_t clientId, int32_t resId, int32_t eventId);
-    void SendLimitRequestEventOn(std::shared_ptr<SocPerfThreadWrap> threadWrap,
-        int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
+    void SendLimitRequestEventOff(int32_t clientId, int32_t resId, int32_t eventId);
+    void SendLimitRequestEventOn(int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
     void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId,
