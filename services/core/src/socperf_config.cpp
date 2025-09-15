@@ -81,8 +81,9 @@ bool SocPerfConfig::Init()
     return true;
 }
 
-bool SocPerfConfig::IsGovResId(int32_t resId) const
+bool SocPerfConfig::IsGovResId(int32_t resId)
 {
+    std::lock_guard<std::mutex> lockResourceNode(resourceNodeMutex_);
     auto item = resourceNodeInfo_.find(resId);
     if (item != resourceNodeInfo_.end() && item->second->isGov) {
         return true;
@@ -90,8 +91,9 @@ bool SocPerfConfig::IsGovResId(int32_t resId) const
     return false;
 }
 
-bool SocPerfConfig::IsValidResId(int32_t resId) const
+bool SocPerfConfig::IsValidResId(int32_t resId)
 {
+    std::lock_guard<std::mutex> lockResourceNode(resourceNodeMutex_);
     if (resourceNodeInfo_.find(resId) == resourceNodeInfo_.end()) {
         return false;
     }
@@ -185,6 +187,8 @@ bool SocPerfConfig::LoadConfigXmlFile(const std::string& realConfigFile)
 
 void SocPerfConfig::InitPerfFunc(const char* perfSoPath, const char* perfReportFunc, const char* perfScenarioFunc)
 {
+    std::lock_guard<std::mutex> reportFuncLock(reportFuncMutex_);
+    std::lock_guard<std::mutex> scenarioFuncLock(scenarioFuncMutex_);
     if (perfSoPath == nullptr || (perfReportFunc == nullptr && perfScenarioFunc == nullptr)) {
         return;
     }
@@ -286,6 +290,7 @@ bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& 
         xmlFree(trace);
         return false;
     }
+    std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
     auto it = resourceNodeInfo_.find(atoi(id));
     if (it != resourceNodeInfo_.end()) {
         xmlFree(id);
@@ -294,8 +299,10 @@ bool SocPerfConfig::TraversalFreqResource(xmlNode* grandson, const std::string& 
         xmlFree(mode);
         xmlFree(persistMode);
         xmlFree(trace);
+        lockResourceNode.unlock();
         return true;
     }
+    lockResourceNode.unlock();
     xmlNode* greatGrandson = grandson->children;
     std::shared_ptr<ResNode> resNode = std::make_shared<ResNode>(atoi(id), name, mode ? atoi(mode) : 0,
         pair ? atoi(pair) : INVALID_VALUE, persistMode ? atoi(persistMode) : 0);
@@ -371,8 +378,7 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         }
         char* id = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("id")));
         char* name = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("name")));
-        char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson,
-            reinterpret_cast<const xmlChar*>("switch")));
+        char* persistMode = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("switch")));
         char* trace = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("trace")));
         if (!CheckGovResourceTag(id, name, persistMode, configFile)) {
             xmlFree(id);
@@ -381,14 +387,17 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
             xmlFree(trace);
             return false;
         }
+        std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
         auto it = resourceNodeInfo_.find(atoi(id));
         if (it != resourceNodeInfo_.end()) {
             xmlFree(id);
             xmlFree(name);
             xmlFree(persistMode);
             xmlFree(trace);
+            lockResourceNode.unlock();
             continue;
         }
+
         xmlNode* greatGrandson = grandson->children;
         std::shared_ptr<GovResNode> govResNode = std::make_shared<GovResNode>(atoi(id),
             name, persistMode ? atoi(persistMode) : 0);
@@ -400,7 +409,6 @@ bool SocPerfConfig::LoadGovResource(xmlNode* child, const std::string& configFil
         g_resStrToIdInfo.insert(std::pair<std::string, int32_t>(govResNode->name, govResNode->id));
         lock.unlock();
 
-        std::unique_lock<std::mutex> lockResourceNode(resourceNodeMutex_);
         resourceNodeInfo_.insert(std::pair<int32_t, std::shared_ptr<GovResNode>>(govResNode->id, govResNode));
         lockResourceNode.unlock();
 
@@ -448,8 +456,9 @@ void SocPerfConfig::LoadInterAction(xmlNode* child, const std::string& configFil
 
         std::shared_ptr<InterAction> interAction = std::make_shared<InterAction>(
             atoi(cmdId), atoi(actionType), atoll(delayTime));
+        std::unique_lock<std::mutex> lockinterAction(interActionMutex_);
         interAction_.push_back(interAction);
-
+        lockinterAction.unlock();
         xmlFree(actionType);
         xmlFree(delayTime);
         xmlFree(cmdId);
@@ -471,21 +480,22 @@ bool SocPerfConfig::LoadSceneResource(xmlNode* child, const std::string& configF
             xmlFree(persistMode);
             return false;
         }
-
+        std::unique_lock<std::mutex> lockSceneResource(sceneResourceMutex_);
         auto it = sceneResourceInfo_.find(name);
         if (it != sceneResourceInfo_.end()) {
             xmlFree(name);
             xmlFree(persistMode);
+            lockSceneResource.unlock();
             continue;
         }
-
+        lockSceneResource.unlock();
         xmlNode* greatGrandson = grandson->children;
         std::shared_ptr<SceneResNode> sceneResNode =
             std::make_shared<SceneResNode>(name, persistMode ? atoi(persistMode) : 0);
         xmlFree(name);
         xmlFree(persistMode);
 
-        std::unique_lock<std::mutex> lockSceneResource(sceneResourceMutex_);
+        lockSceneResource.lock();
         sceneResourceInfo_.insert(std::pair<std::string, std::shared_ptr<SceneResNode>>(sceneResNode->name,
             sceneResNode));
         lockSceneResource.unlock();
@@ -884,8 +894,9 @@ bool SocPerfConfig::LoadResourceAvailable(std::shared_ptr<ResNode> resNode, cons
     return true;
 }
 
-bool SocPerfConfig::CheckPairResIdValid() const
+bool SocPerfConfig::CheckPairResIdValid()
 {
+    std::lock_guard<std::mutex> lockResourceNode(resourceNodeMutex_);
     for (auto iter = resourceNodeInfo_.begin(); iter != resourceNodeInfo_.end(); ++iter) {
         if (iter->second->isGov) {
             continue;
@@ -901,8 +912,9 @@ bool SocPerfConfig::CheckPairResIdValid() const
     return true;
 }
 
-bool SocPerfConfig::CheckDefValid() const
+bool SocPerfConfig::CheckDefValid()
 {
+    std::lock_guard<std::mutex> lockResourceNode(resourceNodeMutex_);
     for (auto iter = resourceNodeInfo_.begin(); iter != resourceNodeInfo_.end(); ++iter) {
         int32_t resId = iter->first;
         std::shared_ptr<ResourceNode> resourceNode = iter->second;
@@ -964,6 +976,7 @@ bool SocPerfConfig::CheckCmdTag(const char* id, const char* name, const std::str
 
 bool SocPerfConfig::TraversalActions(std::shared_ptr<Action> action, int32_t actionId)
 {
+    std::lock_guard<std::mutex> lockResourceNode(resourceNodeMutex_);
     for (int32_t i = 0; i < (int32_t)action->variable.size() - 1; i += RES_ID_AND_VALUE_PAIR) {
         int32_t resId = action->variable[i];
         int64_t resValue = action->variable[i + 1];
