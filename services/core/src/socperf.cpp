@@ -460,7 +460,7 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         wrapLock.unlock();
         return;
     }
-    std::lock_guard<std::mutex> lockSceneResource(socPerfConfig_.sceneResourceMutex_);
+    std::unique_lock<std::mutex> lockSceneResource(socPerfConfig_.sceneResourceMutex_);
     auto iter = socPerfConfig_.sceneResourceInfo_.find(modeType);
     if (iter == socPerfConfig_.sceneResourceInfo_.end()) {
         SOC_PERF_LOGD("No matching device mode found.");
