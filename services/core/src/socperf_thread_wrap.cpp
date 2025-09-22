@@ -593,8 +593,9 @@ bool SocPerfThreadWrap::ArbitratePairResInPerfLvl(int32_t resId)
     bool limit = false;
     if (thermalLvl_ != 0 &&
         !socPerfConfig_.IsGovResId(resId) &&
-        (socPerfConfig_.resourceNodeInfo_[resId]->isMaxValue ||
-        (pairResId != INVALID_VALUE && socPerfConfig_.resourceNodeInfo_[pairResId]->isMaxValue))) {
+        ((socPerfConfig_.resourceNodeInfo_[resId] != nullptr && socPerfConfig_.resourceNodeInfo_[resId]->isMaxValue) ||
+        (pairResId != INVALID_VALUE && socPerfConfig_.resourceNodeInfo_[pairResId] != nullptr &&
+        socPerfConfig_.resourceNodeInfo_[pairResId]->isMaxValue))) {
         limit = true;
     }
     ArbitratePairRes(resId, limit);
