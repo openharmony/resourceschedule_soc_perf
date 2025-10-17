@@ -46,7 +46,6 @@ SocPerf::SocPerf()
 
 SocPerf::~SocPerf()
 {
-    std::lock_guard<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_ = nullptr;
 }
 
@@ -69,7 +68,6 @@ bool SocPerf::Init()
 
 bool SocPerf::CreateThreadWraps()
 {
-    std::lock_guard<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_ = std::make_shared<SocPerfThreadWrap>();
     if (!socperfThreadWrap_) {
         SOC_PERF_LOGE("Failed to Create socPerfThreadWrap");
@@ -81,7 +79,6 @@ bool SocPerf::CreateThreadWraps()
 
 void SocPerf::InitThreadWraps()
 {
-    std::lock_guard<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_->InitResourceNodeInfo();
 }
 
@@ -193,9 +190,7 @@ void SocPerf::PowerLimitBoost(bool onOffTag, const std::string& msg)
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
-    std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_->UpdatePowerLimitBoostFreq(onOffTag);
-    wrapLock.unlock();
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_POWER,
@@ -215,9 +210,7 @@ void SocPerf::ThermalLimitBoost(bool onOffTag, const std::string& msg)
     trace_str.append(",onOff[").append(std::to_string(onOffTag)).append("]");
     trace_str.append(",msg[").append(msg).append("]");
     StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
-    std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_->UpdateThermalLimitBoostFreq(onOffTag);
-    wrapLock.unlock();
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "LIMIT_BOOST",
                     OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                     "CLIENT_ID", ACTION_TYPE_THERMAL,
@@ -238,9 +231,7 @@ void SocPerf::SendLimitRequestEventOff(int32_t clientId, int32_t resId, int32_t 
         && limitRequest_[clientId][resId] != INVALID_VALUE) {
         auto resAction = std::make_shared<ResAction>(
             limitRequest_[clientId][resId], 0, newClientId, EVENT_OFF, cmdId, MAX_INT_VALUE);
-        std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
         socperfThreadWrap_->UpdateLimitStatus(eventId, resAction, resId);
-        wrapLock.unlock();
         limitRequest_[clientId].erase(iter);
     }
 }
@@ -255,9 +246,7 @@ void SocPerf::SendLimitRequestEventOn(int32_t clientId, int32_t resId, int64_t r
             newClientId = (int32_t)ACTION_TYPE_POWER;
         }
         auto resAction = std::make_shared<ResAction>(resValue, 0, newClientId, EVENT_ON, cmdId, MAX_INT_VALUE);
-        std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
         socperfThreadWrap_->UpdateLimitStatus(eventId, resAction, resId);
-        wrapLock.unlock();
         limitRequest_[clientId].insert(std::pair<int32_t, int32_t>(resId, resValue));
     }
 }
@@ -332,9 +321,7 @@ void SocPerf::ClearAllAliveRequest()
         SOC_PERF_LOGE("SocPerf disabled!");
         return;
     }
-    std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_->ClearAllAliveRequest();
-    wrapLock.unlock();
 }
 
 void SocPerf::SetThermalLevel(int32_t level)
@@ -350,9 +337,7 @@ void SocPerf::SetThermalLevel(int32_t level)
     SOC_PERF_LOGI("ThermalLevel:%{public}d", level);
     FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     thermalLvl_ = level;
-    std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_->thermalLvl_ = level;
-    wrapLock.unlock();
 }
 
 std::shared_ptr<ResActionItem> SocPerf::DoPerfRequestThremalLvl(int32_t cmdId, std::shared_ptr<Action> originAction,
@@ -428,10 +413,8 @@ void SocPerf::DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int
             curItem = DoPerfRequestThremalLvl(actions->id, action, onOff, curItem, endTime);
         }
     }
-    std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
     socperfThreadWrap_->DoFreqActionPack(header);
     socperfThreadWrap_->PostDelayTask(header);
-    wrapLock.unlock();
 }
 
 void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
@@ -455,26 +438,20 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
     const std::string modeType = modeParamList[MODE_TYPE_INDEX];
     const std::string modeName = modeParamList[MODE_NAME_INDEX];
     if (modeType == ACTION_MODE_STRING && modeName == WEAK_ACTION_STRING) {
-        std::unique_lock<std::mutex> wrapLock(socperfThreadWrapMutex_);
         socperfThreadWrap_->SetWeakInteractionStatus(status);
-        wrapLock.unlock();
         return;
     }
-    std::unique_lock<std::mutex> lockSceneResource(socPerfConfig_.sceneResourceMutex_);
     auto iter = socPerfConfig_.sceneResourceInfo_.find(modeType);
     if (iter == socPerfConfig_.sceneResourceInfo_.end()) {
         SOC_PERF_LOGD("No matching device mode found.");
-        lockSceneResource.unlock();
         return;
     }
-    lockSceneResource.unlock();
 
     const std::shared_ptr<SceneResNode> sceneResNode = iter->second;
     const std::vector<std::shared_ptr<SceneItem>> items = sceneResNode->items;
     const int32_t persistMode = sceneResNode->persistMode;
 
     const std::string modeStr = MatchDeviceMode(modeName, status, items);
-    std::lock_guard<std::mutex> scenarioFuncLock(socPerfConfig_.scenarioFuncMutex_);
     if (persistMode == REPORT_TO_PERFSO && socPerfConfig_.scenarioFunc_) {
         const std::string msgStr = modeType + ":" + modeStr;
         SOC_PERF_LOGD("send deviceMode to PerfScenario : %{public}s", msgStr.c_str());
