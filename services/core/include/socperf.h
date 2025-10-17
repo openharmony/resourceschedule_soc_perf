@@ -42,7 +42,6 @@ public:
 
 private:
     bool enabled_ = false;
-    std::mutex socperfThreadWrapMutex_;
     std::shared_ptr<SocPerfThreadWrap> socperfThreadWrap_;
     std::set<std::string> recordDeviceMode_;
     std::vector<std::unordered_map<int32_t, int32_t>> limitRequest_ =
