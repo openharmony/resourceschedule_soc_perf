@@ -191,7 +191,6 @@ void SocPerfThreadWrap::SetWeakInteractionStatus(bool enable)
 
 void SocPerfThreadWrap::WeakInteraction()
 {
-    std::lock_guard<std::mutex> lockinterAction(socPerfConfig_.interActionMutex_);
     for (int i = 0; i < (int)socPerfConfig_.interAction_.size(); i++) {
         std::shared_ptr<InterAction> interAction = socPerfConfig_.interAction_[i];
         if (weakInteractionStatus_ && boostResCnt == 0 && interAction->status == BOOST_STATUS) {
@@ -302,7 +301,6 @@ void SocPerfThreadWrap::SendResStatus()
 void SocPerfThreadWrap::ReportToPerfSo(std::vector<int32_t>& qosId, std::vector<int64_t>& value,
     std::vector<int64_t>& endTime)
 {
-    std::lock_guard<std::mutex> reportFuncLock(socPerfConfig_.reportFuncMutex_);
     if (!socPerfConfig_.reportFunc_) {
         return;
     }
