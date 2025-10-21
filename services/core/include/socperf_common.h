@@ -18,7 +18,6 @@
 
 #include <climits>
 #include <list>
-#include <mutex>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -105,7 +104,6 @@ public:
 class GovResNode : public ResourceNode {
 public:
     std::vector<std::string> paths;
-    std::mutex levelToStrMutex_;
     std::unordered_map<int64_t, std::vector<std::string>> levelToStr;
 
 public:
