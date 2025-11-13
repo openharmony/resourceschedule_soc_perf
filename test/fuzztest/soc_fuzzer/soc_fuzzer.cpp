@@ -111,16 +111,20 @@ namespace FuzzUtils
         std::vector<int64_t> ExtractInt64Vector(size_t maxElements = DEFAULT_VECTOR_SIZE);
         std::vector<std::string> ExtractStringVector(size_t maxStrings = 5, size_t maxLen = 100);
 
-        bool HasMore() const  {
+        bool HasMore() const  
+        {
             return offset_ < size_;
         }
-        size_t Remaining() const  {
+        size_t Remaining() const  
+        {
             return size_ - offset_;
         }
-        void Reset()  {
+        void Reset()  
+        {
             offset_ = 0;
         }
-        size_t GetOffset() const  {
+        size_t GetOffset() const  
+        {
             return offset_;
         }
 
@@ -130,7 +134,8 @@ namespace FuzzUtils
         DataExtractor &operator=(DataExtractor &&) = delete;
 
     private:
-        bool CanExtract(size_t size) const  {
+        bool CanExtract(size_t size) const  
+        {
             return offset_ + size <= size_;
         }
         const uint8_t *SafeRead(size_t size);
@@ -143,7 +148,8 @@ namespace FuzzUtils
     DataExtractor::DataExtractor(const uint8_t *data, size_t size)
         : data_(data), size_(size), offset_(0)  {}
 
-    const uint8_t *DataExtractor::SafeRead(size_t size) {
+    const uint8_t *DataExtractor::SafeRead(size_t size) 
+    {
         if (!CanExtract(size))  {
             return nullptr;
         }
@@ -152,7 +158,8 @@ namespace FuzzUtils
         return ptr;
     }
 
-    int32_t DataExtractor::ExtractInt32() {
+    int32_t DataExtractor::ExtractInt32() 
+    {
         const uint8_t *ptr = SafeRead(sizeof(int32_t));
         if (ptr == nullptr)  {
             return 0;
@@ -162,7 +169,8 @@ namespace FuzzUtils
         return value;
     }
 
-    int64_t DataExtractor::ExtractInt64() {
+    int64_t DataExtractor::ExtractInt64() 
+    {
         const uint8_t *ptr = SafeRead(sizeof(int64_t));
         if (ptr == nullptr)  {
             return 0;
@@ -172,7 +180,8 @@ namespace FuzzUtils
         return value;
     }
 
-    bool DataExtractor::ExtractBool() {
+    bool DataExtractor::ExtractBool() 
+    {
         const uint8_t *ptr = SafeRead(sizeof(uint8_t));
         if (ptr == nullptr)
          {
@@ -181,7 +190,8 @@ namespace FuzzUtils
         return *ptr != 0;
     }
 
-    float DataExtractor::ExtractFloat() {
+    float DataExtractor::ExtractFloat() 
+    {
         const uint8_t *ptr = SafeRead(sizeof(float));
         if (ptr == nullptr) {
             return 0.0f;
@@ -191,7 +201,8 @@ namespace FuzzUtils
         return value;
     }
 
-    std::string DataExtractor::ExtractString(size_t maxLen) {
+    std::string DataExtractor::ExtractString(size_t maxLen) 
+    {
         if (maxLen == 0 || maxLen > MAX_STRING_LENGTH)  {
             maxLen = MAX_STRING_LENGTH;
         }
@@ -214,7 +225,7 @@ namespace FuzzUtils
     }
 
     std::vector<int32_t> DataExtractor::ExtractInt32Vector(size_t maxElements)
-     {
+    {
         std::vector<int32_t> result;
         if (maxElements == 0 || maxElements > MAX_VECTOR_SIZE) {
             maxElements = MAX_VECTOR_SIZE;
@@ -242,7 +253,7 @@ namespace FuzzUtils
     }
 
     std::vector<int64_t> DataExtractor::ExtractInt64Vector(size_t maxElements)
-     {
+    {
         std::vector<int64_t> result;
         if (maxElements == 0 || maxElements > MAX_VECTOR_SIZE) {
             maxElements = MAX_VECTOR_SIZE;
@@ -269,7 +280,8 @@ namespace FuzzUtils
         return result;
     }
 
-    std::vector<std::string> DataExtractor::ExtractStringVector(size_t maxStrings, size_t maxLen) {
+    std::vector<std::string> DataExtractor::ExtractStringVector(size_t maxStrings, size_t maxLen) 
+    {
         std::vector<std::string> result;
         if (maxStrings == 0) {
             return result;
@@ -299,7 +311,7 @@ constexpr int32_t API_FREQ = 5;
 static constexpr int32_t API_GROUP_COUNT = 6;
 
 enum class FuzzMode : int32_t
- {
+{
     RANDOM = 0,
     SEQUENTIAL = 1,
     GUIDED = 2,
@@ -313,7 +325,8 @@ enum class FuzzMode : int32_t
 static std::mutex g_fuzzMutex;
 static bool g_systemInitialized = false;
 
-void InitializeSystemIfNeeded(DataExtractor &extractor) {
+void InitializeSystemIfNeeded(DataExtractor &extractor) 
+{
     std::lock_guard<std::mutex> lock(g_fuzzMutex);
     if (g_systemInitialized) {
         return;
@@ -329,13 +342,15 @@ void InitializeSystemIfNeeded(DataExtractor &extractor) {
 // API Functions
 // ============================================================================
 
-void CallApiInitialize(DataExtractor &extractor) {
+void CallApiInitialize(DataExtractor &extractor) 
+{
     if (OHOS::SOCPERF::SocPerfConfig::GetInstance().Init()) {
         g_systemInitialized = true;
     }
 }
 
-void CallApiCreateThreadWraps(DataExtractor &extractor) {
+void CallApiCreateThreadWraps(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -343,7 +358,8 @@ void CallApiCreateThreadWraps(DataExtractor &extractor) {
     (void)extractor;
 }
 
-void CallApiInitThreadWraps(DataExtractor &extractor) {
+void CallApiInitThreadWraps(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -351,21 +367,24 @@ void CallApiInitThreadWraps(DataExtractor &extractor) {
     (void)extractor;
 }
 
-void CallApiIsValidResId(DataExtractor &extractor) {
+void CallApiIsValidResId(DataExtractor &extractor) 
+{
     int32_t resId = extractor.ExtractInt32();
     auto &config = OHOS::SOCPERF::SocPerfConfig::GetInstance();
     volatile bool result = config.IsValidResId(resId);
     (void)result;
 }
 
-void CallApiIsGovResId(DataExtractor &extractor) {
+void CallApiIsGovResId(DataExtractor &extractor) 
+{
     int32_t resId = extractor.ExtractInt32();
     auto &config = OHOS::SOCPERF::SocPerfConfig::GetInstance();
     volatile bool result = config.IsGovResId(resId);
     (void)result;
 }
 
-void CallApiCheckClientValid(DataExtractor &extractor) {
+void CallApiCheckClientValid(DataExtractor &extractor) 
+{
     if (!g_systemInitialized)
      {
         return;
@@ -374,7 +393,8 @@ void CallApiCheckClientValid(DataExtractor &extractor) {
     (void)extractor;
 }
 
-void CallApiPerfRequest(DataExtractor &extractor) {
+void CallApiPerfRequest(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -384,7 +404,8 @@ void CallApiPerfRequest(DataExtractor &extractor) {
     client.PerfRequest(cmdId, msg);
 }
 
-void CallApiPerfRequestEx(DataExtractor &extractor) {
+void CallApiPerfRequestEx(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -395,7 +416,8 @@ void CallApiPerfRequestEx(DataExtractor &extractor) {
     client.PerfRequestEx(cmdId, onOff, msg);
 }
 
-void CallApiSetRequestStatus(DataExtractor &extractor) {
+void CallApiSetRequestStatus(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -405,7 +427,8 @@ void CallApiSetRequestStatus(DataExtractor &extractor) {
     client.SetRequestStatus(status, msg);
 }
 
-void CallApiRequestCmdIdCount(DataExtractor &extractor) {
+void CallApiRequestCmdIdCount(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -415,7 +438,8 @@ void CallApiRequestCmdIdCount(DataExtractor &extractor) {
     (void)result;
 }
 
-void CallApiResetClient(DataExtractor &extractor) {
+void CallApiResetClient(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -423,7 +447,8 @@ void CallApiResetClient(DataExtractor &extractor) {
     client.ResetClient();
 }
 
-void CallApiLimitRequest(DataExtractor &extractor) {
+void CallApiLimitRequest(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -435,7 +460,8 @@ void CallApiLimitRequest(DataExtractor &extractor) {
     client.LimitRequest(clientId, tags, configs, msg);
 }
 
-void CallApiPowerLimitBoost(DataExtractor &extractor) {
+void CallApiPowerLimitBoost(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -445,7 +471,8 @@ void CallApiPowerLimitBoost(DataExtractor &extractor) {
     client.PowerLimitBoost(enable, msg);
 }
 
-void CallApiThermalLimitBoost(DataExtractor &extractor) {
+void CallApiThermalLimitBoost(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -455,7 +482,8 @@ void CallApiThermalLimitBoost(DataExtractor &extractor) {
     client.ThermalLimitBoost(enable, msg);
 }
 
-void CallApiSetThermalLevel(DataExtractor &extractor) {
+void CallApiSetThermalLevel(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -464,7 +492,8 @@ void CallApiSetThermalLevel(DataExtractor &extractor) {
     client.SetThermalLevel(level);
 }
 
-void CallApiClearAllAliveRequest(DataExtractor &extractor) {
+void CallApiClearAllAliveRequest(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -472,7 +501,8 @@ void CallApiClearAllAliveRequest(DataExtractor &extractor) {
     (void)extractor;
 }
 
-void CallApiRequestDeviceMode(DataExtractor &extractor) {
+void CallApiRequestDeviceMode(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -482,7 +512,8 @@ void CallApiRequestDeviceMode(DataExtractor &extractor) {
     client.RequestDeviceMode(mode, status);
 }
 
-void CallApiGetDeviceMode(DataExtractor &extractor) {
+void CallApiGetDeviceMode(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -490,7 +521,8 @@ void CallApiGetDeviceMode(DataExtractor &extractor) {
     (void)extractor;
 }
 
-void CallApiGetMatchCmdId(DataExtractor &extractor) {
+void CallApiGetMatchCmdId(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -501,7 +533,8 @@ void CallApiGetMatchCmdId(DataExtractor &extractor) {
     (void)isTagOnOff;
 }
 
-void CallApiUpdateCmdIdCount(DataExtractor &extractor) {
+void CallApiUpdateCmdIdCount(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -510,7 +543,8 @@ void CallApiUpdateCmdIdCount(DataExtractor &extractor) {
     (void)cmdId;
 }
 
-void CallApiCheckTimeInterval(DataExtractor &extractor) {
+void CallApiCheckTimeInterval(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -521,7 +555,8 @@ void CallApiCheckTimeInterval(DataExtractor &extractor) {
     (void)cmdId;
 }
 
-void CallApiCompleteEvent(DataExtractor &extractor) {
+void CallApiCompleteEvent(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -529,7 +564,8 @@ void CallApiCompleteEvent(DataExtractor &extractor) {
     (void)extractor;
 }
 
-void CallApiSendLimitRequestEvent(DataExtractor &extractor) {
+void CallApiSendLimitRequestEvent(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -542,7 +578,8 @@ void CallApiSendLimitRequestEvent(DataExtractor &extractor) {
     (void)resValue;
 }
 
-void CallApiSendLimitRequestEventOn(DataExtractor &extractor) {
+void CallApiSendLimitRequestEventOn(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -555,7 +592,8 @@ void CallApiSendLimitRequestEventOn(DataExtractor &extractor) {
     (void)resValue;
 }
 
-void CallApiSendLimitRequestEventOff(DataExtractor &extractor) {
+void CallApiSendLimitRequestEventOff(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -568,7 +606,8 @@ void CallApiSendLimitRequestEventOff(DataExtractor &extractor) {
     (void)resValue;
 }
 
-void CallApiCopyEvent(DataExtractor &extractor) {
+void CallApiCopyEvent(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -579,7 +618,8 @@ void CallApiCopyEvent(DataExtractor &extractor) {
     (void)newCmdId;
 }
 
-void CallApiAddPidAndTidInfo(DataExtractor &extractor) {
+void CallApiAddPidAndTidInfo(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -588,7 +628,8 @@ void CallApiAddPidAndTidInfo(DataExtractor &extractor) {
     (void)msg;
 }
 
-void CallApiGetActionsInfo(DataExtractor &extractor) {
+void CallApiGetActionsInfo(DataExtractor &extractor) 
+{
     if (!g_systemInitialized) {
         return;
     }
@@ -609,45 +650,45 @@ void CallApiDoPerfRequestThremalLvl(DataExtractor &extractor)  {}
 typedef void (*APIFunc)(DataExtractor &);
 
 struct APIDescriptor
- {
+{
     const char *name;
     int32_t groupId;
     APIFunc func;
 };
 
 const APIDescriptor API_TABLE[] =  {
-     {"Init", API_INIT, CallApiInitialize},
-     {"CreateThreadWraps", API_INIT, CallApiCreateThreadWraps},
-     {"InitThreadWraps", API_INIT, CallApiInitThreadWraps},
-     {"IsValidResId", API_INIT, CallApiIsValidResId},
-     {"IsGovResId", API_INIT, CallApiIsGovResId},
-     {"CheckClientValid", API_INIT, CallApiCheckClientValid},
-     {"PerfRequest", API_PERF_REQUEST, CallApiPerfRequest},
-     {"PerfRequestEx", API_PERF_REQUEST, CallApiPerfRequestEx},
-     {"SetRequestStatus", API_PERF_REQUEST, CallApiSetRequestStatus},
-     {"RequestCmdIdCount", API_PERF_REQUEST, CallApiRequestCmdIdCount},
-     {"ResetClient", API_PERF_REQUEST, CallApiResetClient},
-     {"LimitRequest", API_LIMIT, CallApiLimitRequest},
-     {"PowerLimitBoost", API_LIMIT, CallApiPowerLimitBoost},
-     {"ThermalLimitBoost", API_LIMIT, CallApiThermalLimitBoost},
-     {"SetThermalLevel", API_LIMIT, CallApiSetThermalLevel},
-     {"ClearAllAliveRequest", API_LIMIT, CallApiClearAllAliveRequest},
-     {"RequestDeviceMode", API_DEVICE_MODE, CallApiRequestDeviceMode},
-     {"GetDeviceMode", API_DEVICE_MODE, CallApiGetDeviceMode},
-     {"GetMatchCmdId", API_DEVICE_MODE, CallApiGetMatchCmdId},
-     {"MatchDeviceMode", API_DEVICE_MODE, CallApiMatchDeviceMode},
-     {"MatchDeviceModeCmd", API_DEVICE_MODE, CallApiMatchDeviceModeCmd},
-     {"UpdateCmdIdCount", API_EVENT, CallApiUpdateCmdIdCount},
-     {"CheckTimeInterval", API_EVENT, CallApiCheckTimeInterval},
-     {"CompleteEvent", API_EVENT, CallApiCompleteEvent},
-     {"SendLimitRequestEvent", API_EVENT, CallApiSendLimitRequestEvent},
-     {"SendLimitRequestEventOn", API_EVENT, CallApiSendLimitRequestEventOn},
-     {"SendLimitRequestEventOff", API_EVENT, CallApiSendLimitRequestEventOff},
-     {"CopyEvent", API_EVENT, CallApiCopyEvent},
-     {"AddPidAndTidInfo", API_FREQ, CallApiAddPidAndTidInfo},
-     {"GetActionsInfo", API_FREQ, CallApiGetActionsInfo},
-     {"DoFreqActions", API_FREQ, CallApiDoFreqActions},
-     {"DoPerfRequestThremalLvl", API_FREQ, CallApiDoPerfRequestThremalLvl},
+    {"Init", API_INIT, CallApiInitialize},
+    {"CreateThreadWraps", API_INIT, CallApiCreateThreadWraps},
+    {"InitThreadWraps", API_INIT, CallApiInitThreadWraps},
+    {"IsValidResId", API_INIT, CallApiIsValidResId},
+    {"IsGovResId", API_INIT, CallApiIsGovResId},
+    {"CheckClientValid", API_INIT, CallApiCheckClientValid},
+    {"PerfRequest", API_PERF_REQUEST, CallApiPerfRequest},
+    {"PerfRequestEx", API_PERF_REQUEST, CallApiPerfRequestEx},
+    {"SetRequestStatus", API_PERF_REQUEST, CallApiSetRequestStatus},
+    {"RequestCmdIdCount", API_PERF_REQUEST, CallApiRequestCmdIdCount},
+    {"ResetClient", API_PERF_REQUEST, CallApiResetClient},
+    {"LimitRequest", API_LIMIT, CallApiLimitRequest},
+    {"PowerLimitBoost", API_LIMIT, CallApiPowerLimitBoost},
+    {"ThermalLimitBoost", API_LIMIT, CallApiThermalLimitBoost},
+    {"SetThermalLevel", API_LIMIT, CallApiSetThermalLevel},
+    {"ClearAllAliveRequest", API_LIMIT, CallApiClearAllAliveRequest},
+    {"RequestDeviceMode", API_DEVICE_MODE, CallApiRequestDeviceMode},
+    {"GetDeviceMode", API_DEVICE_MODE, CallApiGetDeviceMode},
+    {"GetMatchCmdId", API_DEVICE_MODE, CallApiGetMatchCmdId},
+    {"MatchDeviceMode", API_DEVICE_MODE, CallApiMatchDeviceMode},
+    {"MatchDeviceModeCmd", API_DEVICE_MODE, CallApiMatchDeviceModeCmd},
+    {"UpdateCmdIdCount", API_EVENT, CallApiUpdateCmdIdCount},
+    {"CheckTimeInterval", API_EVENT, CallApiCheckTimeInterval},
+    {"CompleteEvent", API_EVENT, CallApiCompleteEvent},
+    {"SendLimitRequestEvent", API_EVENT, CallApiSendLimitRequestEvent},
+    {"SendLimitRequestEventOn", API_EVENT, CallApiSendLimitRequestEventOn},
+    {"SendLimitRequestEventOff", API_EVENT, CallApiSendLimitRequestEventOff},
+    {"CopyEvent", API_EVENT, CallApiCopyEvent},
+    {"AddPidAndTidInfo", API_FREQ, CallApiAddPidAndTidInfo},
+    {"GetActionsInfo", API_FREQ, CallApiGetActionsInfo},
+    {"DoFreqActions", API_FREQ, CallApiDoFreqActions},
+    {"DoPerfRequestThremalLvl", API_FREQ, CallApiDoPerfRequestThremalLvl},
 };
 
 constexpr int32_t API_COUNT = sizeof(API_TABLE) / sizeof(API_TABLE[0]);
@@ -656,7 +697,8 @@ constexpr int32_t API_COUNT = sizeof(API_TABLE) / sizeof(API_TABLE[0]);
 // Testing Strategies
 // ============================================================================
 
-void ExecuteRandomMode(DataExtractor &extractor) {
+void ExecuteRandomMode(DataExtractor &extractor) 
+{
     while (extractor.HasMore()) {
         int32_t apiIndex = extractor.ExtractInt32() % API_COUNT;
         if (apiIndex >= 0 && apiIndex < API_COUNT) {
@@ -665,7 +707,8 @@ void ExecuteRandomMode(DataExtractor &extractor) {
     }
 }
 
-void ExecuteSequentialMode(DataExtractor &extractor) {
+void ExecuteSequentialMode(DataExtractor &extractor) 
+{
     for (int32_t group = 0; group < API_GROUP_COUNT && extractor.HasMore(); ++group) {
         for (int32_t i = 0; i < API_COUNT; ++i) {
             if (API_TABLE[i].groupId == group && extractor.HasMore()) {
@@ -675,7 +718,8 @@ void ExecuteSequentialMode(DataExtractor &extractor) {
     }
 }
 
-void ExecuteGuidedMode(DataExtractor &extractor) {
+void ExecuteGuidedMode(DataExtractor &extractor) 
+{
     CallApiInitialize(extractor);
     InitializeSystemIfNeeded(extractor);
 
@@ -694,7 +738,8 @@ void ExecuteGuidedMode(DataExtractor &extractor) {
     }
 }
 
-void ExecuteStressMode(DataExtractor &extractor) {
+void ExecuteStressMode(DataExtractor &extractor) 
+{
     InitializeSystemIfNeeded(extractor);
 
     int32_t callCount = 0;
@@ -713,7 +758,8 @@ void ExecuteStressMode(DataExtractor &extractor) {
 // Main Fuzzer Entry Point
 // ============================================================================
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) 
+{
     if (data == nullptr || size < MIN_FUZZ_INPUT_SIZE) {
         return 0;
     }
