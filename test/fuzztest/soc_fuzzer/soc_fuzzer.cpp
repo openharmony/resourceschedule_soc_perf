@@ -168,7 +168,10 @@ namespace FuzzUtils
             return 0;
         }
         int32_t value = 0;
-        memcpy_s(&value, sizeof(value), ptr, sizeof(int32_t));
+        int ret = memcpy_s(&value, sizeof(value), ptr, sizeof(int32_t));
+        if (ret != 0) {
+            printf("memcpy_s failed in ExtractInt32\n");
+        }
         return value;
     }
 
@@ -179,15 +182,17 @@ namespace FuzzUtils
             return 0;
         }
         int64_t value = 0;
-        memcpy_s(&value, sizeof(value), ptr, sizeof(int64_t));
+        int ret = memcpy_s(&value, sizeof(value), ptr, sizeof(int64_t));
+        if (ret != 0) {
+            printf("memcpy_s failed in ExtractInt64\n");
+        }
         return value;
     }
 
     bool DataExtractor::ExtractBool()
     {
         const uint8_t *ptr = SafeRead(sizeof(uint8_t));
-        if (ptr == nullptr)
-        {
+        if (ptr == nullptr) {
             return false;
         }
         return *ptr != 0;
@@ -220,8 +225,7 @@ namespace FuzzUtils
             return "";
         }
 
-        if (len > 0)
-        {
+        if (len > 0) {
             return std::string(reinterpret_cast<const char *>(ptr + 1), len);
         }
         return "";
@@ -344,14 +348,14 @@ void InitializeSystemIfNeeded(DataExtractor &extractor)
 // API Functions
 // ============================================================================
 
-void CallApiInitialize(DataExtractor &extractor) 
+void CallApiInitialize(DataExtractor &extractor)
 {
     if (OHOS::SOCPERF::SocPerfConfig::GetInstance().Init()) {
         g_systemInitialized = true;
     }
 }
 
-void CallApiCreateThreadWraps(DataExtractor &extractor) 
+void CallApiCreateThreadWraps(DataExtractor &extractor)
 {
     if (!g_systemInitialized) {
         return;
@@ -360,7 +364,7 @@ void CallApiCreateThreadWraps(DataExtractor &extractor)
     (void)extractor;
 }
 
-void CallApiInitThreadWraps(DataExtractor &extractor) 
+void CallApiInitThreadWraps(DataExtractor &extractor)
 {
     if (!g_systemInitialized) {
         return;
@@ -369,7 +373,7 @@ void CallApiInitThreadWraps(DataExtractor &extractor)
     (void)extractor;
 }
 
-void CallApiIsValidResId(DataExtractor &extractor) 
+void CallApiIsValidResId(DataExtractor &extractor)
 {
     int32_t resId = extractor.ExtractInt32();
     auto &config = OHOS::SOCPERF::SocPerfConfig::GetInstance();
@@ -387,8 +391,7 @@ void CallApiIsGovResId(DataExtractor &extractor)
 
 void CallApiCheckClientValid(DataExtractor &extractor)
 {
-    if (!g_systemInitialized)
-    {
+    if (!g_systemInitialized) {
         return;
     }
     // CheckClientValid is private, skip internal validation
@@ -650,7 +653,7 @@ void CallApiDoPerfRequestThremalLvl(DataExtractor &extractor) {}
 
 typedef void (*APIFunc)(DataExtractor &);
 
-struct APIDescriptor{
+struct APIDescriptor {
     const char *name;
     int32_t groupId;
     APIFunc func;
@@ -745,7 +748,7 @@ void ExecuteStressMode(DataExtractor &extractor)
     int32_t callCount = 0;
     int32_t maxCalls = MAX_STRESS_CALLS;
 
-    while (extractor.HasMore() && callCount < maxCalls){
+    while (extractor.HasMore() && callCount < maxCalls) {
         int32_t apiIndex = (extractor.ExtractInt32() + callCount) % API_COUNT;
         if (apiIndex >= 0 && apiIndex < API_COUNT) {
             API_TABLE[apiIndex].func(extractor);
@@ -760,7 +763,7 @@ void ExecuteStressMode(DataExtractor &extractor)
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
-    if (data == nullptr || size < MIN_FUZZ_INPUT_SIZE){
+    if (data == nullptr || size < MIN_FUZZ_INPUT_SIZE) {
         return 0;
     }
 
@@ -769,8 +772,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     FuzzMode mode = static_cast<FuzzMode>(extractor.ExtractInt32() % FUZZ_MODE_COUNT);
 
-    switch (mode)
-    {
+    switch (mode) {
         case FuzzMode::RANDOM:
             ExecuteRandomMode(extractor);
             break;
