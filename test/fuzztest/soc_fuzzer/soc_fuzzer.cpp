@@ -58,8 +58,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace FuzzUtils
- {
+namespace FuzzUtils {
 
     // ============================================================================
     // Constants and Macros
@@ -206,8 +205,7 @@ namespace FuzzUtils
         }
         float value = 0.0f;
         int ret = memcpy_s(&value, sizeof(value), ptr, sizeof(float));
-        if (ret != 0)
-        {
+        if (ret != 0) {
             printf("memcpy_s failed in ExtractInt64\n");
         }
         return value;
