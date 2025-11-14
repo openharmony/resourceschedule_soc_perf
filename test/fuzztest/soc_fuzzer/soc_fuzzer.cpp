@@ -205,7 +205,11 @@ namespace FuzzUtils
             return 0.0f;
         }
         float value = 0.0f;
-        memcpy_s(&value, sizeof(value), ptr, sizeof(float));
+        int ret = memcpy_s(&value, sizeof(value), ptr, sizeof(float));
+        if (ret != 0)
+        {
+            printf("memcpy_s failed in ExtractInt64\n");
+        }
         return value;
     }
 
@@ -317,8 +321,7 @@ constexpr int32_t API_FREQ = 5;
 
 static constexpr int32_t API_GROUP_COUNT = 6;
 
-enum class FuzzMode : int32_t
-{
+enum class FuzzMode : int32_t {
     RANDOM = 0,
     SEQUENTIAL = 1,
     GUIDED = 2,
