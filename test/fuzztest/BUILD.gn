@@ -26,5 +26,6 @@ group("fuzztest") {
     "setthermallevel_fuzzer:fuzztest",
     "socperf_fuzzer:fuzztest",
     "thermallimitboost_fuzzer:fuzztest",
+    "soc_fuzzer:fuzztest"
   ]
 }
