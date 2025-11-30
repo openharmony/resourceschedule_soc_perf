@@ -14,19 +14,12 @@
  */
 
 #include "lxjRUC_fuzzer.h"
-
-#define private public
-#define protected public
 #include "socperf_client.h"
-#undef private
-#undef protected
-
-#include "socperf_action_type.h"
 #include "securec.h"
 
 #include <cstdio>
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <cstdlib>
 #include <string>
@@ -41,6 +34,8 @@ namespace FuzzUtils {
     // ============================================================================
     // Constants and Macros
     // ============================================================================
+
+    
 
     constexpr int32_t MIN_FUZZ_INPUT_SIZE = 4;
     constexpr int32_t MAX_FUZZ_INPUT_SIZE = 4096;
@@ -343,102 +338,171 @@ using namespace FuzzUtils;
 
 using namespace OHOS::SOCPERF;
 namespace OHOS {
+    enum SocPerfApiId {
+        PERF_REQUEST = 0,
+        PERF_REQUEST_EX,
+        POWER_LIMIT_BOOST,
+        THERMAL_LIMIT_BOOST,
+        LIMIT_REQUEST,
+        SET_REQUEST_STATUS,
+        SET_THERMAL_LEVEL,
+        REQUEST_DEVICE_MODE,
+        REQUEST_CMD_ID_COUNT,
+        SOC_PERF_API_COUNT,
+    };
+
+    bool FuzzPerfRequest(SocPerfClient& client, DataExtractor& det)
+    {
+        int32_t cmdId = det.ExtractInt32();
+        int32_t len = det.ExtractUInt16();
+        if (len > MAX_STRING_LENGTH) {
+            len = DEFAULT_STRING_LENGTH;
+        }
+        std::string msg = det.ExtractString(len);
+        client.PerfRequest(cmdId, msg);
+        return true;
+    }
+
+    bool FuzzPerfRequestEx(SocPerfClient& client, DataExtractor& det)
+    {
+        int32_t cmdId = det.ExtractInt32();
+        bool onOffTag = det.ExtractBool();
+        int32_t len = det.ExtractUInt16();
+        if (len > MAX_STRING_LENGTH) {
+            len = DEFAULT_STRING_LENGTH;
+        }
+        std::string msg = det.ExtractString(len);
+        client.PerfRequestEx(cmdId, onOffTag, msg);
+        return true;
+    }
+
+    bool FuzzPowerLimitBoost(SocPerfClient& client, DataExtractor& det)
+    {
+        bool onOffTag = det.ExtractBool();
+        int32_t len = det.ExtractUInt16();
+        if (len > MAX_STRING_LENGTH) {
+            len = DEFAULT_STRING_LENGTH;
+        }
+        std::string msg = det.ExtractString(len);
+        client.PowerLimitBoost(onOffTag, msg);
+        return true;
+    }
+
+    bool FuzzThermalLimitBoost(SocPerfClient& client, DataExtractor& det)
+    {
+        bool onOffTag = det.ExtractBool();
+        int32_t len = det.ExtractUInt16();
+        if (len > MAX_STRING_LENGTH) {
+            len = DEFAULT_STRING_LENGTH;
+        }
+        std::string msg = det.ExtractString(len);
+        client.ThermalLimitBoost(onOffTag, msg);
+        return true;
+    }
+
+    bool FuzzLimitRequest(SocPerfClient& client, DataExtractor& det)
+    {
+        int32_t clientId = det.ExtractInt32();
+        int32_t vecLen = det.ExtractInt8();
+        if (vecLen > MAX_VECTOR_SIZE) {
+            vecLen = DEFAULT_VECTOR_SIZE;
+        }
+        std::vector<int32_t> tags = det.ExtractInt32Vector(vecLen);
+        std::vector<int64_t> configs = det.ExtractInt64Vector(vecLen);
+        int32_t strLen = det.ExtractUInt16();
+        if (strLen > MAX_STRING_LENGTH) {
+            strLen = DEFAULT_STRING_LENGTH;
+        }
+        std::string msg = det.ExtractString(strLen);
+        client.LimitRequest(clientId, tags, configs, msg);
+        return true;
+    }
+
+    bool FuzzSetRequestStatus(SocPerfClient& client, DataExtractor& det)
+    {
+        bool status = det.ExtractBool();
+        int32_t strLen = det.ExtractUInt16();
+        if (strLen > MAX_STRING_LENGTH) {
+            strLen = DEFAULT_STRING_LENGTH;
+        }
+        std::string msg = det.ExtractString(strLen);
+        client.SetRequestStatus(status, msg);
+        return true;
+    }
+
+    bool FuzzSetThermalLevel(SocPerfClient& client, DataExtractor& det)
+    {
+        int32_t level = det.ExtractInt32();
+        client.SetThermalLevel(level);
+        return true;
+    }
+
+    bool FuzzRequestDeviceMode(SocPerfClient& client, DataExtractor& det)
+    {
+        int32_t strLen = det.ExtractUInt16();
+        if (strLen > MAX_STRING_LENGTH) {
+            strLen = DEFAULT_MODE_STRING_LENGTH;
+        }
+        std::string mode = det.ExtractString(strLen);
+        bool status = det.ExtractBool();
+        client.RequestDeviceMode(mode, status);
+        return true;
+    }
+
+    bool FuzzRequestCmdIdCount(SocPerfClient& client, DataExtractor& det)
+    {
+        int32_t strLen = det.ExtractUInt16();
+        if (strLen > MAX_STRING_LENGTH) {
+            strLen = DEFAULT_STRING_LENGTH;
+        }
+        std::string msg = det.ExtractString(strLen);
+        client.RequestCmdIdCount(msg);
+        return true;
+    }
+
     bool TestSocPerfClientAPI(const uint8_t* data, size_t size)
     {
-        SocPerfClient& client=SocPerfClient::GetInstance();
-        DataExtractor det=DataExtractor(data,size);
-        uint8_t choice=det.ExtractUInt8();
-        choice = choice % 10;
+        SocPerfClient& client = SocPerfClient::GetInstance();
+        DataExtractor det(data, size);
+        uint8_t choice = det.ExtractUInt8();
+        choice = choice % SOC_PERF_API_COUNT;
 
-        switch(choice){
-            case 0:{
-                int32_t cmdid=det.ExtractInt32();
-                int32_t len=det.ExtractUInt16();
-                if(len>MAX_STRING_LENGTH) len=DEFAULT_STRING_LENGTH;
-                std::string msg=det.ExtractString(len);
-                client.PerfRequest(cmdid,msg);
+        switch (choice) {
+            case PERF_REQUEST:
+                FuzzPerfRequest(client, det);
                 break;
-            }   
-            case 1:{
-                int32_t cmdid=det.ExtractInt32();
-                bool onOffTag=det.ExtractBool();
-                int32_t len=det.ExtractUInt16();
-                if(len>MAX_STRING_LENGTH) len=DEFAULT_STRING_LENGTH;
-                std::string msg=det.ExtractString(len);
-                client.PerfRequestEx(cmdid,onOffTag,msg);
+            case PERF_REQUEST_EX:
+                FuzzPerfRequestEx(client, det);
                 break;
-            }  
-            case 2:{
-                bool onOffTag=det.ExtractBool();
-                int32_t len=det.ExtractUInt16();
-                if(len>MAX_STRING_LENGTH) len=DEFAULT_STRING_LENGTH;
-                std::string msg=det.ExtractString(len);
-                client.PowerLimitBoost(onOffTag,msg);
+            case POWER_LIMIT_BOOST:
+                FuzzPowerLimitBoost(client, det);
                 break;
-            }  
-            case 3:{
-                bool onOffTag=det.ExtractBool();
-                int32_t len=det.ExtractUInt16();
-                if(len>MAX_STRING_LENGTH) len=DEFAULT_STRING_LENGTH;
-                std::string msg=det.ExtractString(len);
-                client.ThermalLimitBoost(onOffTag,msg);
-                break; 
-            }      
-            case 4:{
-                int32_t clientId=det.ExtractInt32();
-                int32_t vec_len=det.ExtractInt8();
-                if(vec_len>MAX_VECTOR_SIZE) vec_len=DEFAULT_VECTOR_SIZE;
-                std::vector<int32_t> tags=det.ExtractInt32Vector(vec_len);
-                std::vector<int64_t> configs=det.ExtractInt64Vector(vec_len);
-                int32_t str_len=det.ExtractUInt16();
-                if(str_len>MAX_STRING_LENGTH) str_len=DEFAULT_STRING_LENGTH;
-                std::string msg=det.ExtractString(str_len);
-                client.LimitRequest(clientId,tags,configs,msg);
+            case THERMAL_LIMIT_BOOST:
+                FuzzThermalLimitBoost(client, det);
                 break;
-            }        
-            case 5:{
-                bool status=det.ExtractBool();
-                int32_t str_len=det.ExtractUInt16();
-                if(str_len>MAX_STRING_LENGTH) str_len=DEFAULT_STRING_LENGTH;
-                std::string msg=det.ExtractString(str_len);
-                client.SetRequestStatus(status,msg);
+            case LIMIT_REQUEST:
+                FuzzLimitRequest(client, det);
                 break;
-            }            
-            case 6:{
-                int32_t level=det.ExtractInt32();
-                client.SetThermalLevel(level);
+            case SET_REQUEST_STATUS:
+                FuzzSetRequestStatus(client, det);
                 break;
-            }            
-            case 7:{
-                int32_t str_len=det.ExtractUInt16();
-                if(str_len>MAX_STRING_LENGTH) str_len=DEFAULT_MODE_STRING_LENGTH;
-                std::string mode=det.ExtractString(str_len);
-                bool status = det.ExtractBool();
-                client.RequestDeviceMode(mode,status);
+            case SET_THERMAL_LEVEL:
+                FuzzSetThermalLevel(client, det);
                 break;
-            } 
-            case 8:{
-                int32_t str_len=det.ExtractUInt16();
-                if(str_len>MAX_STRING_LENGTH) str_len=DEFAULT_STRING_LENGTH;
-                std::string msg=det.ExtractString(str_len);
-                client.RequestCmdIdCount(msg);
+            case REQUEST_DEVICE_MODE:
+                FuzzRequestDeviceMode(client, det);
                 break;
-            }
-            // case 9:{
-            //     auto recipient = new (std::nothrow) SocPerfClient::SocPerfDeathRecipient(client);
-            //     if (recipient != nullptr) {
-            //         OHOS::wptr<OHOS::IRemoteObject> remoteObject = nullptr;
-            //         // recipient->OnRemoteDied(remoteObject);
-                    
-            //         OHOS::sptr<SocPerfClient::SocPerfDeathRecipient> sptrRecipient = recipient;
-            //         sptrRecipient->OnRemoteDied(remoteObject);
-            //     }
-            //     break;
-            // }
+            case REQUEST_CMD_ID_COUNT:
+                FuzzRequestCmdIdCount(client, det);
+                break;
             default:
                 break;
         }
-        if(choice%2==0) client.ResetClient();
+        
+        const uint8_t MODE = 2;
+        if (choice % MODE == 0) {
+            client.ResetClient();
+        }
         return true;
     }
 }
@@ -447,9 +511,13 @@ namespace OHOS {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    if( data==nullptr || size<MIN_FUZZ_INPUT_SIZE ) return 0;
-    if( size > MAX_FUZZ_INPUT_SIZE) return 0;
-    OHOS::TestSocPerfClientAPI(data,size);
+    if (data == nullptr || size < MIN_FUZZ_INPUT_SIZE) {
+        return 0;
+    }
+    if (size > MAX_FUZZ_INPUT_SIZE) {
+        return 0;
+    }
+    OHOS::TestSocPerfClientAPI(data, size);
     return 0;
 }
 
