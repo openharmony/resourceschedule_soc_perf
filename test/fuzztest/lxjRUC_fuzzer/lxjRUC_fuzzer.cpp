@@ -28,14 +28,11 @@
 #include <mutex>
 #include <unordered_map>
 
-
 namespace FuzzUtils {
 
     // ============================================================================
     // Constants and Macros
     // ============================================================================
-
-    
 
     constexpr int32_t MIN_FUZZ_INPUT_SIZE = 4;
     constexpr int32_t MAX_FUZZ_INPUT_SIZE = 4096;
@@ -499,8 +496,8 @@ namespace OHOS {
                 break;
         }
         
-        const uint8_t MODE = 2;
-        if (choice % MODE == 0) {
+        const uint8_t mode = 2;
+        if (choice % mode == 0) {
             client.ResetClient();
         }
         return true;
