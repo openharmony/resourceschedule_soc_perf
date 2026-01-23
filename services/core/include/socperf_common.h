@@ -41,34 +41,34 @@ enum InterActionStatus {
     WEAK_INTERACTION_STATUS
 };
 
-const std::string SOCPERF_RESOURCE_CONFIG_XML = "etc/soc_perf/socperf_resource_config.xml";
-const std::string SOCPERF_BOOST_CONFIG_XML    = "etc/soc_perf/socperf_boost_config.xml";
-const std::string SOCPERF_BOOST_CONFIG_XML_EXT    = "etc/soc_perf/socperf_boost_config_ext.xml";
-const std::string CAMERA_AWARE_CONFIG_XML    = "etc/camera/cas/camera_aware_config.xml";
-const int64_t MAX_INT_VALUE                       = 0x7FFFFFFFFFFFFFFF;
-const int64_t MIN_INT_VALUE                       = 0x8000000000000000;
-const int32_t MAX_INT32_VALUE                     = 0x7FFFFFFF;
-const int32_t INVALID_VALUE                       = INT_MIN;
-const int32_t RESET_VALUE                         = -1;
-const int32_t MIN_RESOURCE_ID                     = 1000;
-const int32_t MAX_RESOURCE_ID                     = 5999;
-const int32_t RES_ID_ADDITION                     = 10000;
-const int32_t RES_ID_AND_VALUE_PAIR               = 2;
-const int32_t RES_ID_NUMS_PER_TYPE                = 1000;
-const int32_t RES_ID_NUMS_PER_TYPE_EXT            = 10000;
-const int32_t WRITE_NODE                          = 0;
-const int32_t REPORT_TO_PERFSO                    = 1;
-const int32_t PERF_OPEN_TRACE                     = 1;
-const int32_t INVALID_THERMAL_CMD_ID              = -1;
-const int32_t INVALID_DURATION                    = -1;
-const int32_t INVALID_THERMAL_LVL                 = -1;
-const int32_t DEFAULT_THERMAL_LVL                 = 0;
-const int32_t RES_MODE_AND_ID_PAIR                = 2;
-const int32_t MAX_RES_MODE_LEN                    = 64;
-const int32_t MAX_FREQUE_NODE                     = 1;
-const int32_t NODE_DEFAULT_VALUE                  = -1;
-const int32_t TYPE_TRACE_DEBUG                    = 3;
-const std::string DEFAULT_CONFIG_MODE             = "default";
+inline const std::string SOCPERF_RESOURCE_CONFIG_XML = "etc/soc_perf/socperf_resource_config.xml";
+inline const std::string SOCPERF_BOOST_CONFIG_XML    = "etc/soc_perf/socperf_boost_config.xml";
+inline const std::string SOCPERF_BOOST_CONFIG_XML_EXT    = "etc/soc_perf/socperf_boost_config_ext.xml";
+inline const std::string CAMERA_AWARE_CONFIG_XML    = "etc/camera/cas/camera_aware_config.xml";
+inline const int64_t MAX_INT_VALUE                       = 0x7FFFFFFFFFFFFFFF;
+inline const int64_t MIN_INT_VALUE                       = 0x8000000000000000;
+inline const int32_t MAX_INT32_VALUE                     = 0x7FFFFFFF;
+inline const int32_t INVALID_VALUE                       = INT_MIN;
+inline const int32_t RESET_VALUE                         = -1;
+inline const int32_t MIN_RESOURCE_ID                     = 1000;
+inline const int32_t MAX_RESOURCE_ID                     = 5999;
+inline const int32_t RES_ID_ADDITION                     = 10000;
+inline const int32_t RES_ID_AND_VALUE_PAIR               = 2;
+inline const int32_t RES_ID_NUMS_PER_TYPE                = 1000;
+inline const int32_t RES_ID_NUMS_PER_TYPE_EXT            = 10000;
+inline const int32_t WRITE_NODE                          = 0;
+inline const int32_t REPORT_TO_PERFSO                    = 1;
+inline const int32_t PERF_OPEN_TRACE                     = 1;
+inline const int32_t INVALID_THERMAL_CMD_ID              = -1;
+inline const int32_t INVALID_DURATION                    = -1;
+inline const int32_t INVALID_THERMAL_LVL                 = -1;
+inline const int32_t DEFAULT_THERMAL_LVL                 = 0;
+inline const int32_t RES_MODE_AND_ID_PAIR                = 2;
+inline const int32_t MAX_RES_MODE_LEN                    = 64;
+inline const int32_t MAX_FREQUE_NODE                     = 1;
+inline const int32_t NODE_DEFAULT_VALUE                  = -1;
+inline const int32_t TYPE_TRACE_DEBUG                    = 3;
+inline const std::string DEFAULT_CONFIG_MODE             = "default";
 
 class ResourceNode {
 public:
