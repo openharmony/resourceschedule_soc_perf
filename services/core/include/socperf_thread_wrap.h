@@ -44,8 +44,8 @@ enum RssExeEventType {
 };
 
 namespace {
-    const std::string QOSID_STRING = "qosId";
-    const std::string VALUE_STRING = "value";
+    inline const std::string QOSID_STRING = "qosId";
+    inline const std::string VALUE_STRING = "value";
 }
 
 class SocPerfThreadWrap {
