@@ -46,6 +46,7 @@ SocPerf::SocPerf()
 
 SocPerf::~SocPerf()
 {
+    StopStatisticsTimer();
     socperfThreadWrap_ = nullptr;
 }
 
@@ -63,6 +64,7 @@ bool SocPerf::Init()
     InitThreadWraps();
     enabled_ = true;
     CompleteEvent();
+    StartStatisticsTimer();
     return true;
 }
 
@@ -138,6 +140,7 @@ void SocPerf::PerfRequest(int32_t cmdId, const std::string& msg)
     DoFreqActions(GetActionsInfo(matchCmdId), EVENT_INVALID, ACTION_TYPE_PERF);
     FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     UpdateCmdIdCount(cmdId);
+    UpdateDailyCmdIdCount(cmdId);
 }
 
 void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg)
@@ -168,6 +171,7 @@ void SocPerf::PerfRequestEx(int32_t cmdId, bool onOffTag, const std::string& msg
     FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
     if (onOffTag) {
         UpdateCmdIdCount(cmdId);
+        UpdateDailyCmdIdCount(cmdId);
     }
 }
 
@@ -609,6 +613,82 @@ bool SocPerf::CheckTimeInterval(bool onOff, int32_t cmdId)
         return true;
     }
     return false;
+}
+
+void SocPerf::UpdateDailyCmdIdCount(int32_t cmdId)
+{
+    std::lock_guard<std::mutex> lock(mutexDailyCmdIdCount_);
+    dailyCmdIdCount_[cmdId]++;
+}
+ 
+void SocPerf::ReportCmdIdStatistics()
+{
+    // 先复制数据到局部变量，减少锁持有时间
+    std::unordered_map<int32_t, uint32_t> localCmdIdCount;
+    {
+        std::lock_guard<std::mutex> lock(mutexDailyCmdIdCount_);
+        if (dailyCmdIdCount_.empty()) {
+            return;
+        }
+        localCmdIdCount = dailyCmdIdCount_;
+        dailyCmdIdCount_.clear();
+    }
+    // 释放锁后，执行耗时操作
+    std::stringstream statisticsInfo;
+    for (const auto& pair : localCmdIdCount) {
+        if (statisticsInfo.str().length() > 0) {
+            statisticsInfo << ";";
+        }
+        statisticsInfo << pair.first << ":" << pair.second;
+
+    }
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "SCHEDULE_STATISTICS",
+                    OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+                    "STATISTICS_TYPE", static_cast<uint32_t>(2),
+                    "STATISTICS_INFO", statisticsInfo.str());
+}
+ 
+void SocPerf::StartStatisticsTimer()
+{
+    std::lock_guard<std::recursive_mutex> lock(mutexStatisticsTimer_);
+    // 只在首次启动时设置标志
+    if (!statisticsTimerRunning_) {
+        statisticsTimerRunning_ = true;
+    }
+    std::function<void()> reportFunc = [this]() {
+        // 检查定时器是否应该继续运行
+        if (!statisticsTimerRunning_) {
+            return;
+        }
+        ReportCmdIdStatistics();
+        // 检查定时器是否应该继续运行（递归前再次检查）
+        if (statisticsTimerRunning_) {
+            StartStatisticsTimer();  // 递归调用，实现周期性上报
+        }
+    };
+
+    ffrt::task_attr taskAttr;
+    taskAttr.delay(STATISTICS_REPORT_INTERVAL_US);  // 24小时周期
+
+    // 在锁内修改 statisticsTimer_，避免竞态条件
+    ffrt::task_handle newTimer;
+    socperfThreadWrap_->SubmitStatisticsTask(reportFunc, taskAttr, newTimer);
+    statisticsTimer_ = newTimer;
+}
+ 
+void SocPerf::StopStatisticsTimer()
+{
+    std::unique_lock<std::recursive_mutex> lock(mutexStatisticsTimer_);
+    // 设置标志为 false，阻止新的定时器启动
+    statisticsTimerRunning_ = false;
+    // 取消当前正在运行的定时器
+    if (statisticsTimer_ != nullptr) {
+        ffrt::task_handle timerToCancel = statisticsTimer_;
+        statisticsTimer_ = nullptr;  // 先置空，防止重复取消
+        // 释放锁，在锁外执行耗时操作
+        lock.unlock();
+        socperfThreadWrap_->CancelStatisticsTask(timerToCancel);
+    }
 }
 } // namespace SOCPERF
 } // namespace OHOS
