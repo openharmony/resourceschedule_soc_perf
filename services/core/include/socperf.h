@@ -17,6 +17,7 @@
 #define SOC_PERF_SERVICES_CORE_INCLUDE_SOCPERF_H
 
 #include <set>
+#include <sstream>
 #include "libxml/tree.h"
 #include "socperf_thread_wrap.h"
 #include "socperf_config.h"
@@ -53,11 +54,17 @@ private:
     SocPerfConfig &socPerfConfig_ = SocPerfConfig::GetInstance();
     std::unordered_map<int32_t, uint32_t> boostCmdCount_;
     std::unordered_map<int32_t, uint64_t> boostTime_;
+    std::unordered_map<int32_t, uint32_t> dailyCmdIdCount_;
+    ffrt::task_handle statisticsTimer_;
+    std::atomic<bool> statisticsTimerRunning_{false};
 private:
     std::mutex mutex_;
     std::mutex mutexDeviceMode_;
     std::mutex mutexBoostCmdCount_;
     std::mutex mutexBoostTime_;
+    std::mutex mutexDailyCmdIdCount_;
+    std::recursive_mutex mutexStatisticsTimer_;
+    static const int64_t STATISTICS_REPORT_INTERVAL_US = 24 * 60 * 60 * 1000000LL;
     bool CreateThreadWraps();
     void InitThreadWraps();
     void DoFreqActions(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
@@ -69,6 +76,10 @@ private:
     void SendLimitRequestEventOn(int32_t clientId, int32_t resId, int64_t resValue, int32_t eventId);
     void ClearAllAliveRequest();
     void UpdateCmdIdCount(int32_t cmdId);
+    void UpdateDailyCmdIdCount(int32_t cmdId);
+    void ReportCmdIdStatistics();
+    void StartStatisticsTimer();
+    void StopStatisticsTimer();
     void CopyEvent(const int32_t oldCmdId, const int32_t newCmdId,
         std::unordered_map<int32_t, std::shared_ptr<Actions>>& perfActionsInfo);
     bool CheckTimeInterval(bool onOff, int32_t cmdId);
