@@ -20,6 +20,7 @@
  
 #include "config_policy_utils.h"
 #include "parameters.h"
+#include "socperf_trace.h"
 #ifdef RES_SCHED_SA_INIT
 #include "res_sa_init.h"
 #endif
@@ -141,17 +142,20 @@ bool SocPerfConfig::LoadAllConfigXmlFile(const std::string& configFile)
 bool SocPerfConfig::LoadConfigXmlFile(const std::string& realConfigFile)
 {
     if (realConfigFile.size() == 0) {
+        ReportConfigLoadAbnormal(realConfigFile, "config file path is empty", -1);
         return false;
     }
     xmlKeepBlanksDefault(0);
     xmlDoc* file = xmlReadFile(realConfigFile.c_str(), nullptr, XML_PARSE_NOERROR | XML_PARSE_NOWARNING);
     if (!file) {
         SOC_PERF_LOGE("Failed to open xml file");
+        ReportConfigLoadAbnormal(realConfigFile, "failed to open xml file", -1);
         return false;
     }
     xmlNode* rootNode = xmlDocGetRootElement(file);
     if (!rootNode) {
         SOC_PERF_LOGE("Failed to get xml file's RootNode");
+        ReportConfigLoadAbnormal(realConfigFile, "failed to get xml root node", -1);
         xmlFreeDoc(file);
         return false;
     }
@@ -988,5 +992,18 @@ bool SocPerfConfig::CheckActionsValid(std::unordered_map<int32_t, std::shared_pt
     }
     return true;
 }
+
+void SocPerfConfig::ReportConfigLoadAbnormal(const std::string& configFile,
+    const std::string& errorMsg, int32_t abnormalCode)
+{
+    std::string abnormalInfo = "configFile:" + configFile + ", error:" + errorMsg;
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "SCHEDULE_ABNORMAL_INFO",
+                    OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
+                    "ABNORMAL_MODULE", "SOCPERF",
+                    "ABNORMAL_TYPE", ABNORMAL_TYPE_PARSE_SOCPERF_BOOST_CONFIG_EXT,
+                    "ABNORMAL_CODE", abnormalCode,
+                    "ABNORMAL_INFO", abnormalInfo);
+}
+
 } // namespace SOCPERF
 } // namespace OHOS
