@@ -640,7 +640,6 @@ void SocPerf::ReportCmdIdStatistics()
             statisticsInfo << ";";
         }
         statisticsInfo << pair.first << ":" << pair.second;
-
     }
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "SCHEDULE_STATISTICS",
                     OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
