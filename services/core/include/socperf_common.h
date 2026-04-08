@@ -69,6 +69,7 @@ inline const int32_t MAX_FREQUE_NODE                     = 1;
 inline const int32_t NODE_DEFAULT_VALUE                  = -1;
 inline const int32_t TYPE_TRACE_DEBUG                    = 3;
 inline const std::string DEFAULT_CONFIG_MODE             = "default";
+inline const uint32_t ABNORMAL_TYPE_PARSE_SOCPERF_BOOST_CONFIG_EXT = 5;
 
 class ResourceNode {
 public:

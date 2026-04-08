@@ -18,6 +18,7 @@
 
 #include "ffrt.h"
 #include "ffrt_inner.h"
+#include <functional>
 #include "socperf_common.h"
 #include "socperf_config.h"
 namespace OHOS { namespace SOCPERF { class GovResNode; } }
@@ -60,6 +61,8 @@ public:
     void PostDelayTask(std::shared_ptr<ResActionItem> queueHead);
     void SetWeakInteractionStatus(bool enable);
     void ClearAllAliveRequest();
+    void SubmitStatisticsTask(std::function<void()> func, ffrt::task_attr& taskAttr, ffrt::task_handle& timer);
+    void CancelStatisticsTask(ffrt::task_handle& timer);
 public:
     int32_t thermalLvl_ = DEFAULT_THERMAL_LVL;
 
