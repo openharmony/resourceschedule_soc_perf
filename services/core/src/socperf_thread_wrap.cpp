@@ -684,5 +684,20 @@ bool SocPerfThreadWrap::ExistNoCandidate(int32_t resId, std::shared_ptr<ResStatu
     }
     return false;
 }
+
+void SocPerfThreadWrap::SubmitStatisticsTask(
+    std::function<void()> func, ffrt::task_attr& taskAttr, ffrt::task_handle& timer)
+{
+    timer = socperfQueue_.submit_h(func, taskAttr);
+}
+ 
+void SocPerfThreadWrap::CancelStatisticsTask(ffrt::task_handle& timer)
+{
+    if (timer != nullptr) {
+        socperfQueue_.cancel(timer);
+        timer = nullptr;
+    }
+}
+
 } // namespace SOCPERF
 } // namespace OHOS
