@@ -38,7 +38,7 @@ namespace {
     const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_DOWN      = 10010;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_TOUCH_UP        = 10040;
     const int32_t PERF_REQUEST_CMD_ID_EVENT_DRAG            = 10092;
-    const uint32_t STATISTICS_TYPE_DAILY_CMD_ID             = 2;
+    const uint32_t STATISTICS_TYPE_SOCPERF_CMD             = 2;
 
 }
 SocPerf::SocPerf()
@@ -644,7 +644,7 @@ void SocPerf::ReportCmdIdStatistics()
     }
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::RSS, "SCHEDULE_STATISTICS",
                     OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC,
-                    "STATISTICS_TYPE", STATISTICS_TYPE_DAILY_CMD_ID,
+                    "STATISTICS_TYPE", STATISTICS_TYPE_SOCPERF_CMD,
                     "STATISTICS_INFO", statisticsInfo.str());
 }
  
