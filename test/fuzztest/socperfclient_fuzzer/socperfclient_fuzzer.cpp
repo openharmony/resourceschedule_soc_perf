@@ -21,6 +21,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
+#include <securec.h>
 
 using namespace OHOS::SOCPERF;
 
@@ -86,7 +87,7 @@ T ExtractValue(const uint8_t* data, size_t size, size_t& offset)
         return T{};
     }
     T value;
-    memcpy(&value, data + offset, sizeof(T));
+    memcpy_s(&value, sizeof(T), data + offset, sizeof(T));
     offset += sizeof(T);
     return value;
 }
@@ -342,7 +343,7 @@ void TestSetThermalLevel(const uint8_t* data, size_t size)
     client.SetThermalLevel(THERMAL_LEVEL_SLIGHT); // 轻微发热
     client.SetThermalLevel(THERMAL_LEVEL_MEDIUM); // 中度发热
     client.SetThermalLevel(THERMAL_LEVEL_SEVERE); // 严重发热
-    client.SetThermalLevel(THERMAL_LEVEL_EXTREME);// 极端发热
+    client.SetThermalLevel(THERMAL_LEVEL_EXTREME); // 极端发热
     client.SetThermalLevel(-1);                   // 负数
     client.SetThermalLevel(THERMAL_LEVEL_LARGE);  // 大数值
     client.SetThermalLevel(INT32_MAX);
@@ -584,21 +585,10 @@ void TestOnRemoteDied()
     client.PerfRequest(FUZZ_PERF_CMD_RECOVERY2, "after second reset");
 }
 
-} // namespace
-
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+// 分发基础测试用例（TEST_GET_INSTANCE ~ TEST_SET_THERMAL_LEVEL）
+static void RunBasicTests(uint8_t caseIndex, const uint8_t* testData, size_t testSize)
 {
-    if (data == nullptr || size < 1) {
-        return 0;
-    }
-
-    // 使用第一个字节决定测试哪个功能
-    uint8_t testSelector = data[0];
-    const uint8_t* testData = data + 1;
-    size_t testSize = size - 1;
-
-    switch (testSelector % TEST_CASE_COUNT) {
+    switch (caseIndex) {
         case TEST_GET_INSTANCE:
             TestGetInstance();
             break;
@@ -623,6 +613,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case TEST_SET_THERMAL_LEVEL:
             TestSetThermalLevel(testData, testSize);
             break;
+        default:
+            break;
+    }
+}
+
+// 分发扩展测试用例（TEST_REQUEST_DEVICE_MODE ~ TEST_STATE_TRANSITIONS）
+static void RunAdvancedTests(uint8_t caseIndex, const uint8_t* testData, size_t testSize)
+{
+    switch (caseIndex) {
         case TEST_REQUEST_DEVICE_MODE:
             TestRequestDeviceMode(testData, testSize);
             break;
@@ -633,27 +632,44 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             TestResetClient();
             break;
         case TEST_ON_REMOTE_DIED:
-            // OnRemoteDied测试（通过ResetClient模拟）
             TestOnRemoteDied();
             break;
         case TEST_COMBINED_OPERATIONS:
-            // 组合测试
             TestCombinedOperations(testData, testSize);
             break;
         case TEST_BOUNDARY_CONDITIONS:
-            // 边界条件测试
             TestBoundaryConditions();
             break;
         case TEST_RAPID_CALLS:
-            // 快速连续调用测试
             TestRapidCalls(testData, testSize);
             break;
         case TEST_STATE_TRANSITIONS:
-            // 状态切换测试
             TestStateTransitions(testData, testSize);
             break;
         default:
             break;
+    }
+}
+
+} // namespace
+
+/* Fuzzer entry point */
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < 1) {
+        return 0;
+    }
+
+    // 使用第一个字节决定测试哪个功能
+    uint8_t testSelector = data[0];
+    const uint8_t* testData = data + 1;
+    size_t testSize = size - 1;
+    uint8_t caseIndex = testSelector % TEST_CASE_COUNT;
+
+    if (caseIndex < TEST_REQUEST_DEVICE_MODE) {
+        RunBasicTests(caseIndex, testData, testSize);
+    } else {
+        RunAdvancedTests(caseIndex, testData, testSize);
     }
 
     return 0;
