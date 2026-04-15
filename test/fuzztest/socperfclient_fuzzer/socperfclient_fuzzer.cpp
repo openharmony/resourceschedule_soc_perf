@@ -25,6 +25,55 @@
 using namespace OHOS::SOCPERF;
 
 namespace {
+// 测试用例选择器常量
+constexpr int TEST_GET_INSTANCE = 0;
+constexpr int TEST_PERF_REQUEST = 1;
+constexpr int TEST_PERF_REQUEST_EX = 2;
+constexpr int TEST_POWER_LIMIT_BOOST = 3;
+constexpr int TEST_THERMAL_LIMIT_BOOST = 4;
+constexpr int TEST_LIMIT_REQUEST = 5;
+constexpr int TEST_SET_REQUEST_STATUS = 6;
+constexpr int TEST_SET_THERMAL_LEVEL = 7;
+constexpr int TEST_REQUEST_DEVICE_MODE = 8;
+constexpr int TEST_REQUEST_CMD_ID_COUNT = 9;
+constexpr int TEST_RESET_CLIENT = 10;
+constexpr int TEST_ON_REMOTE_DIED = 11;
+constexpr int TEST_COMBINED_OPERATIONS = 12;
+constexpr int TEST_BOUNDARY_CONDITIONS = 13;
+constexpr int TEST_RAPID_CALLS = 14;
+constexpr int TEST_STATE_TRANSITIONS = 15;
+constexpr int TEST_CASE_COUNT = 16;
+
+// 测试用性能请求命令ID常量
+constexpr int32_t FUZZ_PERF_CMD_BASE = 1000;
+constexpr int32_t FUZZ_PERF_CMD_RECOVERY = 1001;
+constexpr int32_t FUZZ_PERF_CMD_RECOVERY2 = 1002;
+constexpr int32_t FUZZ_PERF_CMD_GAME_ENTER = 2000;
+constexpr int32_t FUZZ_PERF_CMD_GAME_EXIT = 2001;
+constexpr int32_t FUZZ_PERF_CMD_THERMAL_NORM = 3000;
+constexpr int32_t FUZZ_PERF_CMD_THERMAL_HIGH = 3001;
+constexpr int32_t FUZZ_PERF_CMD_EX_SPECIAL = 10000;
+
+// 热等级常量
+constexpr int32_t THERMAL_LEVEL_SLIGHT = 1;
+constexpr int32_t THERMAL_LEVEL_MEDIUM = 2;
+constexpr int32_t THERMAL_LEVEL_SEVERE = 3;
+constexpr int32_t THERMAL_LEVEL_EXTREME = 4;
+constexpr int32_t THERMAL_LEVEL_LARGE = 100;
+
+// 循环及迭代常量
+constexpr int TOGGLE_LOOP_COUNT = 5;
+constexpr int RAPID_LOOP_COUNT = 10;
+constexpr int TOGGLE_MODULO = 2;
+constexpr int MAX_LIMIT_ARRAY_COUNT = 10;
+
+// 数组与字符串大小常量
+constexpr size_t LARGE_ARRAY_SIZE = 100;
+constexpr int64_t LARGE_CONFIG_VALUE = 1000;
+constexpr size_t LONG_MSG_LENGTH = 1024;
+constexpr size_t LONG_MODE_LENGTH = 256;
+constexpr int32_t SINGLE_LIMIT_CONFIG = 100;
+
 // 从fuzzer数据中提取值
 template<typename T>
 T ExtractValue(const uint8_t* data, size_t size, size_t& offset)
@@ -44,12 +93,12 @@ std::string ExtractString(const uint8_t* data, size_t size, size_t& offset, size
     if (offset >= size) {
         return "";
     }
-    
+
     size_t len = (size - offset) < maxLen ? (size - offset) : maxLen;
     if (len == 0) {
         return "";
     }
-    
+
     std::string str(reinterpret_cast<const char*>(data + offset), len);
     offset += len;
     return str;
@@ -76,7 +125,7 @@ void TestPerfRequest(const uint8_t* data, size_t size)
 
     // 提取cmdId
     int32_t cmdId = ExtractValue<int32_t>(data, size, offset);
-    
+
     // 提取msg字符串
     std::string msg = ExtractString(data, size, offset, 128);
 
@@ -86,7 +135,7 @@ void TestPerfRequest(const uint8_t* data, size_t size)
     // 测试一些常见的cmdId值
     client.PerfRequest(0, "test");
     client.PerfRequest(1, "test");
-    client.PerfRequest(10000, "test");
+    client.PerfRequest(FUZZ_PERF_CMD_EX_SPECIAL, "test");
     client.PerfRequest(-1, "test");
     client.PerfRequest(INT32_MAX, "");
     client.PerfRequest(INT32_MIN, "");
@@ -104,10 +153,10 @@ void TestPerfRequestEx(const uint8_t* data, size_t size)
 
     // 提取cmdId
     int32_t cmdId = ExtractValue<int32_t>(data, size, offset);
-    
+
     // 提取onOffTag
-    bool onOffTag = (data[offset++] % 2 == 0);
-    
+    bool onOffTag = (data[offset++] % TOGGLE_MODULO == 0);
+
     // 提取msg
     std::string msg = ExtractString(data, size, offset, 128);
 
@@ -117,10 +166,10 @@ void TestPerfRequestEx(const uint8_t* data, size_t size)
     // 测试开关切换
     client.PerfRequestEx(cmdId, true, "on");
     client.PerfRequestEx(cmdId, false, "off");
-    
+
     // 测试特殊cmdId
     client.PerfRequestEx(0, onOffTag, msg);
-    client.PerfRequestEx(10000, onOffTag, msg);
+    client.PerfRequestEx(FUZZ_PERF_CMD_EX_SPECIAL, onOffTag, msg);
     client.PerfRequestEx(-1, onOffTag, msg);
 }
 
@@ -135,8 +184,8 @@ void TestPowerLimitBoost(const uint8_t* data, size_t size)
     size_t offset = 0;
 
     // 提取onOffTag
-    bool onOffTag = (data[offset++] % 2 == 0);
-    
+    bool onOffTag = (data[offset++] % TOGGLE_MODULO == 0);
+
     // 提取msg
     std::string msg = ExtractString(data, size, offset, 128);
 
@@ -148,10 +197,10 @@ void TestPowerLimitBoost(const uint8_t* data, size_t size)
     client.PowerLimitBoost(false, "boost off");
     client.PowerLimitBoost(true, "");
     client.PowerLimitBoost(false, "");
-    
+
     // 测试快速切换
-    for (int i = 0; i < 5; i++) {
-        client.PowerLimitBoost(i % 2 == 0, "toggle");
+    for (int i = 0; i < TOGGLE_LOOP_COUNT; i++) {
+        client.PowerLimitBoost(i % TOGGLE_MODULO == 0, "toggle");
     }
 }
 
@@ -166,8 +215,8 @@ void TestThermalLimitBoost(const uint8_t* data, size_t size)
     size_t offset = 0;
 
     // 提取onOffTag
-    bool onOffTag = (data[offset++] % 2 == 0);
-    
+    bool onOffTag = (data[offset++] % TOGGLE_MODULO == 0);
+
     // 提取msg
     std::string msg = ExtractString(data, size, offset, 128);
 
@@ -177,17 +226,17 @@ void TestThermalLimitBoost(const uint8_t* data, size_t size)
     // 测试开关切换
     client.ThermalLimitBoost(true, "thermal boost on");
     client.ThermalLimitBoost(false, "thermal boost off");
-    
+
     // 测试快速切换
-    for (int i = 0; i < 5; i++) {
-        client.ThermalLimitBoost(i % 2 == 0, "thermal toggle");
+    for (int i = 0; i < TOGGLE_LOOP_COUNT; i++) {
+        client.ThermalLimitBoost(i % TOGGLE_MODULO == 0, "thermal toggle");
     }
 }
 
 // 测试 LimitRequest（必须覆盖）
 void TestLimitRequest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < sizeof(int32_t) + 2) {
+    if (data == nullptr || size < sizeof(int32_t) + TOGGLE_MODULO) {
         return;
     }
 
@@ -196,25 +245,25 @@ void TestLimitRequest(const uint8_t* data, size_t size)
 
     // 提取clientId
     int32_t clientId = ExtractValue<int32_t>(data, size, offset);
-    
-    // 提取tags数组大小（限制最大10个）
-    uint8_t tagsCount = data[offset++] % 10 + 1;
+
+    // 提取tags数组大小（限制最大MAX_LIMIT_ARRAY_COUNT个）
+    uint8_t tagsCount = data[offset++] % MAX_LIMIT_ARRAY_COUNT + 1;
     std::vector<int32_t> tags;
-    
+
     for (uint8_t i = 0; i < tagsCount && offset + sizeof(int32_t) <= size; i++) {
         int32_t tag = ExtractValue<int32_t>(data, size, offset);
         tags.push_back(tag);
     }
-    
-    // 提取configs数组大小（限制最大10个）
-    uint8_t configsCount = data[offset++] % 10 + 1;
+
+    // 提取configs数组大小（限制最大MAX_LIMIT_ARRAY_COUNT个）
+    uint8_t configsCount = data[offset++] % MAX_LIMIT_ARRAY_COUNT + 1;
     std::vector<int64_t> configs;
-    
+
     for (uint8_t i = 0; i < configsCount && offset + sizeof(int64_t) <= size; i++) {
         int64_t config = ExtractValue<int64_t>(data, size, offset);
         configs.push_back(config);
     }
-    
+
     // 提取msg
     std::string msg = ExtractString(data, size, offset, 128);
 
@@ -228,7 +277,7 @@ void TestLimitRequest(const uint8_t* data, size_t size)
 
     // 测试单个元素
     std::vector<int32_t> singleTag = {1};
-    std::vector<int64_t> singleConfig = {100};
+    std::vector<int64_t> singleConfig = {SINGLE_LIMIT_CONFIG};
     client.LimitRequest(0, singleTag, singleConfig, "single");
 
     // 测试特殊clientId
@@ -248,8 +297,8 @@ void TestSetRequestStatus(const uint8_t* data, size_t size)
     size_t offset = 0;
 
     // 提取status
-    bool status = (data[offset++] % 2 == 0);
-    
+    bool status = (data[offset++] % TOGGLE_MODULO == 0);
+
     // 提取msg
     std::string msg = ExtractString(data, size, offset, 128);
 
@@ -261,10 +310,10 @@ void TestSetRequestStatus(const uint8_t* data, size_t size)
     client.SetRequestStatus(false, "disable socperf");
     client.SetRequestStatus(true, "");
     client.SetRequestStatus(false, "");
-    
+
     // 测试快速切换
-    for (int i = 0; i < 5; i++) {
-        client.SetRequestStatus(i % 2 == 0, "toggle status");
+    for (int i = 0; i < TOGGLE_LOOP_COUNT; i++) {
+        client.SetRequestStatus(i % TOGGLE_MODULO == 0, "toggle status");
     }
 }
 
@@ -285,13 +334,13 @@ void TestSetThermalLevel(const uint8_t* data, size_t size)
     client.SetThermalLevel(level);
 
     // 测试各种热等级
-    client.SetThermalLevel(0);    // 正常
-    client.SetThermalLevel(1);    // 轻微发热
-    client.SetThermalLevel(2);    // 中度发热
-    client.SetThermalLevel(3);    // 严重发热
-    client.SetThermalLevel(4);    // 极端发热
-    client.SetThermalLevel(-1);   // 负数
-    client.SetThermalLevel(100);  // 大数值
+    client.SetThermalLevel(0);                    // 正常
+    client.SetThermalLevel(THERMAL_LEVEL_SLIGHT); // 轻微发热
+    client.SetThermalLevel(THERMAL_LEVEL_MEDIUM); // 中度发热
+    client.SetThermalLevel(THERMAL_LEVEL_SEVERE); // 严重发热
+    client.SetThermalLevel(THERMAL_LEVEL_EXTREME);// 极端发热
+    client.SetThermalLevel(-1);                   // 负数
+    client.SetThermalLevel(THERMAL_LEVEL_LARGE);  // 大数值
     client.SetThermalLevel(INT32_MAX);
     client.SetThermalLevel(INT32_MIN);
 }
@@ -299,7 +348,7 @@ void TestSetThermalLevel(const uint8_t* data, size_t size)
 // 测试 RequestDeviceMode（必须覆盖）
 void TestRequestDeviceMode(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < 2) {
+    if (data == nullptr || size < TOGGLE_MODULO) {
         return;
     }
 
@@ -307,8 +356,8 @@ void TestRequestDeviceMode(const uint8_t* data, size_t size)
     size_t offset = 0;
 
     // 提取status
-    bool status = (data[offset++] % 2 == 0);
-    
+    bool status = (data[offset++] % TOGGLE_MODULO == 0);
+
     // 提取mode字符串
     std::string mode = ExtractString(data, size, offset, 64);
 
@@ -326,12 +375,12 @@ void TestRequestDeviceMode(const uint8_t* data, size_t size)
     client.RequestDeviceMode("performance", false);
     client.RequestDeviceMode("powersave", true);
     client.RequestDeviceMode("powersave", false);
-    
+
     // 测试空字符串
     client.RequestDeviceMode("", status);
-    
+
     // 测试长字符串
-    std::string longMode(256, 'a');
+    std::string longMode(LONG_MODE_LENGTH, 'a');
     client.RequestDeviceMode(longMode, status);
 }
 
@@ -339,18 +388,18 @@ void TestRequestDeviceMode(const uint8_t* data, size_t size)
 void TestRequestCmdIdCount(const uint8_t* data, size_t size)
 {
     SocPerfClient& client = SocPerfClient::GetInstance();
-    
+
     // 测试空msg
     std::string result1 = client.RequestCmdIdCount("");
-    
+
     if (data != nullptr && size > 0) {
         size_t offset = 0;
         std::string msg = ExtractString(data, size, offset, 128);
-        
+
         // 调用 RequestCmdIdCount
         std::string result2 = client.RequestCmdIdCount(msg);
     }
-    
+
     // 测试各种msg
     client.RequestCmdIdCount("test");
     client.RequestCmdIdCount("query count");
@@ -361,13 +410,13 @@ void TestRequestCmdIdCount(const uint8_t* data, size_t size)
 void TestResetClient()
 {
     SocPerfClient& client = SocPerfClient::GetInstance();
-    
+
     // 调用 ResetClient
     client.ResetClient();
-    
+
     // 重置后再次使用
-    client.PerfRequest(1000, "after reset");
-    
+    client.PerfRequest(FUZZ_PERF_CMD_BASE, "after reset");
+
     // 再次重置
     client.ResetClient();
 }
@@ -383,7 +432,7 @@ void TestCombinedOperations(const uint8_t* data, size_t size)
     size_t offset = 0;
 
     // 1. 设置请求状态
-    bool status = (data[offset++] % 2 == 0);
+    bool status = (data[offset++] % TOGGLE_MODULO == 0);
     client.SetRequestStatus(status, "combined test");
 
     // 2. 设置热等级
@@ -395,7 +444,7 @@ void TestCombinedOperations(const uint8_t* data, size_t size)
     client.PerfRequest(cmdId, "perf request");
 
     // 4. 发送扩展性能请求
-    bool onOffTag = (data[offset++] % 2 == 0);
+    bool onOffTag = (data[offset++] % TOGGLE_MODULO == 0);
     client.PerfRequestEx(cmdId, onOffTag, "perf request ex");
 
     // 5. 电源限制提升
@@ -431,13 +480,13 @@ void TestBoundaryConditions()
     client.SetThermalLevel(0);
 
     // 测试大量tags和configs
-    std::vector<int32_t> largeTags(100, 1);
-    std::vector<int64_t> largeConfigs(100, 1000);
+    std::vector<int32_t> largeTags(LARGE_ARRAY_SIZE, 1);
+    std::vector<int64_t> largeConfigs(LARGE_ARRAY_SIZE, LARGE_CONFIG_VALUE);
     client.LimitRequest(0, largeTags, largeConfigs, "large arrays");
 
     // 测试空字符串
-    client.PerfRequest(1000, "");
-    client.PerfRequestEx(1000, true, "");
+    client.PerfRequest(FUZZ_PERF_CMD_BASE, "");
+    client.PerfRequestEx(FUZZ_PERF_CMD_BASE, true, "");
     client.PowerLimitBoost(true, "");
     client.ThermalLimitBoost(true, "");
     client.SetRequestStatus(true, "");
@@ -445,8 +494,8 @@ void TestBoundaryConditions()
     client.RequestCmdIdCount("");
 
     // 测试长字符串
-    std::string longMsg(1024, 'x');
-    client.PerfRequest(1000, longMsg);
+    std::string longMsg(LONG_MSG_LENGTH, 'x');
+    client.PerfRequest(FUZZ_PERF_CMD_BASE, longMsg);
     client.RequestDeviceMode(longMsg, true);
 }
 
@@ -463,19 +512,19 @@ void TestRapidCalls(const uint8_t* data, size_t size)
     int32_t cmdId = ExtractValue<int32_t>(data, size, offset);
 
     // 快速连续调用PerfRequest
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < RAPID_LOOP_COUNT; i++) {
         client.PerfRequest(cmdId + i, "rapid call");
     }
 
     // 快速切换状态
-    for (int i = 0; i < 10; i++) {
-        client.SetRequestStatus(i % 2 == 0, "rapid toggle");
-        client.PowerLimitBoost(i % 2 == 0, "rapid boost");
-        client.ThermalLimitBoost(i % 2 == 0, "rapid thermal");
+    for (int i = 0; i < RAPID_LOOP_COUNT; i++) {
+        client.SetRequestStatus(i % TOGGLE_MODULO == 0, "rapid toggle");
+        client.PowerLimitBoost(i % TOGGLE_MODULO == 0, "rapid boost");
+        client.ThermalLimitBoost(i % TOGGLE_MODULO == 0, "rapid thermal");
     }
 
     // 快速改变热等级
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < TOGGLE_LOOP_COUNT; i++) {
         client.SetThermalLevel(i);
     }
 }
@@ -487,22 +536,22 @@ void TestStateTransitions(const uint8_t* data, size_t size)
 
     // 测试启用->禁用->启用
     client.SetRequestStatus(true, "enable");
-    client.PerfRequest(1000, "request while enabled");
+    client.PerfRequest(FUZZ_PERF_CMD_BASE, "request while enabled");
     client.SetRequestStatus(false, "disable");
-    client.PerfRequest(1001, "request while disabled");
+    client.PerfRequest(FUZZ_PERF_CMD_RECOVERY, "request while disabled");
     client.SetRequestStatus(true, "enable again");
 
     // 测试设备模式切换
     client.RequestDeviceMode("game", true);
-    client.PerfRequest(2000, "in game mode");
+    client.PerfRequest(FUZZ_PERF_CMD_GAME_ENTER, "in game mode");
     client.RequestDeviceMode("game", false);
-    client.PerfRequest(2001, "exit game mode");
+    client.PerfRequest(FUZZ_PERF_CMD_GAME_EXIT, "exit game mode");
 
     // 测试热等级变化
     client.SetThermalLevel(0);
-    client.PerfRequest(3000, "normal thermal");
-    client.SetThermalLevel(3);
-    client.PerfRequest(3001, "high thermal");
+    client.PerfRequest(FUZZ_PERF_CMD_THERMAL_NORM, "normal thermal");
+    client.SetThermalLevel(THERMAL_LEVEL_SEVERE);
+    client.PerfRequest(FUZZ_PERF_CMD_THERMAL_HIGH, "high thermal");
     client.SetThermalLevel(0);
 }
 
@@ -510,25 +559,25 @@ void TestStateTransitions(const uint8_t* data, size_t size)
 void TestOnRemoteDied()
 {
     SocPerfClient& client = SocPerfClient::GetInstance();
-    
+
     // 先进行一些正常操作，建立连接
-    client.PerfRequest(1000, "before death");
-    client.SetThermalLevel(1);
-    
+    client.PerfRequest(FUZZ_PERF_CMD_BASE, "before death");
+    client.SetThermalLevel(THERMAL_LEVEL_SLIGHT);
+
     // 触发 ResetClient，模拟服务死亡后重置
     // OnRemoteDied内部会调用ResetClient
     client.ResetClient();
-    
+
     // 验证重置后能否继续工作
-    client.PerfRequest(1001, "after reset/death");
+    client.PerfRequest(FUZZ_PERF_CMD_RECOVERY, "after reset/death");
     client.SetRequestStatus(true, "reconnect");
-    
+
     // 再次触发重置
     client.ResetClient();
-    
+
     // 再次验证
     client.GetInstance();
-    client.PerfRequest(1002, "after second reset");
+    client.PerfRequest(FUZZ_PERF_CMD_RECOVERY2, "after second reset");
 }
 
 } // namespace
@@ -545,70 +594,61 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     const uint8_t* testData = data + 1;
     size_t testSize = size - 1;
 
-    switch (testSelector % 16) {
-        case 0:
-            // 必须覆盖: GetInstance
+    switch (testSelector % TEST_CASE_COUNT) {
+        case TEST_GET_INSTANCE:
             TestGetInstance();
             break;
-        case 1:
-            // 必须覆盖: PerfRequest
+        case TEST_PERF_REQUEST:
             TestPerfRequest(testData, testSize);
             break;
-        case 2:
-            // 必须覆盖: PerfRequestEx
+        case TEST_PERF_REQUEST_EX:
             TestPerfRequestEx(testData, testSize);
             break;
-        case 3:
-            // 必须覆盖: PowerLimitBoost
+        case TEST_POWER_LIMIT_BOOST:
             TestPowerLimitBoost(testData, testSize);
             break;
-        case 4:
-            // 必须覆盖: ThermalLimitBoost
+        case TEST_THERMAL_LIMIT_BOOST:
             TestThermalLimitBoost(testData, testSize);
             break;
-        case 5:
-            // 必须覆盖: LimitRequest
+        case TEST_LIMIT_REQUEST:
             TestLimitRequest(testData, testSize);
             break;
-        case 6:
-            // 必须覆盖: SetRequestStatus
+        case TEST_SET_REQUEST_STATUS:
             TestSetRequestStatus(testData, testSize);
             break;
-        case 7:
-            // 必须覆盖: SetThermalLevel
+        case TEST_SET_THERMAL_LEVEL:
             TestSetThermalLevel(testData, testSize);
             break;
-        case 8:
-            // 必须覆盖: RequestDeviceMode
+        case TEST_REQUEST_DEVICE_MODE:
             TestRequestDeviceMode(testData, testSize);
             break;
-        case 9:
-            // 必须覆盖: RequestCmdIdCount
+        case TEST_REQUEST_CMD_ID_COUNT:
             TestRequestCmdIdCount(testData, testSize);
             break;
-        case 10:
-            // 必须覆盖: ResetClient
+        case TEST_RESET_CLIENT:
             TestResetClient();
             break;
-        case 11:
+        case TEST_ON_REMOTE_DIED:
             // OnRemoteDied测试（通过ResetClient模拟）
             TestOnRemoteDied();
             break;
-        case 12:
+        case TEST_COMBINED_OPERATIONS:
             // 组合测试
             TestCombinedOperations(testData, testSize);
             break;
-        case 13:
+        case TEST_BOUNDARY_CONDITIONS:
             // 边界条件测试
             TestBoundaryConditions();
             break;
-        case 14:
+        case TEST_RAPID_CALLS:
             // 快速连续调用测试
             TestRapidCalls(testData, testSize);
             break;
-        case 15:
+        case TEST_STATE_TRANSITIONS:
             // 状态切换测试
             TestStateTransitions(testData, testSize);
+            break;
+        default:
             break;
     }
 
