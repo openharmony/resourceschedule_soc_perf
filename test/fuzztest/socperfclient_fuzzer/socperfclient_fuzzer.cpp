@@ -74,6 +74,10 @@ constexpr size_t LONG_MSG_LENGTH = 1024;
 constexpr size_t LONG_MODE_LENGTH = 256;
 constexpr int32_t SINGLE_LIMIT_CONFIG = 100;
 
+// 模糊测试函数最小输入长度常量
+constexpr size_t MIN_COMBINED_DATA_SIZE = 20;
+constexpr size_t MIN_RAPID_DATA_SIZE = 8;
+
 // 从fuzzer数据中提取值
 template<typename T>
 T ExtractValue(const uint8_t* data, size_t size, size_t& offset)
@@ -424,7 +428,7 @@ void TestResetClient()
 // 综合测试：组合多个操作
 void TestCombinedOperations(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < 20) {
+    if (data == nullptr || size < MIN_COMBINED_DATA_SIZE) {
         return;
     }
 
@@ -502,7 +506,7 @@ void TestBoundaryConditions()
 // 测试快速连续调用
 void TestRapidCalls(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < 8) {
+    if (data == nullptr || size < MIN_RAPID_DATA_SIZE) {
         return;
     }
 
