@@ -446,6 +446,10 @@ void SocPerf::RequestDeviceMode(const std::string& mode, bool status)
         socperfThreadWrap_->SetWeakInteractionStatus(status);
         return;
     }
+    const std::string PERFORMANCE_MODE_STR = "powerStatus:perfMode";
+    if (mode == PERFORMANCE_MODE_STR) {
+        socperfThreadWrap_->SetPerformanceModeStatus(status);
+    }
     auto iter = socPerfConfig_.sceneResourceInfo_.find(modeType);
     if (iter == socPerfConfig_.sceneResourceInfo_.end()) {
         SOC_PERF_LOGD("No matching device mode found.");

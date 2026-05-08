@@ -26,6 +26,11 @@
 namespace OHOS {
 namespace SOCPERF {
 
+namespace {
+    constexpr int32_t PERF_REQUEST_CMD_ID_WEAK_INTERACTION = 9101;
+    constexpr int32_t PERF_REQUEST_CMD_ID_WEAK_INTERACTION_PERFORMANCE_MODE = 39101;
+}
+
 SocPerfThreadWrap::SocPerfThreadWrap() : socperfQueue_("socperf", ffrt::queue_attr().qos(ffrt::qos_user_interactive))
 {
 }
@@ -175,6 +180,27 @@ void SocPerfThreadWrap::InitResStatus()
     ReportToRssExe(qosIdToRssEx, valueToRssEx, endTimeToRssEx);
 }
 
+void SocPerfThreadWrap::SetPerformanceModeStatus(bool enable)
+{
+    std::function<void()>&& performanceModeFunc = [this, enable]() {
+        std::string trace_str("SetPerformanceModeStatus");
+        trace_str.append("[").append(enable ? "true" : "false").append("]");
+        StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
+        performanceModeStatus_ = enable;
+        SOC_PERF_LOGI("SetPerformanceModeStatus is %{public}d.", enable);
+        FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
+    };
+    socperfQueue_.submit(performanceModeFunc);
+}
+
+int32_t SocPerfThreadWrap::GetModeCmdId(int32_t cmdId)
+{
+    if (cmdId == PERF_REQUEST_CMD_ID_WEAK_INTERACTION && performanceModeStatus_) {
+        return PERF_REQUEST_CMD_ID_WEAK_INTERACTION_PERFORMANCE_MODE;
+    }
+    return cmdId;
+}
+
 void SocPerfThreadWrap::SetWeakInteractionStatus(bool enable)
 {
     std::function<void()>&& weakInteractionFunc = [this, enable]() {
@@ -197,11 +223,12 @@ void SocPerfThreadWrap::WeakInteraction()
             interAction->status = BOOST_END_STATUS;
             std::function<void()>&& updateLimitStatusFunc = [this, i]() {
                 socPerfConfig_.interAction_[i]->status = WEAK_INTERACTION_STATUS;
+                int32_t cmdId = GetModeCmdId(socPerfConfig_.interAction_[i]->cmdId);
                 DoWeakInteraction(
-                    socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE][socPerfConfig_.interAction_[i]->cmdId],
+                    socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE][cmdId],
                     EVENT_ON, socPerfConfig_.interAction_[i]->actionType);
                 std::string trace_str("WeakInteraction");
-                trace_str.append(",cmdId[").append(std::to_string(socPerfConfig_.interAction_[i]->cmdId)).append("]");
+                trace_str.append(",cmdId[").append(std::to_string(cmdId)).append("]");
                 trace_str.append(",onOff[").append(std::to_string(EVENT_ON)).append("]");
                 StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
                 FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
@@ -211,11 +238,12 @@ void SocPerfThreadWrap::WeakInteraction()
             interAction->timerTask = socperfQueue_.submit_h(updateLimitStatusFunc, taskAttr);
         } else if ((!weakInteractionStatus_ || boostResCnt != 0) && interAction->status == WEAK_INTERACTION_STATUS) {
             interAction->status = BOOST_STATUS;
+            int32_t cmdId = GetModeCmdId(interAction->cmdId);
             DoWeakInteraction(
-                socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE][interAction->cmdId],
+                socPerfConfig_.configPerfActionsInfo_[DEFAULT_CONFIG_MODE][cmdId],
                 EVENT_OFF, interAction->actionType);
             std::string trace_str("WeakInteraction");
-            trace_str.append(",cmdId[").append(std::to_string(interAction->cmdId)).append("]");
+            trace_str.append(",cmdId[").append(std::to_string(cmdId)).append("]");
             trace_str.append(",onOff[").append(std::to_string(EVENT_OFF)).append("]");
             StartTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF, trace_str.c_str());
             FinishTraceEx(HITRACE_LEVEL_INFO, HITRACE_TAG_SOCPERF);
