@@ -63,6 +63,7 @@ public:
     void ClearAllAliveRequest();
     void SubmitStatisticsTask(std::function<void()> func, ffrt::task_attr& taskAttr, ffrt::task_handle& timer);
     void CancelStatisticsTask(ffrt::task_handle& timer);
+    void SetPerformanceModeStatus(bool enable);
 public:
     int32_t thermalLvl_ = DEFAULT_THERMAL_LVL;
 
@@ -74,6 +75,7 @@ private:
     bool powerLimitBoost_ = false;
     bool thermalLimitBoost_ = false;
     bool weakInteractionStatus_ = true;
+    bool performanceModeStatus_ = false;
     int boostResCnt = 0;
 
 private:
@@ -102,6 +104,7 @@ private:
         std::shared_ptr<ResAction> resAction, std::shared_ptr<ResStatus> resStatus);
     void DoWeakInteraction(std::shared_ptr<Actions> actions, int32_t onOff, int32_t actionType);
     void WeakInteraction();
+    int32_t GetModeCmdId(int32_t cmdId);
 };
 } // namespace SOCPERF
 } // namespace OHOS
