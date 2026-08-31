@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "socperf_config.h"
+#include "parse_xml_int.h"
 
 #include <algorithm>
 #include <chrono>
@@ -437,8 +438,19 @@ void SocPerfConfig::LoadInterAction(xmlNode* child, const std::string& configFil
         char* delayTime = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("delay")));
         char* actionType = reinterpret_cast<char*>(xmlGetProp(grandson, reinterpret_cast<const xmlChar*>("type")));
 
+        int32_t parsedCmdId = 0;
+        int32_t parsedActionType = 0;
+        int64_t parsedDelayTime = 0;
+        if (!ParseXmlInt32(cmdId, parsedCmdId) || !ParseXmlInt32(actionType, parsedActionType) ||
+            !ParseXmlInt64(delayTime, parsedDelayTime)) {
+            SOC_PERF_LOGE("Invalid interaction cmd/type/delay for %{private}s", configFile.c_str());
+            xmlFree(actionType);
+            xmlFree(delayTime);
+            xmlFree(cmdId);
+            continue;
+        }
         std::shared_ptr<InterAction> interAction = std::make_shared<InterAction>(
-            atoi(cmdId), atoi(actionType), atoll(delayTime));
+            parsedCmdId, parsedActionType, parsedDelayTime);
         interAction_.push_back(interAction);
         xmlFree(actionType);
         xmlFree(delayTime);
